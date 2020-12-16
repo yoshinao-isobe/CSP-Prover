@@ -1,0 +1,118 @@
+Licence agreement
+
+Preamble
+
+Following the ideas of open source software, the provider of this
+licence provides access to the software for anyone without fee, under
+the following conditions which are similar to the Lesser Gnu Public
+License (LGPL).
+
+The aim of this licence agreement is to enable the free use of the
+software that is described in the sequel by anyone. In order to
+guarantee this, it is necessary to set up rules for the use of the
+software that hold for any user.
+
+Providers of this licence are National Institute of Advanced
+Industrial Science and Technology (hereafter referred as AIST) and
+University of Wales Swansea (hereafter referred as UWS). AIST and UWS
+are hereafter referred to collectively "licence providers".
+
+Following the ideas of open source software, the licence providers
+give access to the software without fee for anyone (called "licence
+taker" in the sequel) under certain conditions. Each licence taker
+obligates himself to follow the terms of use below.
+
+
+1 Principle
+
+Each licence taker appreciating these terms of use receives a simple
+right, not restricted in time and space and without any fee, to use
+the software, in particular, to copy, distribute and process
+it. Exclusively the following terms of use do hold. The licence
+providers explicitly contradict any conflicting terms of business. By
+making use of the rights described below, in particular by copying or
+distributing it, a licence treaty between the licence providers and
+the licence takes is concluded.
+
+
+2 Copying
+
+The licence taker has the right to make and distribute unmodified
+copies of the software on any media. Prerequisite for this is that the
+licence providers and this licence agreement are clearly recognizable,
+and that the sources are distributed together with the software.
+
+
+3 Modification and Distribution
+
+The licence taker has the right to modify copies of the software (or
+parts thereof) and to distribute these modifications under the terms
+of Section 2 above and the following conditions:
+
+  (1) The modified software has to carry a clear mark that points to
+      the original licence providers, the modification that has been
+      made, and the date of the modification.
+
+  (2) The licence taker has to ensure that the software as a whole or
+      parts of it are accessible to third parties under the terms of
+      this licence agreement without fee.
+
+  (3) If during the modification a copyright of the licence taker
+      emerges, then this copyright must be put under the terms of this
+      licence if the modified software is distributed.
+
+
+4 Other duties
+
+  (1) Reference to the validity of this licence agreement must not be
+      modified or deleted by the licence taker.
+
+  (2) The use of the software by third parties must not be conditioned
+      by the fulfillment of duties that are not mentioned in this
+      licence agreement.
+
+  (3) The use of the software must not be prevented or complicated by
+      means of technical protection, in particular copy protection means.
+
+
+5 Liability, Update
+
+  (1) The licence providers shall not be liable for any damages
+      suffered by the licence taker or others as a result of using,
+      modifying or distributing this software or its derivatives. The
+      licence providers do not give any warranty, and neither ensures
+      any properties of the software.
+
+  (2) The licence providers have the right to update these terms of
+      use at any time.
+
+
+6 Forum for users
+
+The licence providers do provide neither support nor
+consultation. Without acknowledgment of any legal duty, the licence
+providers will care about the installation of a user forum for
+discussions about the software and its further development.
+
+
+7 Legal domicile
+
+It is agreed that the laws of Japan and the United Kingdom are valid
+for this licence agreement. For any lawsuits or legal actions emerging
+from this licence agreement, it is agreed that only either Japanese
+courts or United Kingdom courts are competent. Legal domiciles are
+Tsukuba in Japan and Swansea in the United Kingdom.
+
+
+8 Termination through Offense
+
+Any violation of a duty of this agreement automatically terminates the
+rights of use of the offender.
+
+
+9 Salvatorian Clause
+
+If any rule of this agreement should be or become inoperative,
+validity of the other rules is not affected. The parties will care
+about replacing the invalid rule by some valid rule that comes close
+to the purpose of this agreement.
