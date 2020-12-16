@@ -23,12 +23,15 @@ CSP-Prover[1,2,3,4] is an interactive theorem prover dedicated to refinement pro
 # Installation
 
 This CSP-Prover needs Isabelle2020. At first, the environment-variable "CSP_PROVER_HOME" is set to the directory containing CSP, CSP_T,..., and ROOT of CSP-Prover. Then, to make heap-files of CSP, CSP_T, CSP_F, and FNF_F once, execute the command
+
 $ `make_heap`
+
 in this directory (CSP_PROVER_HOME). Please read ["User Guide CSP-Prover"](https://staff.aist.go.jp/y-isobe/CSP-Prover/CSP-Prover-5-0-2009/User-Guide-5-0.pdf) in [the CSP-Prover's web-site](http://staff.aist.go.jp/y-isobe/CSP-Prover/CSP-Prover.html).
 
 # User interface
 
 To start Iasbelle/jEdit with the logic of CSP_F, execute the following command:
+
 $ `isabelle jedit -d '$CSP_PROVER_HOME' -l CSP_F`
 
 # Licence agreement
