@@ -1,0 +1,69 @@
+           (*-------------------------------------------*
+            |       Uniform Candy Distribution          |
+            |                                           |
+            |           November 2007 for Isabelle 2005 |
+            |                May 2008 (modified)        |
+            |           November 2008 for Isabelle 2008 |
+            |               July 2009 for Isabelle 2009 |
+            |           November 2012 for Isabelle 2012 |
+            |           November 2016 for Isabelle 2016 |
+            |              April 2018 for Isabelle 2017 |
+            |                                           |
+            |        Yoshinao Isobe (AIST JAPAN)        |
+            *-------------------------------------------*)
+
+1 Introduction
+
+This is a classical example of self-organizing systems as follows:
+
+  every child passes half of their candies to the child on their left;
+  any child who ends up with an odd number of candies is given another
+  candy by the teacher.
+
+For example, see http://www.cs.cmu.edu/puzzle/puzzle6.html .
+
+This directory contains the theory files to prove that the children
+must eventually all hold the same number of candies after repeatedly
+passing the candies.
+
+2 Theory files:
+
+  UCD_data1.thy proves that any list eventually becomes stable when it
+  is repeatedly synchronously changed according to the function
+  circNext. It is proven by induction on the difference the max and
+  the min, and on the number of elements equal to the min.
+
+  UCD_data2.thy gives functions for dealing with asynchronous passing
+  candies. The important one of them is the function "toStb" to derive
+  the internally-stable state from each unstable state. Then, the
+  lemma "nextLR_toStb_circNext" is given for relating the results on
+  synchronous passing and asynchronous passing.
+
+  UCD_proc1.thy sequentializes the connected Children's in line by the
+  induction on the number of children. From this result, we can
+  clearly see the changing of the number of candies by asynchronous
+  passing.
+
+  UCD_proc2.thy proves that the asynchronous passing of candies can be
+  modelled by the function circNext. It shows that the children must
+  eventually all hold the same number of candies after repeatedly
+  passing the candies.
+
+3 How to prove the puzzle (UCD):
+
+These theory files require CSP-Prover-5-0-Isabelle2016, on Isabelle
+2016. Then, for example start Isabelle/jEdit by
+
+   isabelle jedit -d '$CSP_PROVER_HOME' -l CSP_F UCD_proc2.thy
+
+Note: it may take time to complete all the proofs.
+(e.g. 95 minutes in Pentium-M (1.2GHz)).
+
+References
+
+  Yoshinao Isobe and Markus Roggenbach: CSP-Prover -- a Proof Tool for
+  the Verification of Scalable Concurrent Systems, Journal of Computer
+  Software, Japan Society for Software Science and Technology (JSSST),
+  Vol.25, No.4, pp.85--92, 2008.
+
+

@@ -1,0 +1,21 @@
+           (*-------------------------------------------*
+            |                 n Buffers                 |
+            |                                           |
+            |        July 2009 for Isabelle 2009        |
+            |       April 2018 for Isabelle 2017        |
+            |                                           |
+            |        Yoshinao Isobe (AIST JAPAN)        |
+            *-------------------------------------------*)
+
+1 Introduction
+
+The theory file NBuff.thy proves that LinkBuff is failures-equivalent
+to Buff N by induction on N, where
+
+  Buff N is a specification of buffer whose capacity is N, and
+  LinkBuff is concurrent system which consists of N copies of Buff 1
+
+The proof strategy is based on the proof given in Section 3.3 in
+
+  Robin Milner, Communication and Concurrency, Prentice Hall, 1989.
+

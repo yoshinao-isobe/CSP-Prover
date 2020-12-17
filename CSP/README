@@ -1,0 +1,102 @@
+           (*-------------------------------------------*
+            |                                           |
+            |          << The reusable part >>          |
+            |                                           |
+            |        CSP-Prover on Isabelle2004         |
+            |              December 2004                |
+            |              February 2005  (modified)    |
+            |                  June 2005  (modified)    |
+            |                                           |
+            |        CSP-Prover on Isabelle2005         |
+            |              November 2005  (modified)    |
+            |                   May 2006  (modified)    |
+            |                                           |
+            |        CSP-Prover on Isabelle2009         |
+            |                   June 2009  (modified)   |
+            |                                           |
+            |        CSP-Prover on Isabelle2009-2       |
+            |                October 2010  (modified)   |
+            |                                           |
+            |        CSP-Prover on Isabelle2012         |
+            |               November 2012  (modified)   |
+            |                                           |
+            |        CSP-Prover on Isabelle2016         |
+            |                    May 2016  (modified)   |
+            |                                           |
+            |        CSP-Prover on Isabelle2017         |
+            |                  April 2018  (modified)   |
+            |                                           |
+            |        CSP-Prover on Isabelle2020         |
+            |                  April 2020  (modified)   |
+            |                                           |
+            |        Yoshinao Isobe (AIST JAPAN)        |
+            |                                           |
+            *-------------------------------------------*)
+
+1 Introduction 
+
+CSP-Prover [1] provides a deep encoding of the process algebra CSP
+within the interactive theorem prover Isabelle. It has a generic
+architecture divided into a large reusable part independent of
+specific CSP models and an instantiated part for each specific CSP
+model.
+
+This package "CSP" provides the reusable part. The part contains
+Banach's fixpoint theorem and the metric fixpoint induction rule based
+on complete metric spaces as well as Tarski's fixpoint theorem and the
+standard fixpoint induction rule based on complete partial
+orders. Furthermore, infinite product constructions are provided as
+lifting theorems which are required for infinite state systems.
+Another contribution of this reusable part is the definition of the
+CSP syntax as a recursive type. This means that the syntax is deeply
+encoded. Therefore, CSP-Prover supports structural induction on
+processes.
+
+
+2 Theory files
+
+This directory gives theory files for the Reusable part.
+
+  (1) CSP-Prover infrastructure
+
+      Infra.thy         Infra_list.thy   Infra_real.thy
+      Infra_HOL.thy     Infra_nat.thy    Infra_set.thy
+      Infra_common.thy  Infra_order.thy  Infra_type.thy
+      Infra_exp.thy     Infra_pair.thy
+      Infra_fun.thy     Infra_prog.thy
+
+  (2) CPO theory
+
+      CPO.thy  CPO_pair.thy  CPO_prod.thy CPO_set.thy
+
+  (3) CMS theory and restriction spaces
+
+      CMS.thy  RS.thy  RS_pair.thy  RS_prod.thy  Norm_seq.thy
+
+  (4) CSP syntax
+
+      CSP_syntax.thy
+
+  (5) Trace theory
+
+      Trace.thy  Prefix.thy
+      Trace_hide.thy  Trace_par.thy  Trace_ren.thy  Trace_seq.thy 
+
+  (6) the main theory of this reusable part
+
+      CSP.thy 
+
+
+2 How to use this part CSP.
+
+To start Iasbelle/jEdit with the logic of CSP, execute the following command:
+
+   isabelle jedit -d '$CSP_PROVER_HOME' -l CSP
+
+
+References
+
+[1] Y.Isobe and M.Roggenbach: A Generic Theorem Prover of CSP
+    Refinement, TACAS 2005 (11th International Conference on Tools and
+    Algorithms for the Construction and Analysis of Systems), LNCS
+    3440, pp.108-123, Edinburgh, April 2005.

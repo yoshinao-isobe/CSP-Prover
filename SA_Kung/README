@@ -1,0 +1,29 @@
+           (*-------------------------------------------*
+            |    Example 1 [Roscoe_Dathi_1987 P.10]     |
+            |             WITH computation              |
+            |  Self-timed version of a systolic array   |
+            |              September 2006  (modified)   |
+            |                   July 2009  (modified)   |
+            |                                           |
+            |        Yoshinao Isobe (AIST JAPAN)        |
+            *-------------------------------------------*)
+
+1 Introduction 
+
+The deadlock freeness of Kung's systolic array for the multiplication
+of n x n matrices is verified by DFP (Deadlock Freedom Proof) package
+on CSP-Prover.
+
+2 Theory files
+
+SA_definition.thy : Definition of the Kung's systolic array
+SA_local.thy      : Possible local connections are checked
+SA_condition.thy  : Simple conditions such as triple_disjoint are checked
+SA_expanding.thy  : Semantics (Failures set) of Systolic array is checked
+SA_main.thy       : Deadlock freedom is verified by Rule1_Roscoe_Dathi_1987_I
+
+3 How to use these theory files
+
+Execute Isabelle/jEdit as follows:
+
+   isabelle jedit -d '$CSP_PROVER_HOME' -l DFP SA_main.thy

@@ -1,0 +1,42 @@
+           (*-----------------------------------------------*
+            |                                               |
+            |                 Small examples                |
+            |                                               |
+            |              November 2005                    |
+            |                   May 2006  (modified)        |
+            |                                               |
+            |         Yoshinao Isobe    (AIST, Japan)       |
+            |                                               |
+            *-----------------------------------------------*)
+
+CSP-Prover is tested by the following small examples. All the examples
+need the package "CSP_F", thus start Isabelle/jEdit by
+
+   isabelle jedit -d '$CSP_PROVER_HOME' -l CSP_F
+
+then, apply the proof script in each example.
+
+(1) Test_proof.thy
+
+A simple equality is proven by three different ways, thus semantical
+proof, manually synatctical proof, and semi-atuomatical synatctical
+proof. You should check this example at first.
+
+   isabelle jedit -d '$CSP_PROVER_HOME' -l CSP_F Test_proof.thy
+
+(2) Test_Buffer.thy
+
+This example is used in the User-Guide, to explain how to express
+recursive processes and verify the refinement.
+
+(3) Test_infinite.thy
+
+The refinement relation between processes with infinite states is
+verified.
+
+(4) Test_renaming.thy
+
+This shows small examples with renaming.
+
+
+

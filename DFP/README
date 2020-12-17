@@ -1,0 +1,53 @@
+           (*-------------------------------------------*
+            |                                           |
+            |      Deadlock Freedom Proof package       |
+            |                   July 2005               |
+            |                                           |
+            |        CSP-Prover on Isabelle2009         |
+            |                   June 2009  (modified)   |
+            |                                           |
+            |        CSP-Prover on Isabelle2009         |
+            |               November 2012  (modified)   |
+            |                                           |
+            |        CSP-Prover on Isabelle2016         |
+            |                    May 2016  (modified)   |
+            |                                           |	    
+            |        CSP-Prover on Isabelle2017         |
+            |                  April 2018  (modified)   |
+            |                                           |
+            |        Yoshinao Isobe (AIST JAPAN)        |
+            |                                           |
+            *-------------------------------------------*)
+
+1 Introduction 
+
+CSP-Prover is extended by DFP (Deadlock Freedom Proof) package, which
+contains definitions, lemmas, and theorems given in [1] for proving
+deadlock freedom of networks.
+
+2 Theory files
+
+DFP_subseteqEX.thy : provides lemmas for proving semantic networks,
+DFP_Network.thy    : defines networks,
+DFP_Deadlock.thy   : provides deadlock and deadlock freedom,
+DFP_Block.thy      : defines "blocked" and proves the properties,
+DFP_Proof_Rule1.thy: provides Rule1 in [1],
+DFP.thy            : the top of DFP
+
+3 How to use DFP.
+
+To start Iasbelle/jEdit with the logic of DFP, execute the following command:
+
+   isabelle jedit -d '$CSP_PROVER_HOME' -l DFP
+
+
+References
+
+[1] A.W.Roscoe and N.Dathi, "The pursuit of deadlock freedom",
+    Information and Computation, Vol.75, No.3, pp.289-327, 1987.
+
+[2] Y.Isobe, M.Roggenbach, and S.Gruner, Extending CSP-Prover by
+    deadlock-analysis: Towards the verification of systolic arrays,
+    FOSE 2005 (12th Workshop on Foundation of Software Engineering),
+    Japanese Lecture Notes Series 31, pp.257-266, Kindai-kagaku-sha,
+    November 2005.

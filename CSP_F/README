@@ -1,0 +1,117 @@
+           (*-------------------------------------------*
+            |                                           |
+            |   The instantiated part for the mode F    |
+            |                                           |
+            |        CSP-Prover on Isabelle2004         |
+            |              December 2004                |
+            |              February 2005  (modified)    |
+            |                  June 2005  (modified)    |
+            |                                           |
+            |        CSP-Prover on Isabelle2005         |
+            |              November 2005  (modified)    |
+            |                   May 2006  (modified)    |
+            |                                           |
+            |        CSP-Prover on Isabelle2009         |
+            |                   June 2009  (modified)   |
+            |                                           |
+            |        CSP-Prover on Isabelle2009-2       |
+            |                October 2010  (modified)   |
+            |                                           |
+            |        CSP-Prover on Isabelle2012         |
+            |               November 2012  (modified)   |
+            |                                           |
+            |        CSP-Prover on Isabelle2016         |
+            |                    May 2016  (modified)   |
+            |                                           |
+            |        CSP-Prover on Isabelle2016         |
+            |                    May 2016  (modified)   |
+            |                                           |
+            |        CSP-Prover on Isabelle2017         |
+            |                  April 2018  (modified)   |
+            |                                           |	    
+            |        Yoshinao Isobe (AIST JAPAN)        |
+            |                                           |
+            *-------------------------------------------*)
+
+1 Introduction 
+
+CSP-Prover [1] provides a deep encoding of the process algebra CSP
+within the interactive theorem prover Isabelle. It has a generic
+architecture divided into a large reusable part independent of
+specific CSP models and an instantiated part for each specific CSP
+model.
+
+This package "CSP_F" provides the instantiated part for the stable
+failures model F. It defines the domain "domF" together with proofs in
+Isabelle which establish that domF indeed are complete metric spaces
+as well as complete partial orders. Furthermore, it define the
+semantic clauses of the model F. Finally, a model-dependent proof
+infrastructure for the model F is provided, thus CSP-laws such as step
+laws as well as distributive laws, or tactics such as cspF_hsf_tac
+that translates CSP expressions into Head Sequential Form.
+
+
+2 Theory files
+
+This directory gives theory files for the instantiated part for F.
+
+  (1) Domain theory for the stable failures model F
+
+      Domain_F.thy   Domain_F_cms.thy   Domain_F_cpo.thy
+      Set_F.thy      Set_F_cms.thy      Set_F_cpo.thy
+
+  (2) Semantics
+
+      CSP_F_semantics.thy
+      CSP_F_op_alpha_par.thy
+      CSP_F_op_index_par.thy
+      CSP_F_failures.thy
+      CSP_F_failuresfun.thy
+      CSP_F_domain.thy
+      CSP_F_surj.thy
+
+  (3) Properties for operators
+
+      CSP_F_continuous.thy
+      CSP_F_contraction.thy
+      CSP_F_mono.thy
+
+  (4) CSP laws
+
+      CSP_F_law.thy            CSP_F_law_etc.thy
+      CSP_F_law_DIV.thy        CSP_F_law_fp.thy
+      CSP_F_law_SKIP.thy       CSP_F_law_norm.thy
+      CSP_F_law_SKIP_DIV.thy   CSP_F_law_ref.thy
+      CSP_F_law_alpha_par.thy  CSP_F_law_rep_par.thy
+      CSP_F_law_aux.thy        CSP_F_law_step.thy
+      CSP_F_law_basic.thy      CSP_F_law_step_ext.thy
+      CSP_F_law_decompo.thy    CSP_F_law_ufp.thy
+      CSP_F_law_dist.thy
+
+  (5) relation between models T and F
+
+      CSP_F_MF_MT.thy
+      CSP_F_T_domain.thy
+
+  (6) CSP tactic for F
+
+      CSP_F_tactic.thy
+
+  (7) the main theory of CSP_F
+
+      CSP_F.thy 
+
+
+3 How to use CSP_F.
+
+To start Iasbelle/jEdit with the logic of CSP_F, execute the following command:
+
+   isabelle jedit -d '$CSP_PROVER_HOME' -l CSP_F
+
+
+References
+
+[1] Y.Isobe and M.Roggenbach: A Generic Theorem Prover of CSP
+    Refinement, TACAS 2005 (11th International Conference on Tools and
+    Algorithms for the Construction and Analysis of Systems), LNCS
+    3440, pp.108-123, Edinburgh, April 2005.

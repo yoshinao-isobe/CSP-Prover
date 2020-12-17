@@ -1,0 +1,8 @@
+#!/bin/sh
+#
+# make the heap files for CSP, CSP_T, CSP_F, FNF_F, and DFP
+#
+# "ISABELLE_bin" is the path containing isabelle of Isabelle2020
+# $ISABELLE_bin/isabelle build -d . -o browser_info -v -b CSP CSP_T CSP_F DFP FNF_F
+
+isabelle build -d . -o browser_info -v -b CSP CSP_T CSP_F DFP FNF_F

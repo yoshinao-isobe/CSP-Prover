@@ -1,0 +1,47 @@
+           (*-----------------------------------------------*
+            |                                               |
+            |    The Dining Mathematicians in CSP-Prover    |
+            |                                               |
+            |                  June 2004                    |
+            |              December 2004 (modified)         |
+            |              November 2005 (modified)         |
+            |                  July 2009 (modified)         |
+            |                   May 2016 (modified)         |
+            |                 April 2018 (modified)         |
+            |                                               |
+            |         Yoshinao Isobe    (AIST, Japan)       |
+            |         Markus Roggenbach (SU, UK)            |
+            |                                               |
+            *-----------------------------------------------*)
+
+1 Introduction 
+
+These 5 theory files (DM1_Sys_def.thy - DM5_Spc_Seq.thy) verify that
+(Imp n) refines Spc (i.e. Spc <=F (Imp n)). (Imp n) expresses a
+concurrent behavior between two mathematicians and a shared variable,
+where n is the initial value of the shared variable. On the other
+hand, Spc requires that the mathematicians exclusively eat and they
+have no deadlock. Please also see the following URL:
+
+  http://staff.aist.go.jp/y-isobe/CSP-Prover/ex_dm/dining_mathematicians.html
+
+2 Theory files
+
+  DM1_Imp_def.thy  : defines Imp
+  DM2_para.thy     : expands parallel operators in Imp
+  DM3_hide.thy     : expands hiding operators in Imp
+  DM4_Spc_def.thy  : defines Spc
+  DM5_Spc_Imp.thy  : proves Spc <=F Imp
+
+
+3 How to use these theory files
+
+Execute Isabelle/jEdit as follows:
+
+   isabelle jedit -d '$CSP_PROVER_HOME' -l CSP_F DM5_Spc_Imp.thy
+
+References for The Dining Mathematicians
+
+   E.M.Clarke and B.H.Schlingloff "Model Checking", Chapter 24 in
+   Handbook of Automated Reasoning, Elsevier Science Publishers, 2001
+

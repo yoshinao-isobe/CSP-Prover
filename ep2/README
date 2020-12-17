@@ -1,0 +1,45 @@
+           (*-----------------------------------------------*
+            |                                               |
+            |                (a part of) ep2                |
+            |      --- electronic payment systems ---       |
+            |                                               |
+            |              November 2005 (modified)         |
+            |                  July 2009 (modified)         |
+            |                   May 2016 (modified)         |
+            |                 April 2018 (modified)         |
+            |                                               |
+            |         Markus Roggenbach (SU, UK)            |
+            |         Yoshinao Isobe    (AIST, Japan)       |
+            |                                               |
+            *-----------------------------------------------*)
+
+1 Introduction 
+
+The ep2 system is a new industrial standard of electronic payment
+systems. It consists of seven autonomous entities centred around the
+ep2 Terminal: Cardholder (i.e., customer), Point of Service (i.e.,
+cash register), Attendant, POS Management System, Acquirer, Service
+Center, and Card. These entities communicate with the Terminal and, to
+a certain extent, with one another via XML-messages in a fixed format.
+These messages contain information about authorisation, financial
+transactions, as well as initialisation and status data. The state of
+each component heavily depends on the content of the exchanged data.
+
+A part of ep2 can be verified by CSP-Prover. The detail is explained
+in the following page:
+
+     http://staff.aist.go.jp/y-isobe/CSP-Prover/CSP-Prover.html
+
+2 Theory files
+
+  ep2_nucleus.thy  :  The nucleus of ep2 verification
+  ep2_nucleusDF.thy:  The verification of deadlock-freeness of ep2 by DFP
+  ep2_acl.thy      :  Abstract Component Level (AC) refines an abstraction (Abs).
+  ep2_ccl.thy      :  Concrete Component Description Level (CC) refines AC.
+
+
+3 How to use these theory files
+
+For example,
+
+   isabelle jedit -d '$CSP_PROVER_HOME' -l DFP ep2_nucleusDF.thy

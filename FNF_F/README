@@ -1,0 +1,79 @@
+           (*-------------------------------------------*
+            |                                           |
+            |      Full Norml Form in the model F       |
+            |                                           |
+            |        CSP-Prover on Isabelle2005         |
+            |                   May 2006                |
+            |                                           |
+            |        CSP-Prover on Isabelle2009         |
+            |                   June 2009  (modified)   |
+            |                                           |
+            |        CSP-Prover on Isabelle2012         |
+            |               November 2012  (modified)   |
+            |                                           |
+            |        CSP-Prover on Isabelle2016         |
+            |                    May 2016  (modified)   |
+            |                                           |
+            |        CSP-Prover on Isabelle2017         |
+            |                  April 2018  (modified)   |
+            |                                           |	    
+            |        Yoshinao Isobe (AIST JAPAN)        |
+            |                                           |
+            *-------------------------------------------*)
+
+1 Introduction 
+
+This package "FNF_F" [1] provides a proof to transform any CSP
+processes to a full normal form by applying the CSP laws given in the
+package CSP_F. That means, the stable-failures equeivalence "P =F Q"
+can be proven by the CSP laws and induction, without using the
+semantics.
+
+
+2 Theory files
+
+This directory gives theory files for the instantiated part for F.
+
+  (1) To fully sequentialise processes
+
+      FNF_F_sf.thy         FNF_F_sf_int.thy
+      FNF_F_sf_def.thy     FNF_F_sf_par.thy
+      FNF_F_sf_ext.thy     FNF_F_sf_ren.thy
+      FNF_F_sf_hide.thy    FNF_F_sf_rest.thy
+      FNF_F_sf_induct.thy  FNF_F_sf_seq.thy
+
+  (2) To fully normalise sequential-processes
+
+      FNF_F_nf_def.thy     FNF_F_nf_int.thy
+      FNF_F_nf.thy      
+
+  (3) To show full normal form is uniquely decided
+
+      FNF_F_nf_id.thy
+
+  (4) the main theory of FNF_F
+
+      FNF_F.thy
+
+  (5) A counter example for Conventional full normal form
+
+      Counter_EX.thy
+
+  (6) A samll exmaple of (extended) full normalisation
+
+      DIV_Example.thy
+
+
+3 How to use FNF_F.
+
+To start Iasbelle/jEdit with the logic of FNF_F, execute the following command:
+
+   isabelle jedit -d '$CSP_PROVER_HOME' -l FNF_F
+
+
+References
+
+[1] Y.Isobe and M.Roggenbach: A complete axiomatic semantics for the
+    CSP stable-failures model, CONCUR 2006 (17th International
+    Conference on Concurrency Theory), LNCS 4137, Springer,
+    pp.158-172, August 2006.
