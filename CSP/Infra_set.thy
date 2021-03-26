@@ -391,6 +391,32 @@ lemma isListOf_onelist_to_oneset[simp]: "([a] isListOf X) = (X = {a})"
 apply (simp add: isListOf_def)
 done
 
+
+lemma some_isListOf_Empty [simp]:
+    "I = {} \<Longrightarrow> (SOME x. x isListOf I) = []"
+by (auto)
+
+lemma some_isListOf_nonEmpty [simp]:
+    "I \<noteq> {} \<Longrightarrow> x isListOf I \<Longrightarrow> x \<noteq> []"
+by (auto)
+
+lemma some_isListOf_finite :
+    "I \<noteq> {} \<and> finite I \<Longrightarrow> (SOME Is. Is isListOf I) \<noteq> []"
+by (rule someI2_ex, rule isListOf_EX, auto)
+
+lemmas some_isListOf = some_isListOf_Empty some_isListOf_finite
+
+
+(* ListMem lemmas *)
+
+lemma ListMem_tail :
+    "i \<noteq> a \<and> l \<noteq> [] \<Longrightarrow> ListMem i l \<Longrightarrow> ListMem i (a # l)"
+  apply (induct l)
+  apply (simp add: ListMem_iff)
+  apply (simp add: ListMem_iff)
+done
+
+
 (* --------------------------------------------------- *
                addition for CSP-Prover 5
  * --------------------------------------------------- *)
