@@ -35,6 +35,14 @@ declare Union_image_eq [simp del]
 declare Inter_image_eq [simp del]
 *)
 
+
+type_synonym 'e alphabet = "('e) set"
+
+abbreviation chanset :: "('a => 'e) =>  'e alphabet" ("{| _ |}")
+where
+  "{| c |} == { e . \<exists>x. e = c x }"
+
+
 (*-----------------------------------------------------------*
  |                                                           |
  |    Process Type Definitions                               |
@@ -121,6 +129,30 @@ syntax
                                            ("(1? _ /-> _)" [900,80] 80)
 translations
   "? x -> P"    == "? x:(CONST UNIV) -> P"
+
+
+
+(*** Inductive external choice ***)
+
+primrec Inductive_ext_choice :: "(('p,'a) proc) list \<Rightarrow> ('p,'a) proc" ("(1[+] _)" [80] 80)
+where
+  "[+] [] = STOP"
+ |"[+] (P#Ps) = P [+] ( [+] Ps)"
+
+
+
+(*** Replicated external choice ***)
+
+definition Rep_ext_choice :: "'x set \<Rightarrow> ('x \<Rightarrow> ('p,'a) proc) \<Rightarrow> ('p,'a) proc"  ("(1[+]_ .. _)" [900,80] 80)
+where
+  "[+]X .. PXf == [+] [ PXf i . i <- (SOME x . x isListOf X) ]"
+
+syntax
+  "@Rep_ext_choice"  ::
+      "pttrn \<Rightarrow> 'x set \<Rightarrow> ('p,'a) proc \<Rightarrow> ('p,'a) proc"  ("(1[+] _:_ .. _)" [900,900,80] 80)
+translations
+  "[+] x:X .. P" == "[+]X .. (%x . P)"
+
 
 
 (*** replicated internal choice (bound variable, UNIV) ***)
@@ -456,6 +488,56 @@ lemma Rep_parallel_one:
   "I = {i} ==> [||]:I PXf = (fst (PXf i)) |[snd (PXf i), {}]| SKIP"
 by (simp add: Rep_parallel_def)
 
+
+(*** Inductive interleave ***)
+
+primrec
+  Inductive_interleave :: "(('p,'a) proc) list \<Rightarrow> ('p,'a) proc" ("(1||| _)" [80] 80)
+where
+  "||| [] = SKIP"
+ |"||| (P#Ps) = P ||| ( ||| Ps)"
+
+
+(*** Replicated interleaving ***)
+
+definition
+  Rep_interleaving :: "'x set \<Rightarrow> ('x \<Rightarrow> ('p,'a) proc) \<Rightarrow> ('p,'a) proc" ("(1|||_ ..  _)" [900,80] 80)
+  where
+  Rep_interleaving_def :
+  "|||X .. PXf == ||| [ PXf i . i <- (SOME x . x isListOf X) ]"
+
+
+(*
+datatype Events = a | b
+
+lemma test : "[||] [ (a -> SKIP, {a}), (b -> SKIP, {b}) ] =F (a -> SKIP ||| b -> SKIP)"
+  apply (simp add: Rep_interleaving_def)
+*)
+
+
+(* consts Rep_interleaving :: "'x set \<Rightarrow> ('x \<Rightarrow> ('p,'a) proc) \<Rightarrow> ('p,'a) proc" ("(1|||_ ..  _)" [900,80] 80)
+defs Rep_interleaving_def : "Rep_interleaving X PXf == [||] [ (PXf i, eventsOf(PXf i )) . i <- (SOME x . x isListOf X) ]" *)
+
+syntax
+  "@Rep_interleaving" ::
+    "pttrn => 'x set => ('p,'a) proc => ('p,'a) proc" ("(1||| _:_ .. /_)" [900,900,68] 68)
+translations
+  "||| x:X .. P" == "|||X .. (%x . P)"
+
+
+(************************************
+ |     Inductive_interleave_map     |
+ ************************************)
+
+lemma Inductive_interleave_map_to_List :
+    "map PXf x = l \<Longrightarrow> ( ||| map PXf x) = ( ||| l)"
+by (simp)
+
+lemma Inductive_interleave_map_to_List_Cons :
+    "l \<noteq> [] \<Longrightarrow> ||| map PXf l = ||| ( (PXf (hd l)) # map PXf (tl l) )"
+by (rule Inductive_interleave_map_to_List, induct l, simp, simp add: map_def)
+
+
 (*** timeout ***)
 
 abbreviation
@@ -693,6 +775,13 @@ definition
   where
   "Pf <<< == (%Qf p. (Pf p)<<Qf)"
 
+
+(*** Mapping procfun ***)
+
+definition isMapping_procfun :: "('p \<Rightarrow> ('q,'e) proc) \<Rightarrow> bool"
+where
+  "isMapping_procfun Pf \<equiv> \<forall> x. \<exists>y . Pf(x) = $y"
+
 (* lemmas *)
 
 lemma Subst_procfun_Rep_int_choice_set[simp]:
@@ -715,8 +804,13 @@ lemma Subst_procfun_prod_p:
   "(Pf <<< Qf) p = (Pf p) << Qf"
 by (simp add: Subst_procfun_prod_def)
 
+lemma Subst_procfun_Inductive_interleave_map :
+   "\<forall> i \<in> set l. (PXf i) << Pf = PXf i
+    \<Longrightarrow> ( ||| map PXf l) << Pf = ( ||| map PXf l)"
+by (induct l, simp_all add: Subst_procfun_def)
 
-(* for sinding and receiving *)
+
+(* for sending and receiving *)
 
 lemma Subst_procfun_Send_prefix[simp]:
   "(a ! v -> P)<<Pf      = a ! v -> P<<Pf"
@@ -876,6 +970,12 @@ definition
 
 (* noPN *)
 
+lemma noPN_Rep_ext_choice [rule_format]:
+    "\<lbrakk> finite X; \<And>x. noPN (PXf x) \<rbrakk> \<Longrightarrow> noPN ([+]X .. PXf)"
+  apply (simp add: Rep_ext_choice_def)
+    apply (rule someI2_ex, rule isListOf_EX, simp)
+by (induct_tac x, simp_all add: Inductive_ext_choice_def)
+
 lemma noPN_Rep_int_choice_set[simp]:
   "noPN (!set :Xs .. Pf) = (ALL X. noPN (Pf X))"
 by (simp add: Rep_int_choice_ss_def)
@@ -898,6 +998,21 @@ by (simp add: Rep_int_choice_f_def)
 lemma noPN_Alpha_parallel[simp]:
   "noPN (P |[X,Y]| Q) = (noPN P & noPN Q)"
 by (simp add: Alpha_parallel_def)
+
+lemma noPN_Inductive_interleaving :
+    "\<lbrakk> noPN(P); noPN( ||| Ps) \<rbrakk> \<Longrightarrow> noPN( ||| (P#Ps))"
+by (induct P, simp_all)
+
+lemma noPN_Inductive_interleave_map :
+    "\<lbrakk> \<forall> aa \<in> set list . noPN(Pf aa) \<rbrakk> \<Longrightarrow> noPN ( ||| map Pf list)"
+by (induct list, simp_all)
+
+lemma noPN_Rep_interleaving :
+    "\<lbrakk>  finite X; \<forall> aa \<in> X . noPN(PfX aa) \<rbrakk> \<Longrightarrow> noPN ( ||| x:X .. PfX x)"
+  apply (simp add: Rep_interleaving_def)
+  apply (rule someI2_ex, rule isListOf_EX, simp add: isListOf_set_eq)
+  apply (rule noPN_Inductive_interleave_map)
+by (simp add: isListOf_set_eq)
 
 (* gSKIP *)
 
@@ -924,7 +1039,27 @@ lemma gSKIP_Alpha_parallel[simp]:
   "gSKIP (P |[X,Y]| Q) = (gSKIP P | gSKIP Q)"
 by (simp add: Alpha_parallel_def)
 
+lemma gSKIP_Inductive_interleave_map :
+    "\<lbrakk> list \<noteq> []; \<forall> aa\<in> set list . gSKIP(Pf aa) \<rbrakk> \<Longrightarrow> gSKIP ( ||| map Pf list)"
+by (induct list, simp_all)
+
+lemma gSKIP_Rep_interleaving :
+    "X \<noteq> {} \<Longrightarrow> finite X \<Longrightarrow> \<forall> x \<in> X . gSKIP (PfX x) \<Longrightarrow> gSKIP ( ||| x:X .. PfX x )"
+  apply (simp add: Rep_interleaving_def)
+  apply (rule someI2_ex, rule isListOf_EX, simp)
+  apply (rule gSKIP_Inductive_interleave_map)
+    apply (clarsimp)
+    apply (simp add: isListOf_set_eq)
+done
+
 (* noHide *)
+
+lemma noHide_Rep_ext_choice :
+    "\<lbrakk> finite X; \<And>x. noHide (PXf x) \<rbrakk> \<Longrightarrow> noHide ([+]X .. PXf)"
+  apply (simp add: Rep_ext_choice_def)
+    apply (rule someI2_ex, rule isListOf_EX, simp)
+    apply (induct_tac x, simp_all add: Inductive_ext_choice_def)
+done
 
 lemma noHide_Rep_int_choice_set[simp]:
   "noHide (!set :Xs .. Pf) = (ALL X. noHide (Pf X))"
@@ -950,7 +1085,71 @@ lemma noHide_Alpha_parallel[simp]:
   "noHide (P |[X,Y]| Q) = (noHide P & noHide Q)"
 by (simp add: Alpha_parallel_def)
 
+lemma noHide_Rep_parallel_Nil [simp]:
+    "noHide ([||] map PXf [])"
+by (auto)
+
+lemma noHide_Rep_parallel [simp]:
+    "\<lbrakk> \<forall> aa . noHide(fst(PXf aa)) \<rbrakk> \<Longrightarrow> noHide ([||] map PXf list)"
+by (induct_tac list, simp, simp)
+
+lemma noHide_Inductive_parallel_Nil [simp]:
+    "noHide([||] [])"
+by (simp)
+
+lemma noHide_Inductive_parallel [simp]:
+    "\<lbrakk> noHide(fst(PX)); \<And> p . p \<in> (fst ` (set PXs)) \<and> noHide(p) \<rbrakk> \<Longrightarrow>  noHide([||] (PX # PXs))"
+by (induct "PXs", simp, simp)
+
+lemma noHide_Inductive_interleaving_Nil :
+    "noHide( ||| [])"
+by (simp)
+
+lemma noHide_Inductive_interleaving_Cons :
+    "\<lbrakk> noHide(P); \<And> p . p \<in> (set Ps) \<and> noHide(p) \<rbrakk> \<Longrightarrow>  noHide( ||| (P # Ps))"
+by (induct "Ps", simp, simp)
+
+lemma noHide_Inductive_interleaving_Cons2 :
+    "\<lbrakk> noHide(P); noHide( ||| Ps) \<rbrakk> \<Longrightarrow> noHide ( ||| (P#Ps))"
+by (simp only: Inductive_interleave_def, simp)
+
+lemmas noHide_Inductive_interleaving =
+    noHide_Inductive_interleaving_Nil
+    noHide_Inductive_interleaving_Cons
+    noHide_Inductive_interleaving_Cons2
+
+lemma noHide_Inductive_interleave_map :
+    "\<lbrakk> \<forall> aa \<in> set list . noHide(Pf aa) \<rbrakk> \<Longrightarrow> noHide ( ||| map Pf list)"
+by (induct list, simp_all)
+
+lemma noHide_Inductive_interleave_map_cons :
+    "\<lbrakk> noHide(PXf x); noHide ( ||| map PXf xs) \<rbrakk> \<Longrightarrow> noHide ( ||| map PXf (x#xs))"
+by (simp)
+
+lemma noHide_Rep_interleaving :
+    "\<lbrakk>  finite X; \<forall> aa \<in> X . noHide(PfX aa) \<rbrakk> \<Longrightarrow> noHide ( ||| x:X .. PfX x)"
+  apply (simp add: Rep_interleaving_def)
+  apply (rule someI2_ex, rule isListOf_EX, simp add: isListOf_set_eq)
+  apply (rule noHide_Inductive_interleave_map)
+    apply (simp add: isListOf_set_eq)
+done
+
 (* guarded *)
+
+lemma guarded_Rep_ext_choice :
+    "\<lbrakk> finite X; \<And>x. guarded (PXf x) \<rbrakk> \<Longrightarrow> guarded ([+]X .. PXf)"
+  apply (simp add: Rep_ext_choice_def)
+    apply (rule someI2_ex, rule isListOf_EX, simp)
+    apply (induct_tac x, simp_all add: Inductive_ext_choice_def)
+done
+
+lemma Rep_ext_choice_map_to_List :
+    "map PXf x = l \<Longrightarrow> ( [+] map PXf x) = ( [+] l)"
+by (simp)
+
+lemma Rep_ext_choice_map_to_List_Cons :
+    "l \<noteq> [] \<Longrightarrow> [+] map PXf l = [+] ( (PXf (hd l)) # map PXf (tl l) )"
+by (induct l, simp_all)
 
 lemma guarded_Rep_int_choice_set[simp]:
   "guarded (!set :Xs .. Pf) = (ALL X. guarded (Pf X))"
@@ -976,8 +1175,29 @@ lemma guarded_Alpha_parallel[simp]:
   "guarded (P |[X,Y]| Q) = (guarded P & guarded Q)"
 by (simp add: Alpha_parallel_def)
 
+lemma guarded_Rep_parallel_Nil [simp]:
+    "guarded ([||] map PXf [])"
+by (auto)
 
-(* --------- for sinding and receiving --------- *)
+lemma guarded_Rep_parallel [simp]:
+    "\<lbrakk> \<forall> aa . guarded(fst(PXf aa)) \<rbrakk> \<Longrightarrow> guarded ([||] map PXf list)"
+  apply (induct_tac list)
+  apply (simp)
+  apply (simp)
+done
+
+lemma guarded_Inductive_interleave_map :
+    "\<lbrakk> \<forall> aa\<in> set list . guarded(Pf aa) \<rbrakk> \<Longrightarrow> guarded ( ||| map Pf list)"
+by (induct list, simp_all)
+
+lemma guarded_Rep_interleaving :
+    "finite X \<Longrightarrow> \<forall> x \<in> X . guarded (PfX x) \<Longrightarrow> guarded ( ||| x:X .. PfX x )"
+  apply (simp add: Rep_interleaving_def)
+  apply (rule someI2_ex, rule isListOf_EX, simp)
+  apply (rule guarded_Inductive_interleave_map, simp add: isListOf_set_eq)
+done
+
+(* --------- for sending and receiving --------- *)
 
 (* noPN *)
 
@@ -1095,6 +1315,16 @@ apply (simp_all)
 apply (simp add: noPNfun_def)
 done
 
+lemma noHide_Mapping_procfun [simp]:
+    "isMapping_procfun Pf \<Longrightarrow> noHide(Pf x)"
+by (simp add: isMapping_procfun_def, erule_tac x="x" in allE, erule exE, simp)
+
+lemma noHidefun_Mapping_procfun_lm : "isMapping_procfun Pf --> noHidefun Pf"
+by (simp add: isMapping_procfun_def noHidefun_def)
+
+lemma noHidefun_isMapping_procfun : "isMapping_procfun Pf ==> noHidefun Pf"
+by (simp add: isMapping_procfun_def noHidefun_def)
+
 lemma noHide_Subst_lm: "(noHide P & noHidefun Pf) --> noHide (P<<Pf)"
 apply (induct_tac P)
 apply (simp_all)
@@ -1105,6 +1335,14 @@ done
 
 lemma noHide_Subst: "[| noHide P ; noHidefun Pf |] ==> noHide (P<<Pf)"
 by (simp add: noHide_Subst_lm)
+
+lemma noHide_Subst_procfun_pn :
+    "P = $x \<and> Pf(x) = y \<and> noHide(y) \<Longrightarrow> noHide (P << Pf)"
+by (simp)
+
+lemma noHide_Subst_procfun_Inductive_interleave :
+    "\<forall>a. noHide ((PXf a) << Pf) \<Longrightarrow> noHide (( ||| map PXf x) << Pf)"
+by (induct_tac x, simp_all)
 
 lemma gSKIP_Subst_lm: "(gSKIP P) --> gSKIP (P<<Pf)"
 apply (induct_tac P)
@@ -1130,6 +1368,39 @@ done
 
 lemma guarded_Subst: "[| guarded P ; noHidefun Pf |] ==> guarded (P<<Pf)"
 by (simp add: guarded_Subst_lm)
+
+lemma guarded_Subst_procfun :
+    "(\<exists> s Q . P = (Q -- s) \<and> noHide(Q << Pf) \<and> noPN(Q << Pf)) \<Longrightarrow> guarded (P << Pf)"
+by (induct P, simp_all)
+
+lemma not_guarded_Mapping_procfun :
+    "isMapping_procfun Pf \<Longrightarrow> \<not> guarded (Pf x)"
+  apply (simp add: isMapping_procfun_def)
+  apply (erule_tac x="x" in allE, erule exE, simp)
+done
+
+lemma guarded_Mapping_procfun :
+    "(guarded(P) \<or> noPN(P)) \<and> noHide(P) \<and> isMapping_procfun Pf \<Longrightarrow> guarded (P << Pf)"
+  apply (induction P, simp_all)
+  apply (rule noHide_Subst, simp, simp add: noHidefun_isMapping_procfun)
+  apply (rule)
+  apply (rule noHide_Subst, simp, simp add: noHidefun_isMapping_procfun)
+  apply (clarify)
+  apply (erule disjE)
+  apply (rule, safe)
+  apply (simp_all add: isMapping_procfun_def)
+  apply (rule noPN_Subst, simp, rule gSKIP_Subst, simp)
+  apply (rule noHide_Subst, simp)
+  apply (simp add: noHidefun_isMapping_procfun isMapping_procfun_def)
+done
+
+lemma guarded_Subst_procfun_Rep_ext_choice :
+    "\<forall>a. guarded ((PXf a) << Pf) \<Longrightarrow> guarded (( [+] map PXf x) << Pf)"
+by (induct_tac x, simp_all)
+
+lemma guarded_Subst_procfun_Inductive_interleave :
+    "\<forall>a. guarded ((PXf a) << Pf) \<Longrightarrow> guarded (( ||| map PXf x) << Pf)"
+by (induct_tac x, simp_all)
 
 (*********************************************************
              termination relation for proc
@@ -1227,11 +1498,11 @@ ML_setup {*
 for Isabelle 2007
 *)
 
-ML {*
+ML \<open>
     val ON_Not_Decompo_Flag       = @{thms on_Not_Decompo_Flag};
     val OFF_Not_Decompo_Flag      = @{thms off_Not_Decompo_Flag};
     val OFF_Not_Decompo_Flag_True = @{thms off_Not_Decompo_Flag_True};
-*}
+\<close>
 
 (*-------------------------------------------------------* 
  |                                                       |
@@ -1260,12 +1531,12 @@ by (simp add: Not_Rewrite_Flag_def)
 lemmas off_All_Flag_True = off_Not_Decompo_Flag_True
                            off_Not_Rewrite_Flag_True
 
-ML {*
+ML \<open>
     val ON_Not_Rewrite_Flag       = @{thms on_Not_Rewrite_Flag};
     val OFF_Not_Rewrite_Flag      = @{thms off_Not_Rewrite_Flag};
     val OFF_Not_Rewrite_Flag_True = @{thms off_Not_Rewrite_Flag_True};
     val OFF_All_Flag_True         = @{thms off_All_Flag_True};
-*}
+\<close>
 
 (* 0 *)
 (****************** to add them again ******************)
