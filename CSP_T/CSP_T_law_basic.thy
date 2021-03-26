@@ -775,6 +775,15 @@ lemmas cspT_first_prefix_ss =
        cspT_first_Nondet_send_prefix
 
 
+lemma cspT_Rec_prefix_cong_right :
+    "\<forall>x. Pf x =T[M1,M2] Qf x
+     \<Longrightarrow> a ? u:T -> Pf u =T[M1,M2] a ? u:T -> Qf u"
+  apply (rule cspT_rw_left, rule cspT_first_Rec_prefix)
+  apply (rule cspT_rw_right, rule cspT_first_Rec_prefix)
+  apply (simp only: image_def)
+  apply (rule cspT_decompo, simp_all add: inv_def)
+done
+
 
 (* --------------------------------------------------- *
       Associativity of Sequential composition

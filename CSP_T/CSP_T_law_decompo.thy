@@ -318,6 +318,14 @@ lemma cspT_Seq_compo_cong:
   "[| P1 =T[M1,M2] Q1 ; P2 =T[M1,M2] Q2 |] ==> P1 ;; P2 =T[M1,M2] Q1 ;; Q2"
 by (simp add: cspT_eq_ref_iff cspT_Seq_compo_mono)
 
+lemma cspT_Seq_compo_rw_left:
+  "[| P1 =T[M,M] P2 |] ==> P1 ;; Q =T[M,M] P2 ;; Q"
+by (rule cspT_Seq_compo_cong, simp_all)
+
+lemma cspT_Seq_compo_rw_right:
+  "[| Q1 =T[M,M] Q2 |] ==> P ;; Q1 =T[M,M] P ;; Q2"
+by (rule cspT_Seq_compo_cong, simp_all)
+
 (*********************************************************
                         Depth_rest mono
  *********************************************************)
