@@ -384,4 +384,11 @@ lemma not_eq_fun_range_Int_if:
 by (auto)
 
 
+
+lemma not_cong : "P = Q \<Longrightarrow> (\<not> P) = (\<not> Q)"
+by (auto)
+
+lemma ex_comm3 : "(\<exists>a b c . P a b c) = (\<exists>c a b. P a b c)"
+by (auto)
+
 end
