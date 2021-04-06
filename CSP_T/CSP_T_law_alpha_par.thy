@@ -19,20 +19,6 @@ theory CSP_T_law_alpha_par
 imports CSP_T_op_alpha_par CSP_T_law_decompo
 begin
 
-(*  The following simplification rules are deleted in this theory file *)
-(*  because they unexpectly rewrite UnionT and InterT.                 *)
-(*                  Union (B ` A) = (UN x:A. B x)                      *)
-(*                  Inter (B ` A) = (INT x:A. B x)                     *)
-
-(* Isabelle 2013
-declare Union_image_eq [simp del]
-declare Inter_image_eq [simp del]
-*)
-(* no simp rules in Isabelle 2017 
-declare Sup_image_eq [simp del]
-declare Inf_image_eq [simp del]
-*)
-
 (*****************************************************************
 
          1. associativity of |[X,Y]|
@@ -158,14 +144,4 @@ by (simp add: cspT_eq_ref_iff cspT_Alpha_parallel_mono)
 lemmas cspT_decompo_Alpha_parallel = cspT_Alpha_parallel_mono
                                      cspT_Alpha_parallel_cong
 
-(****************** to add them again ******************)
-(* 2013
-declare Union_image_eq [simp]
-declare Inter_image_eq [simp]
-*)
-(* 2017
-declare Sup_image_eq [simp]
-declare Inf_image_eq [simp]
-*)
 end
-

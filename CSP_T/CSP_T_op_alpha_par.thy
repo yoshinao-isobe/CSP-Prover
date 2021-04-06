@@ -16,13 +16,6 @@ theory CSP_T_op_alpha_par
 imports CSP_T_traces
 begin
 
-(*  The following simplification rules are deleted in this theory file *)
-(*  because they unexpectly rewrite (notick | t = <>)                  *)
-(*                                                                     *)
-(*                  disj_not1: (~ P | Q) = (P --> Q)                   *)
-
-declare disj_not1 [simp del]
-
 (*********************************************************
        Preparation (traces operated by par and hide)
  *********************************************************)
@@ -185,9 +178,5 @@ lemma traces_Alpha_parallel:
         sett(u) <= insert Tick (Ev ` (X1 Un X2)))}t"
 apply (simp add: in_traces_Alpha_parallel[THEN sym])
 done
-
-(****************** to add it again ******************)
-
-declare disj_not1   [simp]
 
 end
