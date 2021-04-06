@@ -392,11 +392,11 @@ apply (simp add: isListOf_def)
 done
 
 
-lemma some_isListOf_Empty [simp]:
+lemma some_isListOf_Empty :
     "I = {} \<Longrightarrow> (SOME x. x isListOf I) = []"
 by (auto)
 
-lemma some_isListOf_nonEmpty [simp]:
+lemma some_isListOf_nonEmpty :
     "I \<noteq> {} \<Longrightarrow> x isListOf I \<Longrightarrow> x \<noteq> []"
 by (auto)
 
