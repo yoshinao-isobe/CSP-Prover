@@ -16,12 +16,6 @@ theory CSP_T_traces
 imports  CSP_T_semantics
 begin
 
-(*  The following simplification rules are deleted in this theory file *)
-(*  because they unexpectly rewrite UnionT and InterT.                 *)
-(*                  disj_not1: (~ P | Q) = (P --> Q)                   *)
-
-declare disj_not1 [simp del]
-
 (*********************************************************
                         DomT
  *********************************************************)
@@ -115,6 +109,40 @@ lemma in_traces_Ext_pre_choice:
 apply (simp add: traces_iff)
 by (simp add: CollectT_open_memT Ext_pre_choice_domT)
 
+
+(*** Act_prefix to Ext_pre_choice ***)
+
+lemma traces_Act_prefix_to_Ext_pre_choice: 
+  "(traces(a -> P a) M) 
+    = (traces(? :{a} -> (\<lambda> x. P x)) M)"
+by (simp add: traces_iff)
+
+lemma in_traces_Act_prefix_to_Ext_pre_choice: 
+  "(t :t traces(a -> P a) M) 
+    = (t :t traces(? :{a} -> (\<lambda> x. P x)) M)"
+by (simp add: in_traces_Act_prefix in_traces_Ext_pre_choice)
+
+
+(*** Ext_pre_choice traces disj ***)
+
+lemma traces_Ext_pre_choice_disj:
+    "S = {a} \<union> X \<Longrightarrow>
+     (traces(? :S -> (\<lambda> x. Pf x)) M)
+     = (traces(? :{a} -> (\<lambda> x. Pf x)) M UnT traces(? :X -> Pf) M)"
+  apply (simp add: traces_iff S_UnT_T)
+  apply (rule set_CollectT_eq)
+  apply (simp add: CollectT_open_memT Act_prefix_domT)
+  apply (simp add: CollectT_open_memT Ext_pre_choice_domT)
+by (fast)
+
+lemma in_traces_Ext_pre_choice_disj:
+    "S = {a} \<union> X \<Longrightarrow>
+     (t :t traces(? :S -> (\<lambda> x. Pf x)) M)
+     = (t :t traces(? :{a} -> (\<lambda> x. Pf x)) M \<or> t :t traces(? :X -> Pf) M)"
+  apply (simp only: in_traces_Act_prefix in_traces_Ext_pre_choice)
+by (fast)
+
+
 (*--------------------------------*
  |          Ext_choice            |
  *--------------------------------*)
@@ -125,88 +153,62 @@ lemma in_traces_Ext_choice:
   "(t :t traces(P [+] Q) M) = (t :t traces(P) M | t :t traces(Q) M)"
 by (simp add: traces_iff)
 
+
 (*** Semantics for Inductive external choice on T ***)
+
+lemma Inductive_external_choice_domT: 
+  "{t. t = <> | 
+       (\<exists> P\<in> set l. t :t traces P M) } : domT"
+apply (simp add: domT_def HC_T1_def)
+apply (simp add: prefix_closed_def)
+apply (rule conjI)
+apply (rule_tac x="<>" in exI, simp)
+
+apply (intro allI impI)
+apply (elim conjE exE)
+apply (elim disjE, simp)
+
+apply (rule disjI2)
+apply (elim bexE)
+apply (rule_tac x="P" in bexI)
+apply (rule memT_prefix_closed)
+by (simp_all)
+
+theorem traces_Inductive_ext_choice:
+    "traces ([+] l) M = {u. u = <> \<or> (\<exists> P\<in> set l. u :t traces P M)}t"
+apply (induct_tac l)
+  apply (simp add: traces_iff)
+  apply (simp add: traces_iff S_UnT_T set_CollectT_commute_left)
+by (simp add: CollectT_open_memT Inductive_external_choice_domT)
 
 lemma in_traces_Inductive_ext_choice:
     "u :t traces ([+] l) M = (u = <> \<or> (\<exists> P\<in>(set l). u :t traces P M))"
 by (induct_tac l, simp_all add: traces_iff, safe)
 
-theorem traces_Inductive_ext_choice:
-    "traces ([+] l) M = {u. u = <> \<or> (\<exists> P\<in> set l. u :t traces P M)}t"
-by (simp add: in_traces_Inductive_ext_choice[THEN sym])
-
 
 (*** Semantics for Replicated external choice on T ***)
-
-lemma in_traces_Rep_ext_choice:
-  "finite X \<Longrightarrow> l = (SOME l. l isListOf X)
-   \<Longrightarrow> (u :t traces ([+] x:X .. PXf x) M) = (u = <> \<or> (\<exists> P\<in> (set (map PXf l)). u :t traces P M))"
-by (simp add: Rep_ext_choice_def in_traces_Inductive_ext_choice)
 
 theorem traces_Rep_ext_choice:
   "finite X \<Longrightarrow> l = (SOME l. l isListOf X)
    \<Longrightarrow> traces ([+] x:X .. PXf x) M = {u. u = <> \<or> (\<exists> P\<in>(set (map PXf l)). u :t traces P M)}t"
 by (simp add: Rep_ext_choice_def traces_Inductive_ext_choice)
 
+lemma in_traces_Rep_ext_choice:
+  "finite X \<Longrightarrow> l = (SOME l. l isListOf X)
+   \<Longrightarrow> (u :t traces ([+] x:X .. PXf x) M) = (u = <> \<or> (\<exists> P\<in> (set (map PXf l)). u :t traces P M))"
+by (simp add: Rep_ext_choice_def in_traces_Inductive_ext_choice)
 
 
-subsection \<open> Traces Model Comparison to Ext_pre_choice operator \<close>
 
-text \<open> Inductive and Replicated external choice operators to Ext_prefix_choice operator
-
-The traces of a Ext_pre_choice are not 
-
- "traces(? :X -> Pf) = (%M. {t. t = <> | 
-                             (EX a s. t = <Ev a> ^^^ s & s :t traces(Pf a) M & a : X) }t)"
-\<close>
-
-
-lemma Inductive_ext_choice_domT: 
-    "\<And>a . a \<in> X \<Longrightarrow> {t. t = <> \<or> (EX s. t = <Ev a> ^^^ s \<and> s : Rep_domT (Tf a)) } \<in> domT"
-  apply (simp add: domT_def HC_T1_def)
-  apply (rule conjI)
-  apply (rule_tac x="<>" in exI, simp)
-  
-  apply (simp add: prefix_closed_def)
-  apply (intro allI impI)
-  apply (elim conjE exE)
-  
-  apply (erule disjE, simp)    (* <> *)
-  
-  apply (elim conjE exE, simp)
-  apply (erule disjE, simp)    (* <> *)
-  
-  apply (elim conjE exE, simp)
-  apply (rule Rep_domT_is_prefix_closed_unfold)
-by (simp_all)
-
-
-lemma Inductive_ext_choice_Rep_domT:
-    "P \<in> X \<Longrightarrow> Rep_domT {t. t = <> \<or> (\<exists>s. t = <Ev P> ^^^ s \<and> s \<in> Rep_domT (traces (PXf P) M))}t
-               = {t. t = <> \<or> (\<exists>s. t = <Ev P> ^^^ s \<and> s \<in> Rep_domT (traces (PXf P) M))}"
-by (rule Abs_domT_inverse, rule Inductive_ext_choice_domT, simp)
-
+(*** Traces Model Comparison to Ext_pre_choice operator ***)
 
 theorem traces_Inductive_ext_choice_to_Ext_pre_choice :
-    "l isListOf X \<Longrightarrow> traces([+] map (\<lambda> e . e -> PXf e) l) M = traces(? :X -> PXf) M"
+    "traces([+] map (\<lambda> e . e -> PXf e) l) M = traces(? :set l -> PXf) M"
   apply (simp add: traces_Inductive_ext_choice isListOf_set_eq)
   apply (simp add: traces.simps)
-  apply (simp add: memT_def Inductive_ext_choice_Rep_domT)
   apply (rule set_CollectT_eq, rule Collect_cong)
+  apply (simp add: CollectT_open_memT Act_prefix_domT Bex_def)
 by (fast)
-
-
-theorem cspT_Inductive_ext_choice_to_Ext_pre_choice :
-    "l isListOf X \<Longrightarrow> [+] map (\<lambda> e . e -> PXf e) l =T[M,M] ? :X -> PXf"
-by (simp add: cspT_eqT_semantics traces_Inductive_ext_choice_to_Ext_pre_choice)
-
-
-theorem cspT_Ext_pre_choice_to_Rep_ext_choice :
-    "finite X \<Longrightarrow> [+]X .. (\<lambda>x . x -> PXf x) =T[M,M] ? :X -> (\<lambda>x . PXf x)"
-  apply (simp add: Rep_ext_choice_def)
-  apply (rule cspT_Inductive_ext_choice_to_Ext_pre_choice)
-by (rule someI2_ex, rule isListOf_EX, simp, simp)
-
 
 
 
@@ -344,6 +346,12 @@ by (simp add: CollectT_open_memT Parallel_domT)
 
 (*** Semantics for Inductive interleave on T ***)
 
+lemma Inductive_interleave_domT : 
+  "{u. \<exists>s t. u \<in> s |[{}]|tr t
+                           \<and> s :t traces (hd l) M
+                           \<and> t :t traces ( ||| tl l) M} : domT"
+by (simp add: Parallel_domT)
+
 abbreviation
     "in_t_Induct_interleave u l M
      == ((l = [] \<and> (u = <> \<or> u = <Tick>))
@@ -351,10 +359,12 @@ abbreviation
                            \<and> s :t traces (hd l) M
                            \<and> t :t traces ( ||| tl l) M)))"
 
-lemma set_CollectT_commute_left :
-    "{u. Q u \<or> u \<in>t S \<or> P u}t
-     = {u. u \<in>t S \<or> Q u \<or> P u}t"
-by (rule set_CollectT_eq, force)
+theorem traces_Inductive_interleave :
+    "traces ( ||| l) M = {u. in_t_Induct_interleave u l M }t"
+  apply (induct_tac l)
+  apply (simp_all add: traces_iff)
+  apply (rule_tac f="Abs_domT" in arg_cong)
+by (fast)
 
 lemma in_traces_Inductive_interleave :
     "u :t traces ( ||| l) M = in_t_Induct_interleave u l M"
@@ -362,22 +372,20 @@ lemma in_traces_Inductive_interleave :
 by (simp add: in_traces_Parallel)
 
 
-theorem traces_Inductive_interleave :
-    "traces ( ||| l) M = {u. in_t_Induct_interleave u l M }t"
-by (simp add: in_traces_Inductive_interleave[THEN sym])
-
 (*** Semantics for Replicated interleaving on T ***)
+
+theorem traces_Rep_interleaving :
+    "finite X \<Longrightarrow> map PXf (SOME x. x isListOf X) = Ps
+     \<Longrightarrow> traces ( ||| X .. PXf) M = {u. in_t_Induct_interleave u Ps M }t"
+  apply (simp (no_asm_use) only: Rep_interleaving_def)
+  apply (rule someI2, rule isListOf_EX, simp)
+by (simp add: traces_Inductive_interleave[THEN sym])
 
 lemma in_traces_Rep_interleaving :
     "finite X \<Longrightarrow> map PXf (SOME x. x isListOf X) = Ps
      \<Longrightarrow> u :t traces ( ||| X .. PXf) M = in_t_Induct_interleave u Ps M"
   apply (simp (no_asm_use) only: Rep_interleaving_def)
 by (rule trans, rule in_traces_Inductive_interleave, simp)
-
-theorem traces_Rep_interleaving :
-    "finite X \<Longrightarrow> map PXf (SOME x. x isListOf X) = Ps
-     \<Longrightarrow> traces ( ||| X .. PXf) M = {u. in_t_Induct_interleave u Ps M }t"
-by (simp add: in_traces_Rep_interleaving[THEN sym])
 
 
 
@@ -567,8 +575,5 @@ done
 
 lemmas in_traces_Timeout = in_traces_Timeout1 in_traces_Timeout2
 
-(****************** to add them again ******************)
-
-declare disj_not1   [simp]
 
 end

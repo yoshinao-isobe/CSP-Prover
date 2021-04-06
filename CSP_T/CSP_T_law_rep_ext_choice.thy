@@ -52,6 +52,11 @@ lemma cspT_Subst_procfun_comp_Inductive_ext_choice_map :
 by (induct l, simp_all, rule cspT_decompo, simp_all)
 
 
+(*** Traces Model Comparison to Ext_pre_choice operator ***)
+
+theorem cspT_Inductive_ext_choice_to_Ext_pre_choice :
+    "[+] map (\<lambda> e . e -> PXf e) l =T[M,M] ? :set l -> PXf"
+by (simp add: cspT_eqT_semantics traces_Inductive_ext_choice_to_Ext_pre_choice)
 
 
 
@@ -67,5 +72,14 @@ lemma cspT_Rep_ext_choice_cong :
 by (simp add: Rep_ext_choice_def cspT_Inductive_ext_choice_map_cong)
 
 
+(*** Traces Model Comparison to Ext_pre_choice operator ***)
+
+theorem cspT_Rep_ext_choice_to_Ext_pre_choice :
+    "finite X \<Longrightarrow> [+]X .. (\<lambda>x . x -> PXf x) =T[M,M] ? :X -> (\<lambda>x . PXf x)"
+  apply (simp add: Rep_ext_choice_def)
+  apply (rule someI2_ex, rule isListOf_EX, simp)
+  apply (rule cspT_rw_left)
+    apply (rule cspT_Inductive_ext_choice_to_Ext_pre_choice)
+by (simp add: isListOf_set_eq)
 
 end
