@@ -9,7 +9,11 @@
             |                  April 2006  (modified)   |
             |                  March 2007  (modified)   |
             |                                           |
+            |        CSP-Prover on Isabelle2021         |
+            |                 August 2021  (modified)   |
+            |                                           |
             |        Yoshinao Isobe (AIST JAPAN)        |
+            | Joabe Jesus (eComp POLI UPE and CIn UFPE) |
             *-------------------------------------------*)
 
 theory CSP_F_law_SKIP_DIV
@@ -166,20 +170,18 @@ apply (rule order_antisym)
   apply (rule_tac x="Ya" in exI)
   apply (rule_tac x="Z" in exI)
   apply (simp add: par_tr_nil_right)
-  apply (rule_tac x="<Ev a> ^^^ sb" in exI)
+  apply (rule_tac x="<Ev a> ^^^ sa" in exI)
   apply (rule_tac x="<>" in exI)
   apply (simp add: par_tr_nil_right)
   apply (simp add: image_iff)
-  apply (fast)
 
   apply (rule_tac x="Ya" in exI)
   apply (rule_tac x="Z" in exI)
   apply (simp add: par_tr_Tick_right)
-  apply (rule_tac x="<Ev a> ^^^ sb" in exI)
+  apply (rule_tac x="<Ev a> ^^^ sa" in exI)
   apply (rule_tac x="<Tick>" in exI)
   apply (simp add: par_tr_Tick_right)
   apply (simp add: image_iff)
-  apply (fast)
 
   apply (simp add: in_traces)
   apply (simp add: in_traces)

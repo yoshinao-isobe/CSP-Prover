@@ -5,7 +5,11 @@
             |        CSP-Prover on Isabelle2017         |
             |                  April 2018  (modified)   |
             |                                           |
+            |        CSP-Prover on Isabelle2021         |
+            |                 August 2021  (modified)   |
+            |                                           |
             |        Yoshinao Isobe (AIST JAPAN)        |
+            | Joabe Jesus (eComp POLI UPE and CIn UFPE) |
             *-------------------------------------------*)
 
 theory CSP_F_law_fix
@@ -288,7 +292,7 @@ apply (simp add: in_failures)
 apply (rule allI)
 apply (simp add: FIXn_def Subst_procfun_prod_def)
 apply (drule_tac x="m" in spec)
-apply (simp add: failrues_subst)
+apply (simp add: failures_subst)
 apply (rule allI)
 apply (subgoal_tac
   "(%q. [[((%Qf p. (Pf p) << Qf) ^^ na) (%q. DIV) q]]Ff M) <=

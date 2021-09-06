@@ -12,7 +12,11 @@
             |        CSP-Prover on Isabelle2009         |
             |                   June 2009  (modified)   |
             |                                           |
+            |        CSP-Prover on Isabelle2021         |
+            |                 August 2021  (modified)   |
+            |                                           |
             |        Yoshinao Isobe (AIST JAPAN)        |
+            | Joabe Jesus (eComp POLI UPE and CIn UFPE) |
             *-------------------------------------------*)
 
 theory CSP_F_law_SKIP
@@ -201,20 +205,18 @@ apply (rule order_antisym)
   apply (rule_tac x="Ya" in exI)
   apply (rule_tac x="Z" in exI)
   apply (simp add: par_tr_nil_right)
-  apply (rule_tac x="<Ev a> ^^^ sb" in exI)
+  apply (rule_tac x="<Ev a> ^^^ sa" in exI)
   apply (rule_tac x="<>" in exI)
   apply (simp add: par_tr_nil_right)
   apply (simp add: image_iff)
-  apply (fast)
 
   apply (rule_tac x="Ya" in exI)
   apply (rule_tac x="Z" in exI)
   apply (simp add: par_tr_Tick_right)
-  apply (rule_tac x="<Ev a> ^^^ sb" in exI)
+  apply (rule_tac x="<Ev a> ^^^ sa" in exI)
   apply (rule_tac x="<Tick>" in exI)
   apply (simp add: par_tr_Tick_right)
   apply (simp add: image_iff)
-  apply (fast)
 
   apply (rule_tac x="Xa" in exI)
   apply (rule_tac x="Xa" in exI)
@@ -582,8 +584,6 @@ apply (rule order_antisym)
   apply (simp add: par_tr_Tick_left)
   apply (simp add: Tick_in_sett)
   apply (elim conjE exE)
-  apply (rotate_tac -3)
-  apply (drule sym)
   apply (simp)
   apply (rule proc_T2_T3)
   apply (simp_all)

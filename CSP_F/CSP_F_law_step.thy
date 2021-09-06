@@ -8,7 +8,11 @@
             |                  April 2006  (modified)   |
             |                  March 2007  (modified)   |
             |                                           |
+            |        CSP-Prover on Isabelle2021         |
+            |                 August 2021  (modified)   |
+            |                                           |
             |        Yoshinao Isobe (AIST JAPAN)        |
+            | Joabe Jesus (eComp POLI UPE and CIn UFPE) |
             *-------------------------------------------*)
 
 theory CSP_F_law_step
@@ -228,11 +232,11 @@ apply (elim disjE conjE exE)
  apply (elim conjE exE, simp)
  apply (simp add: par_tr_head)
  
- apply (rule_tac x="aa" in exI)
+ apply (rule_tac x="a" in exI)
  apply (rule_tac x="sc" in exI)
  apply (simp)
 
- apply (case_tac "aa : Y")
+ apply (case_tac "a : Y")
   apply (simp)
   apply (rule disjI2)
   apply (rule_tac x="Ya" in exI)

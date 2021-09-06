@@ -10,7 +10,11 @@
             |                  March 2007  (modified)   |
             |                 August 2007  (modified)   |
             |                                           |
+            |        CSP-Prover on Isabelle2021         |
+            |                 August 2021  (modified)   |
+            |                                           |
             |        Yoshinao Isobe (AIST JAPAN)        |
+            | Joabe Jesus (eComp POLI UPE and CIn UFPE) |
             *-------------------------------------------*)
 
 theory CSP_F_domain
@@ -1065,7 +1069,6 @@ apply (elim conjE disjE)
   (* ... <Tick> *)
   apply (elim conjE exE, simp)
   apply (simp add: appt_assoc_sym)
-  apply (erule conjE)
   apply (rule conjI)
 
    (* F4 *)
@@ -1654,7 +1657,7 @@ apply (rule allI)
 apply (simp add: semF_subst)
 done
 
-lemma failrues_subst:
+lemma failures_subst:
   "failures(P<<f) M = failures P (%q. [[f q]]Ff M)"
 apply (induct_tac P)
 apply (simp_all add: semF_def semFf_def traces_iff failures_iff)+
