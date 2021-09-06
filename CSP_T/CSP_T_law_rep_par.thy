@@ -11,7 +11,11 @@
             |        CSP-Prover on Isabelle2017         |
             |                  April 2018  (modified)   |
             |                                           |
+            |        CSP-Prover on Isabelle2021         |
+            |                 August 2021  (modified)   |
+            |                                           |
             |        Yoshinao Isobe (AIST JAPAN)        |
+            | Joabe Jesus (eComp POLI UPE and CIn UFPE) |
             *-------------------------------------------*)
 
 theory CSP_T_law_rep_par
@@ -171,8 +175,8 @@ lemma cspT_SKIP_Rep_parallel_left:
      (([||]:I PXf) |[Union (snd ` PXf ` I), {}]| SKIP)")
 apply (rule cspT_trans)
 (* modified for Isabelle 2017 *)
-  apply (simp del: UN_simps SUP_image)
-  apply (simp del: UN_simps SUP_image add: cspT_SKIP_Rep_parallel_right)
+  apply (simp del: UN_simps)
+  apply (simp del: UN_simps add: cspT_SKIP_Rep_parallel_right)
 apply (simp add: cspT_Alpha_parallel_commut)
 done
 
@@ -201,19 +205,19 @@ lemma cspT_Rep_parallel_assoc:
 
    apply (rule cspT_sym)
 (* for Isabelle 2017 *)
-   apply (simp del: UN_simps SUP_image add: cspT_SKIP_Rep_parallel)
+   apply (simp del: UN_simps add: cspT_SKIP_Rep_parallel)
 
   apply (case_tac "I2 = {}")
    apply (rule cspT_sym)
 (* for Isabelle 2017 *)
-   apply (simp del: UN_simps SUP_image add: cspT_SKIP_Rep_parallel)
+   apply (simp del: UN_simps add: cspT_SKIP_Rep_parallel)
   apply (simp add: cspT_semantics)
 apply (rule order_antisym)
 
  (* => *)
  apply (rule)
 (* for Isabelle 2017 *)
- apply (simp del: UN_simps SUP_image add: in_traces_par)
+ apply (simp del: UN_simps add: in_traces_par)
  apply (simp add: Union_snd_Un)
  apply (elim conjE)
  apply (rule conjI)
@@ -233,7 +237,7 @@ apply (rule order_antisym)
  (* <= *)
  apply (rule)
 (* for Isabelle 2017 *)
- apply (simp del: UN_simps SUP_image add: in_traces_par)
+ apply (simp del: UN_simps add: in_traces_par)
  apply (simp add: Union_snd_Un)
  apply (elim conjE)
 

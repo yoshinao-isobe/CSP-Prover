@@ -9,7 +9,11 @@
             |                  April 2006  (modified)   |
             |                  March 2007  (modified)   |
             |                                           |
+            |        CSP-Prover on Isabelle2021         |
+            |                 August 2021  (modified)   |
+            |                                           |
             |        Yoshinao Isobe (AIST JAPAN)        |
+            | Joabe Jesus (eComp POLI UPE and CIn UFPE) |
             *-------------------------------------------*)
 
 theory CSP_T_op_alpha_par
@@ -115,11 +119,9 @@ apply (rule iffI)
 
  (* t = <> *)
   apply (simp add: par_tr_nil)
-  apply (elim conjE, simp)
 
  (* t = [Tick]t *)
   apply (simp add: par_tr_Tick)
-  apply (elim conjE, simp)
 
 (* <= *)
  apply (case_tac "Tick ~: sett u")
