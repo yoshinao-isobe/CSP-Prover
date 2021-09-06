@@ -2,7 +2,11 @@
             |        CSP-Prover on Isabelle2009         |
             |                   June 2009  (modified)   |
             |                                           |
+            |        CSP-Prover on Isabelle2021         |
+            |                 August 2021  (modified)   |
+            |                                           |
             |        Yoshinao Isobe (AIST JAPAN)        |
+            | Joabe Jesus (eComp POLI UPE and CIn UFPE) |
             *-------------------------------------------*)
 
 theory Trace_op
@@ -304,11 +308,9 @@ apply (simp)
  apply (case_tac "a : range mid")
  apply (simp add: ren_tr_decompo_right)
  apply (elim conjE exE)
- apply (simp)
 
  apply (simp add: image_iff)
  apply (elim conjE exE)
- apply (simp)
  apply (simp add: pair_in_Renaming_channel)
 
  (* 2 *)
@@ -317,7 +319,6 @@ apply (simp)
  apply (simp)
  apply (simp add: ren_tr_decompo_right)
  apply (elim conjE exE)
- apply (simp)
 
  apply (simp add: image_iff)
  apply (elim conjE exE)
@@ -325,11 +326,7 @@ apply (simp)
  apply (elim add_not_eq_symE)
 
  apply (simp add: pair_in_Renaming_channel)
- apply (subgoal_tac "(left x) ~: range right")
- apply (simp)
- apply (force)
  apply (elim conjE exE)
- apply (simp)
  apply (elim add_not_eq_symE)
  apply (force)
 
@@ -339,7 +336,6 @@ apply (simp)
  apply (simp)
  apply (simp add: ren_tr_decompo_right)
  apply (elim conjE exE)
- apply (simp)
 
  apply (simp add: image_iff)
  apply (elim conjE exE)
@@ -347,10 +343,6 @@ apply (simp)
  apply (elim add_not_eq_symE)
 
  apply (simp add: pair_in_Renaming_channel)
- apply (subgoal_tac "(right x) ~: range left")
- apply (simp)
- apply (force)
-
  apply (elim conjE exE)
  apply (elim add_not_eq_symE)
  apply (force)
@@ -362,7 +354,7 @@ done
 
 lemma Renaming_channel_tr_rest_eq[rule_format]:
   "ALL s t.
-   (inj f & inj g & (ALL x y. f x ~= g y) &
+   (inj f & inj g & (disjoint_range f g) &
     range f Int Y = {} & range g Int Y = {} & s [[f<==>g]]* t)
    --> s rest-tr Y = t rest-tr Y"
 apply (rule)
@@ -393,8 +385,8 @@ apply (simp)
 done
 
 lemma Renaming_channel_tr_rest_eq_range:
-  "[| inj f ; inj g ; ALL x y. f x ~= g y ; 
-      ALL x y. f x ~= h y ; ALL x y. g x ~= h y ;
+  "[| inj f ; inj g ; disjoint_range f g ; 
+      disjoint_range f h ; disjoint_range g h ;
       s [[f<==>g]]* t |]
    ==> s rest-tr range h = t rest-tr range h"
 apply (rule Renaming_channel_tr_rest_eq[of f g "range h" s t])
@@ -407,9 +399,9 @@ done
 lemma Renaming_channel_range_sett_lm[rule_format]:
   "ALL t s.
    (inj f & inj h & inj g &
-   (ALL x y. f x ~= g y) &
-   (ALL x y. f x ~= h y) &
-   (ALL x y. g x ~= h y) &
+   (disjoint_range f g) &
+   (disjoint_range f h) &
+   (disjoint_range g h) &
    (s [[f<==>g]]* (t rest-tr (range f Un range h))))
    --> sett s <= insert Tick (Ev ` (range g Un range h))"
 apply (rule)
@@ -453,9 +445,9 @@ done
 
 lemma Renaming_channel_range_sett1:
   "[| inj f ; inj h ; inj g ;
-      (ALL x y. f x ~= g y) ;
-      (ALL x y. f x ~= h y) ;
-      (ALL x y. g x ~= h y) ;
+      (disjoint_range f g) ;
+      (disjoint_range f h) ;
+      (disjoint_range g h) ;
       (s [[f<==>g]]* (t rest-tr (range f Un range h))) |]
    ==> sett s <= insert Tick (Ev ` (range g Un range h))"
 apply (rule Renaming_channel_range_sett_lm)
@@ -464,9 +456,9 @@ done
 
 lemma Renaming_channel_range_sett2:
   "[| inj f ; inj h ; inj g ;
-      (ALL x y. f x ~= g y) ;
-      (ALL x y. f x ~= h y) ;
-      (ALL x y. g x ~= h y) ;
+      (disjoint_range f g) ;
+      (disjoint_range f h) ;
+      (disjoint_range g h) ;
       (s [[f<==>g]]* (t rest-tr (range h Un range f))) |]
    ==> sett s <= insert Tick (Ev ` (range h Un range g))"
 apply (simp add: Un_sym)
@@ -475,9 +467,9 @@ done
 
 lemma Renaming_channel_range_sett3:
   "[| inj f ; inj h ; inj g ;
-      (ALL x y. f x ~= g y) ;
-      (ALL x y. f x ~= h y) ;
-      (ALL x y. g x ~= h y) ;
+      (disjoint_range f g) ;
+      (disjoint_range f h) ;
+      (disjoint_range g h) ;
       (s [[g<==>f]]* (t rest-tr (range f Un range h))) |]
    ==> sett s <= insert Tick (Ev ` (range g Un range h))"
 apply (simp add: Renaming_commut)
@@ -486,9 +478,9 @@ done
 
 lemma Renaming_channel_range_sett4:
   "[| inj f ; inj h ; inj g ;
-      (ALL x y. f x ~= g y) ;
-      (ALL x y. f x ~= h y) ;
-      (ALL x y. g x ~= h y) ;
+      (disjoint_range f g) ;
+      (disjoint_range f h) ;
+      (disjoint_range g h) ;
       (s [[g<==>f]]* (t rest-tr (range h Un range f))) |]
    ==> sett s <= insert Tick (Ev ` (range h Un range g))"
 apply (simp add: Renaming_commut)
@@ -506,9 +498,9 @@ lemmas Renaming_channel_range_sett =
 lemma Renaming_channel_tr_par_comp[rule_format]:
    "ALL n s t.
    (inj f & inj h & inj g &
-   (ALL x y. f x ~= g y) &
-   (ALL x y. f x ~= h y) &
-   (ALL x y. g x ~= h y) &
+   (disjoint_range f g) &
+   (disjoint_range f h) &
+   (disjoint_range g h) &
     lengtht s + lengtht t <= n &
     sett(s) <= insert Tick (Ev ` (range f Un range g)) &
     sett(t) <= insert Tick (Ev ` (range f Un range g)) &
@@ -563,7 +555,6 @@ apply (erule disjE)
   apply (simp add: pair_in_Renaming_channel)
   apply (rule_tac x="<Ev (f x)> ^^^ v" in exI)
   apply (simp add: par_tr_head)
-  apply (fast)
 
   (* EX x. a = g x *)
   apply (elim exE)
@@ -597,7 +588,6 @@ apply (erule disjE)
    apply (simp add: pair_in_Renaming_channel)
    apply (rule_tac x="<Ev (f x)> ^^^ v" in exI)
    apply (simp add: par_tr_head)
-   apply (fast)
 
    (* EX x. a = g x *)
    apply (elim exE)
@@ -707,8 +697,6 @@ apply (elim add_not_eq_symE)
 apply (simp add: pair_in_Renaming_channel)
 apply (rule_tac x="<Ev (g x)> ^^^ v" in exI)
 apply (simp add: par_tr_head)
-apply (rule disjI2)
-apply (force)
 apply (elim add_not_eq_symE)
 apply (force)
 done
@@ -809,7 +797,6 @@ apply (simp add: lengtht_zero)
   apply (simp add: image_iff)
   apply (simp add: pair_in_Renaming_channel)
   apply (simp add: pair_in_Renaming_channel)
-  apply (simp add: image_iff)
   apply (drule_tac x="<Tick>" in spec)
   apply (drule_tac x="sa" in spec)
   apply (drule_tac x="<Tick>" in spec)
@@ -835,7 +822,6 @@ apply (simp add: lengtht_zero)
   apply (simp add: image_iff)
   apply (simp add: pair_in_Renaming_channel)
   apply (simp add: pair_in_Renaming_channel)
-  apply (simp add: image_iff)
   apply (drule_tac x="sa" in spec)
   apply (drule_tac x="<Tick>" in spec)
   apply (drule_tac x="ta" in spec)
@@ -992,9 +978,6 @@ apply (simp add: lengtht_zero)
   apply (rule_tac x="ta" in exI)
   apply (simp)
   apply (simp)
-  apply (elim add_not_eq_symE)
-  apply (subgoal_tac "right x ~: range left", simp)
-  apply (force)
 
  (* 2 *)
  apply (simp add: ren_tr_decompo_left)
@@ -1029,9 +1012,6 @@ apply (simp add: lengtht_zero)
   apply (rule_tac x="ta" in exI)
   apply (simp)
   apply (simp)
-  apply (elim add_not_eq_symE)
-  apply (subgoal_tac "right x ~: range left", simp)
-  apply (force)
 
  (* 4 *)
  apply (simp add: ren_tr_decompo_left)
@@ -1099,7 +1079,6 @@ apply (simp add: lengtht_zero)
   apply (force)
   apply (force)
   apply (force)
-  apply (force)
 
   (* 5.3 *)
   apply (simp add: ren_tr_decompo_left)
@@ -1137,7 +1116,6 @@ apply (simp add: lengtht_zero)
    apply (rule_tac x="tb" in exI)
    apply (simp add: pair_in_Renaming_channel)
   apply (simp)
-  apply (force)
   apply (force)
 done
 
@@ -1202,7 +1180,7 @@ done
 
 lemma Renaming_channel_rest_tr_eq_n:
   "ALL n s t s' t'.
-   (inj f & inj g & (ALL x y. f x ~= g y) &
+   (inj f & inj g & (disjoint_range f g) &
     lengtht s + lengtht t <= n &
     s rest-tr range f = t rest-tr range f &
     s [[f<==>g]]* s' &
@@ -1356,7 +1334,6 @@ apply (erule disjE)
     apply (simp add: image_iff)
     apply (elim conjE exE)
     apply (simp add: pair_in_Renaming_channel)
-    apply (simp add: image_iff)
     apply (drule_tac x="s" in spec)
     apply (drule_tac x="sb" in spec)
     apply (drule_tac x="s'" in spec)
@@ -1384,7 +1361,6 @@ apply (erule disjE)
     apply (simp add: image_iff)
     apply (elim conjE exE)
     apply (simp add: pair_in_Renaming_channel)
-    apply (simp add: image_iff)
     apply (drule_tac x="sa" in spec)
     apply (drule_tac x="t" in spec)
     apply (drule_tac x="ta" in spec)
@@ -1397,7 +1373,6 @@ apply (erule disjE)
     apply (simp add: image_iff)
     apply (elim conjE exE)
     apply (simp add: pair_in_Renaming_channel)
-    apply (simp add: image_iff)
     apply (drule_tac x="s" in spec)
     apply (drule_tac x="sb" in spec)
     apply (drule_tac x="s'" in spec)
@@ -1409,7 +1384,6 @@ apply (erule disjE)
     apply (simp add: image_iff)
     apply (elim conjE exE)
     apply (simp add: pair_in_Renaming_channel)
-    apply (simp add: image_iff)
     apply (drule_tac x="s" in spec)
     apply (drule_tac x="sb" in spec)
     apply (drule_tac x="s'" in spec)
@@ -1461,7 +1435,7 @@ done
 
 
 lemma Renaming_channel_rest_tr_eq_EX:
-  "[| inj f ; inj g ; ALL x y. f x ~= g y ;
+  "[| inj f ; inj g ; disjoint_range f g ;
       EX s t. s rest-tr range f = t rest-tr range f &
               s [[f<==>g]]* s' &
               t [[f<==>g]]* t' |]

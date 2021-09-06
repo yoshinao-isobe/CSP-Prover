@@ -13,7 +13,11 @@
             |        CSP-Prover on Isabelle2016         |
             |                    May 2016  (modified)   |
             |                                           |
+            |        CSP-Prover on Isabelle2021         |
+            |                 August 2021  (modified)   |
+            |                                           |
             |        Yoshinao Isobe (AIST JAPAN)        |
+            | Joabe Jesus (eComp POLI UPE and CIn UFPE) |
             *-------------------------------------------*)
 
 theory Trace_hide
@@ -369,7 +373,7 @@ apply (simp_all)
  apply (elim conjE exE)
  apply (simp)
 
- apply (rule_tac x="<Ev aa> ^^^ s'a" in exI)
+ apply (rule_tac x="<Ev aa> ^^^ s'" in exI)
  apply (rule_tac x="t'" in exI)
  apply (erule disjE)
  apply (simp add: appt_assoc)
@@ -401,7 +405,7 @@ apply (simp_all)
   apply (simp)
   apply (elim conjE exE)
 
-  apply (rule_tac x="<Ev aa> ^^^ s'a" in exI)
+  apply (rule_tac x="<Ev aa> ^^^ s'" in exI)
   apply (rule_tac x="t'a" in exI)
   apply (simp add: appt_assoc)
 done
