@@ -257,6 +257,35 @@ lemmas cspT_Int_choice_unit =
 
 lemmas cspT_unit = cspT_Ext_choice_unit cspT_Int_choice_unit
 
+
+(*-----------------------------------*
+ |             guard proc            |
+ *-----------------------------------*)
+
+lemma cspT_guard_False [simp]:
+    "False &: P =T[M,M] STOP"
+  by (rule cspT_IF_False)
+
+lemma cspT_guard_True [simp]:
+    "True &: P =T[M,M] P"
+  by (rule cspT_IF_True)
+
+lemma cspT_Ext_choice_guard_IF :
+    "g &: P [+] \<not> g &: Q =T[M,M] (IF g THEN P ELSE Q)"
+  apply (case_tac g, auto)
+  apply (rule cspT_rw_left, rule cspT_Ext_choice_cong)
+  apply (rule cspT_IF, rule cspT_IF)
+  apply (rule cspT_rw_right, rule cspT_IF)
+  apply (rule cspT_rw_left, rule cspT_Ext_choice_unit)
+  apply (rule cspT_reflex)
+  apply (rule cspT_rw_left, rule cspT_Ext_choice_cong)
+  apply (rule cspT_IF, rule cspT_IF)
+  apply (rule cspT_rw_right, rule cspT_IF)
+  apply (rule cspT_rw_left, rule cspT_Ext_choice_unit)
+  apply (rule cspT_reflex)
+  done
+
+
 (*-----------------------------------*
  |             !-empty               |
  *-----------------------------------*)
