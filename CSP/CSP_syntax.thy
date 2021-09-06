@@ -18,7 +18,11 @@
             |        CSP-Prover on Isabelle2016         |
             |                  April 2016  (modified)   |
             |                                           |
+            |        CSP-Prover on Isabelle2021         |
+            |                 August 2021  (modified)   |
+            |                                           |
             |        Yoshinao Isobe (AIST JAPAN)        |
+            | Joabe Jesus (eComp POLI UPE and CIn UFPE) |
             *-------------------------------------------*)
 
 theory CSP_syntax
@@ -35,22 +39,30 @@ declare Union_image_eq [simp del]
 declare Inter_image_eq [simp del]
 *)
 
+subsection \<open> alphabet and chanset \<close>
 
 type_synonym 'e alphabet = "('e) set"
 
-abbreviation chanset :: "('a => 'e) =>  'e alphabet" ("{| _ |}")
+abbreviation
+    chanset :: "('a => 'e) =>  'e alphabet" ("{|(\<open>unbreakable\<close> _) |}cs")
 where
-  "{| c |} == { e . \<exists>x. e = c x }"
+    "{| c |}cs == range c"
+
+abbreviation
+    chanset2 :: "('a => 'e) => ('a => 'e) =>  'e alphabet" ("{|(\<open>unbreakable\<close> _),(\<open>unbreakable\<close> _) |}cs")
+where
+    "{| c1, c2 |}cs == {| c1 |}cs \<union> {| c2 |}cs"
 
 
+notation chanset ("{|(\<open>unbreakable\<close> _) |}\<^sub>c")
+notation chanset2 ("{|(\<open>unbreakable\<close> _),(\<open>unbreakable\<close> _) |}\<^sub>c")
+
+
+subsection \<open> Process Type Definitions \<close>
 (*-----------------------------------------------------------*
- |                                                           |
- |    Process Type Definitions                               |
- |                                                           |
  |             'a proc : type of process expressions         |
  |                       'n : process name                   |
  |                       'a : event                          |
- |                                                           |
  *-----------------------------------------------------------*)
 
 (*********************************************************************
@@ -538,6 +550,15 @@ lemma Inductive_interleave_map_to_List_Cons :
 by (rule Inductive_interleave_map_to_List, induct l, simp, simp add: map_def)
 
 
+(*** guard Process ***)
+
+abbreviation                                  
+    guard_proc :: "bool \<Rightarrow> ('pn,'e) proc \<Rightarrow> ('pn,'e) proc"
+    ("(\<open>unbreakable\<close>_) ('&:) (_)" [40,88] 88)
+where
+    "g &: P == IF g THEN P ELSE STOP" (*P <:& g &:> STOP*)
+
+
 (*** timeout ***)
 
 abbreviation
@@ -672,9 +693,13 @@ apply (induct_tac m)
 apply (auto)
 done
 
-lemma CPOmode_or_CMSmode_or_MIXmode: 
+lemma CPOmode_or_CMSmode_or_MIXmode [simp]: 
   "FPmode = CPOmode | FPmode = CMSmode | FPmode = MIXmode"
 by (simp add: CPOmode_or_CMSmode_or_MIXmode_lm)
+
+lemma not_CPOmode_is_CMSmode_or_MIXmode [simp]:
+  "FPmode \<noteq> CPOmode \<Longrightarrow> FPmode = CMSmode \<or> FPmode = MIXmode"
+by (case_tac FPmode, simp_all)
 
 (*-------*
  | CHAOS |
@@ -971,9 +996,9 @@ definition
 (* noPN *)
 
 lemma noPN_Rep_ext_choice [rule_format]:
-    "\<lbrakk> finite X; \<And>x. noPN (PXf x) \<rbrakk> \<Longrightarrow> noPN ([+]X .. PXf)"
+    "\<lbrakk> finite X; \<And>a. noPN (PXf a) \<rbrakk> \<Longrightarrow> noPN ([+]X .. PXf)"
   apply (simp add: Rep_ext_choice_def)
-    apply (rule someI2_ex, rule isListOf_EX, simp)
+  apply (rule someI2_ex, rule isListOf_EX, simp)
 by (induct_tac x, simp_all add: Inductive_ext_choice_def)
 
 lemma noPN_Rep_int_choice_set[simp]:
@@ -1050,7 +1075,7 @@ lemma gSKIP_Rep_interleaving :
   apply (rule gSKIP_Inductive_interleave_map)
     apply (clarsimp)
     apply (simp add: isListOf_set_eq)
-done
+  done
 
 (* noHide *)
 
@@ -1058,8 +1083,8 @@ lemma noHide_Rep_ext_choice :
     "\<lbrakk> finite X; \<And>x. noHide (PXf x) \<rbrakk> \<Longrightarrow> noHide ([+]X .. PXf)"
   apply (simp add: Rep_ext_choice_def)
     apply (rule someI2_ex, rule isListOf_EX, simp)
-    apply (induct_tac x, simp_all add: Inductive_ext_choice_def)
-done
+    by (induct_tac x, simp_all add: Inductive_ext_choice_def)
+
 
 lemma noHide_Rep_int_choice_set[simp]:
   "noHide (!set :Xs .. Pf) = (ALL X. noHide (Pf X))"
@@ -1139,9 +1164,9 @@ done
 lemma guarded_Rep_ext_choice :
     "\<lbrakk> finite X; \<And>x. guarded (PXf x) \<rbrakk> \<Longrightarrow> guarded ([+]X .. PXf)"
   apply (simp add: Rep_ext_choice_def)
-    apply (rule someI2_ex, rule isListOf_EX, simp)
-    apply (induct_tac x, simp_all add: Inductive_ext_choice_def)
-done
+  apply (rule someI2_ex, rule isListOf_EX, simp)
+  by (induct_tac x, simp_all add: Inductive_ext_choice_def)
+
 
 lemma Rep_ext_choice_map_to_List :
     "map PXf x = l \<Longrightarrow> ( [+] map PXf x) = ( [+] l)"
