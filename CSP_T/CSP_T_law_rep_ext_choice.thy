@@ -1,9 +1,11 @@
            (*-------------------------------------------*
             |        CSP-Prover on Isabelle2020         |
-            |                  March 2021  (modified)   |
+            |                  March 2021               |
             |                                           |
-            |        Joabe Jesus (eComp POLI UPE)       |
-            |        Joabe Jesus (CIn UFPE)             |
+            |        CSP-Prover on Isabelle2021         |
+            |                 August 2021  (modified)   |
+            |                                           |
+            | Joabe Jesus (eComp POLI UPE and CIn UFPE) |
             *-------------------------------------------*)
 
 theory CSP_T_law_rep_ext_choice
@@ -52,7 +54,9 @@ lemma cspT_Subst_procfun_comp_Inductive_ext_choice_map :
 by (induct l, simp_all, rule cspT_decompo, simp_all)
 
 
-(*** Traces Model Comparison to Ext_pre_choice operator ***)
+(*------------------------------------------------*
+ | Inductive external choice to Ext_prefix_choice |
+ *------------------------------------------------*)
 
 theorem cspT_Inductive_ext_choice_to_Ext_pre_choice :
     "[+] map (\<lambda> e . e -> PXf e) l =T[M,M] ? :set l -> PXf"
@@ -72,14 +76,16 @@ lemma cspT_Rep_ext_choice_cong :
 by (simp add: Rep_ext_choice_def cspT_Inductive_ext_choice_map_cong)
 
 
-(*** Traces Model Comparison to Ext_pre_choice operator ***)
+(*------------------------------------------------*
+ |    Rep external choice to Ext_prefix_choice    |
+ *------------------------------------------------*)
 
 theorem cspT_Rep_ext_choice_to_Ext_pre_choice :
     "finite X \<Longrightarrow> [+]X .. (\<lambda>x . x -> PXf x) =T[M,M] ? :X -> (\<lambda>x . PXf x)"
   apply (simp add: Rep_ext_choice_def)
   apply (rule someI2_ex, rule isListOf_EX, simp)
   apply (rule cspT_rw_left)
-    apply (rule cspT_Inductive_ext_choice_to_Ext_pre_choice)
-by (simp add: isListOf_set_eq)
+  apply (rule cspT_Inductive_ext_choice_to_Ext_pre_choice)
+  by (simp add: isListOf_set_eq)
 
 end

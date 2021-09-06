@@ -1,9 +1,11 @@
            (*-------------------------------------------*
             |        CSP-Prover on Isabelle2020         |
-            |                  March 2021  (modified)   |
+            |                  March 2021               |
             |                                           |
-            |        Joabe Jesus (eComp POLI UPE)       |
-            |        Joabe Jesus (CIn UFPE)             |
+            |        CSP-Prover on Isabelle2021         |
+            |                 August 2021 (modified)    |
+            |                                           |
+            | Joabe Jesus (eComp POLI UPE and CIn UFPE) |
             *-------------------------------------------*)
 
 theory CSP_T_law_Subst_procfun

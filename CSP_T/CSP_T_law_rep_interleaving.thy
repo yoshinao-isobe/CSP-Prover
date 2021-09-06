@@ -1,9 +1,11 @@
            (*-------------------------------------------*
             |        CSP-Prover on Isabelle2020         |
-            |                  March 2021  (modified)   |
+            |                  March 2021               |
             |                                           |
-            |        Joabe Jesus (eComp POLI UPE)       |
-            |        Joabe Jesus (CIn UFPE)             |
+            |        CSP-Prover on Isabelle2021         |
+            |                 August 2021  (modified)   |
+            |                                           |
+            | Joabe Jesus (eComp POLI UPE and CIn UFPE) |
             *-------------------------------------------*)
 
 theory CSP_T_law_rep_interleaving
@@ -99,69 +101,5 @@ lemma cspT_Rep_interleaving_pair_cong :
     "X = Y \<Longrightarrow> ||| (a,b):X .. PfX =T ||| (c,d):Y .. PfX"
 by (simp)
 
-
-
-(*
-TODO
-
-lemma Rep_interleaving2Alpha_parallel :
-    "\<lbrakk> finite X; \<exists> i . i : X; Y = X-{i}; alphabet(Pf i) \<inter> alphabet( |||Y .. Pf ) = {} \<rbrakk> \<Longrightarrow>
-     |||X .. Pf =T (Pf i |[- X]| SKIP) |[{}]| ( |||Y .. Pf |[- Y]| SKIP)"
-  apply (case_tac "X={}")
-  apply (simp)
-  
-  apply (rule cspT_rw_left)
-  apply (simp add: Rep_interleaving_def)
-  apply (rule cspT_InductPar_map_unwind)
-  apply (rule someI2_ex)
-  apply (rule isListOf_EX, simp)
-  apply (rule isListOf_nonemptyset, simp, simp)
-  apply (cspT_auto)
-  
-  apply (rule cspT_rw_right)
-  apply (rule cspT_decompo, simp)
-  apply (rule cspT_SKIP_DIV)
-apply (simp add: Rep_interleaving_def)
-apply (cspT_auto)
-*)
-
-
-
-
-(*
-   Inductive_parallel : "[||] (PX # PXs) = (fst PX) |[snd PX, Union (snd ` set PXs)]| ([||] PXs)"
-   
-   Alpha_parallel_def : "P |[X,Y]| Q  == (P |[- X]| SKIP) |[X Int Y]| (Q |[- Y]| SKIP)"
-   
-   "traces(P |[X]| Q) = (%M. {u. EX s t. u : s |[X]|tr t
-                                       & s :t traces(P) M
-                                       & t :t traces(Q) M }t)"
-                                  
-   par_tr_def : "s |[X]|tr t == {u. (u, s, t) : parx X}"
-   
-   parx_nil_nil:   "(<>, <>, <>) : parx X" |
-   parx_Tick_Tick: "(<Tick>, <Tick>, <Tick>) : parx X" |
-   parx_Ev_nil:    "[| (u,  s, <>) : parx X ; a ~: X |] ==> (<Ev a> ^^^ u, <Ev a> ^^^ s, <>) : parx X" |
-   parx_nil_Ev:    "[| (u, <>,  t) : parx X ; a ~: X |] ==> (<Ev a> ^^^ u, <>, <Ev a> ^^^ t) : parx X" |
-   parx_Ev_sync:   "[| (u,  s,  t) : parx X ;  a : X |] ==> (<Ev a> ^^^ u, <Ev a> ^^^ s, <Ev a> ^^^ t) : parx X" |
-   parx_Ev_left:   "[| (u,  s,  t) : parx X ; a ~: X |] ==> (<Ev a> ^^^ u, <Ev a> ^^^ s, t) : parx X" |
-   parx_Ev_right:  "[| (u,  s,  t) : parx X ; a ~: X |] ==> (<Ev a> ^^^ u, s, <Ev a> ^^^ t) : parx X"
- *)
-
-
-(*
-(let x = (SOME x . x : X); X2 = X-{x} in (PXf x) ||| ( |||X2 .. PXf ) )
-
-lemma Rep_interleaving_unwind :
-    "\<lbrakk> finite X; \<exists> i . i : X; X2 = X-{i}; alphabet(Pf i) \<inter> alphabet( |||X2 .. Pf ) = {} \<rbrakk> \<Longrightarrow>
-     |||X .. Pf =T (Pf i) ||| ( |||X2 .. Pf )"
-  apply (case_tac "X={}")
-  apply (cspT_auto)
-  apply (rule cspT_rw_left)
-  apply (simp add: Rep_interleaving_def)
-  apply (rule cspT_InductPar_map_unwind)
-  apply (rule someI2_ex, rule isListOf_EX, simp)
-  apply (rule isListOf_nonemptyset, simp, simp)
-*)
 
 end

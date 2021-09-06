@@ -15,7 +15,11 @@
             |        CSP-Prover on Isabelle2016         |
             |                    May 2016  (modified)   |
             |                                           |
+            |        CSP-Prover on Isabelle2021         |
+            |                 August 2021  (modified)   |
+            |                                           |
             |        Yoshinao Isobe (AIST JAPAN)        |
+            | Joabe Jesus (eComp POLI UPE and CIn UFPE) |
             *-------------------------------------------*)
 
 theory CSP_T_semantics
@@ -117,8 +121,83 @@ lemmas Rep_int_choice_traces =
        Rep_int_choice_traces_f
 
 
+(*--------------------------------*
+ |      Inductive_Ext_choice      |
+ *--------------------------------*)
+
+lemma Inductive_external_choice_domT: 
+    "{t. t = <> | 
+         (\<exists> P\<in> set l. t :t traces P M) } : domT"
+  apply (simp add: domT_def HC_T1_def)
+  apply (simp add: prefix_closed_def)
+  apply (rule conjI)
+  apply (rule_tac x="<>" in exI, simp)
+  
+  apply (intro allI impI)
+  apply (elim conjE exE)
+  apply (elim disjE, simp)
+  
+  apply (rule disjI2)
+  apply (elim bexE)
+  apply (rule_tac x="P" in bexI)
+  apply (rule memT_prefix_closed)
+  by (simp_all)
+
+theorem Inductive_ext_choice_traces:
+    "traces ([+] l) M = {u. u = <> \<or> (\<exists> P\<in> set l. u :t traces P M)}t"
+  apply (induct_tac l)
+  apply (simp add: traces.simps)
+  apply (simp add: traces.simps S_UnT_T set_CollectT_commute_left)
+  by (simp add: CollectT_open_memT Inductive_external_choice_domT)
+
+
+(*--------------------------------*
+ |      Replicated_Ext_choice     |
+ *--------------------------------*)
+
+theorem Rep_ext_choice_traces:
+    "finite X \<Longrightarrow> l = (SOME l. l isListOf X)
+     \<Longrightarrow> traces ([+] x:X .. PXf x) M = {u. u = <> \<or> (\<exists> P\<in>(set (map PXf l)). u :t traces P M)}t"
+  apply (simp (no_asm) only: Rep_ext_choice_def)
+  by (simp only: Inductive_ext_choice_traces)
+
+
+
+(*--------------------------------*
+ |       Inductive_interleave     |
+ *--------------------------------*)
+
+abbreviation
+    "in_t_Induct_interleave u l M
+     == ((l = [] \<and> (u = <> \<or> u = <Tick>))
+         \<or> (l \<noteq> [] \<and> (\<exists>s t. u \<in> s |[{}]|tr t
+                           \<and> s :t traces (hd l) M
+                           \<and> t :t traces ( ||| tl l) M)))"
+
+theorem Inductive_interleave_traces :
+    "traces ( ||| l) M = {u. in_t_Induct_interleave u l M }t"
+  apply (induct_tac l)
+  apply (simp_all add: traces.simps)
+  apply (rule_tac f="Abs_domT" in arg_cong)
+  by (fast)
+
+(*--------------------------------*
+ |         Rep_interleaving       |
+ *--------------------------------*)
+
+theorem Rep_interleaving_traces :
+    "finite X \<Longrightarrow> map PXf (SOME x. x isListOf X) = Ps
+     \<Longrightarrow> traces ( ||| X .. PXf) M = {u. in_t_Induct_interleave u Ps M }t"
+  apply (simp (no_asm_use) only: Rep_interleaving_def)
+  apply (rule someI2, rule isListOf_EX, simp)
+  by (simp add: Inductive_interleave_traces[THEN sym])
+
 
 lemmas traces_iff = traces.simps Rep_int_choice_traces
+                    (*Inductive_ext_choice_traces
+                    Rep_ext_choice_traces
+                    Inductive_interleave_traces
+                    Rep_interleaving_traces*)
 
 (*==================================================================*
                             traces model
