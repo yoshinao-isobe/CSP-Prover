@@ -7,7 +7,11 @@
             |                   June 2009  (modified)   |
             |                October 2009  (modified)   |
             |                                           |
+            |        CSP-Prover on Isabelle2021         |
+            |                 August 2021  (modified)   |
+            |                                           |
             |        Yoshinao Isobe (AIST JAPAN)        |
+            | Joabe Jesus (eComp POLI UPE and CIn UFPE) |
             *-------------------------------------------*)
 
 theory CSP_F_law_etc
@@ -401,13 +405,13 @@ lemmas cspF_Act_prefix_Renaming_event_step =
 (* <==> *)
 
 lemma cspF_Act_prefix_Renaming1_channel1_step_in:
-  "[| inj f ; ALL x y. f x ~= g y |]
+  "[| inj f ; disjoint_range f g |]
    ==> (f v -> P)[[f<==>g]] =F[M,M] g v -> P[[f<==>g]]"
 apply (simp add: Renaming_channel_fun_def Renaming_channel_def)
 by (rule cspF_rw_left, rule cspF_Act_prefix_Renaming_fun_step, auto)
 
 lemma cspF_Act_prefix_Renaming1_channel2_step_in:
-  "[| inj f ; ALL x y. f x ~= g y |]
+  "[| inj f ; disjoint_range f g |]
    ==> (f v -> P)[[g<==>f]] =F[M,M] g v -> P[[g<==>f]]"
 by (simp add: Renaming_commut cspF_Act_prefix_Renaming1_channel1_step_in)
 
@@ -426,7 +430,7 @@ lemmas cspF_Act_prefix_Renaming1_channel_step =
 (* <== *)
 
 lemma cspF_Act_prefix_Renaming2_channel_step_in:
-  "[| inj f ; ALL x y. f x ~= g y |]
+  "[| inj f ; disjoint_range f g |]
    ==> (f v -> P)[[f<==g]] =F[M,M] g v -> P[[f<==g]]"
 apply (simp add: Renaming_channel_fun_def Renaming_channel_def)
 by (rule cspF_rw_left, rule cspF_Act_prefix_Renaming_fun_step, auto)
@@ -1028,14 +1032,14 @@ lemmas cspF_Send_prefix_Renaming_event_step =
 (* <==> *)
 
 lemma cspF_Send_prefix_Renaming1_channel1_step_in:
-  "[| inj f ; ALL x y. f x ~= g y |]
+  "[| inj f ; disjoint_range f g |]
    ==> (f!v -> P)[[f<==>g]] =F[M,M] g!v -> P[[f<==>g]]"
 apply (simp add: csp_prefix_ss_def)
 apply (simp add: cspF_Act_prefix_Renaming_step)
 done
 
 lemma cspF_Send_prefix_Renaming1_channel2_step_in:
-  "[| inj f ; ALL x y. f x ~= g y |]
+  "[| inj f ; disjoint_range f g |]
    ==> (f!v -> P)[[g<==>f]] =F[M,M] g!v -> P[[g<==>f]]"
 by (simp add: Renaming_commut cspF_Send_prefix_Renaming1_channel1_step_in)
 
@@ -1055,7 +1059,7 @@ lemmas cspF_Send_prefix_Renaming1_channel_step =
 (* <== *)
 
 lemma cspF_Send_prefix_Renaming2_channel_step_in:
-  "[| inj f ; ALL x y. f x ~= g y |]
+  "[| inj f ; disjoint_range f g |]
    ==> (f!v -> P)[[f<==g]] =F[M,M] g!v -> P[[f<==g]]"
 apply (simp add: csp_prefix_ss_def)
 apply (simp add: cspF_Act_prefix_Renaming_step)
@@ -1463,7 +1467,7 @@ lemmas cspF_Rec_prefix_Renaming_event_step =
 (* <==> *)
 
 lemma cspF_Rec_prefix_Renaming1_channel1_step_in:
-  "[| inj f ; inj g ; ALL x y. f x ~= g y |] ==>
+  "[| inj f ; inj g ; disjoint_range f g |] ==>
      (f ? x:X -> Pf x)[[f<==>g]] =F[M,M] g ? x:X -> (Pf x)[[f<==>g]]"
 apply (simp add: Renaming_channel_def)
 apply (simp add: csp_prefix_ss_def)
@@ -1489,7 +1493,7 @@ apply (simp add: Renaming_channel_fun_simp)
 done
 
 lemma cspF_Rec_prefix_Renaming1_channel2_step_in:
-  "[| inj f ; inj g ; ALL x y. f x ~= g y |] ==>
+  "[| inj f ; inj g ; disjoint_range f g |] ==>
      (f ? x:X -> Pf x)[[g<==>f]] =F[M,M] g ? x:X -> (Pf x)[[g<==>f]]"
 apply (simp add: Renaming_commut)
 apply (simp add: cspF_Rec_prefix_Renaming1_channel1_step_in)
@@ -1497,14 +1501,14 @@ done
 
 (*
 lemma Renaming_channel_fun_h:
-   "[| ALL x y. f x ~= g y ; ALL x y. f x ~= h y ; ALL x y. g x ~= h y |]
+   "[| disjoint_range f g ; disjoint_range f h ; disjoint_range g h |]
     ==> Renaming_channel_fun f g (h x) = h x"
 by (auto simp add: Renaming_channel_fun_def)
 
 lemma Renaming_channel_fun_map_h:
-   "[| (ALL x y. f x ~= h y) ;
-       (ALL x y. g x ~= h y) ;
-       ALL x y. f x ~= g y |]
+   "[| (disjoint_range f h) ;
+       (disjoint_range g h) ;
+       disjoint_range f g |]
     ==> Renaming_channel_fun f g ` h ` X = h ` X"
 apply (simp add: image_def)
 apply (auto simp add: Renaming_channel_fun_h)
@@ -1513,11 +1517,11 @@ done
 
 lemma cspF_Rec_prefix_Renaming1_channel_step_notin:
   "[| inj h;
-      (ALL x y. f x ~= h y) | range f Int range h = {} ;
-      (ALL x y. g x ~= h y) | range g Int range h = {} ;
-       ALL x y. f x ~= g y |] ==>
+      (disjoint_range f h) | range f Int range h = {} ;
+      (disjoint_range g h) | range g Int range h = {} ;
+       disjoint_range f g |] ==>
     (h ? x:X -> Pf x)[[f<==>g]] =F[M,M] h ? x:X -> (Pf x)[[f<==>g]]"
-apply (subgoal_tac "(ALL x y. f x ~= h y) & (ALL x y. g x ~= h y)")
+apply (subgoal_tac "(disjoint_range f h) & (disjoint_range g h)")
 apply (simp add: Renaming_channel_def)
 apply (simp add: csp_prefix_ss_def)
 apply (rule cspF_rw_left)
@@ -1549,7 +1553,7 @@ lemmas cspF_Rec_prefix_Renaming1_channel_step =
 (* <== *)
 
 lemma cspF_Rec_prefix_Renaming2_channel_step_in:
-  "[| inj f ; inj g ; ALL x y. f x ~= g y |] ==>
+  "[| inj f ; inj g ; disjoint_range f g |] ==>
      (f ? x:X -> Pf x)[[f<==g]] =F[M,M] g ? x:X -> (Pf x)[[f<==g]]"
 apply (simp add: Renaming_channel_def)
 apply (simp add: csp_prefix_ss_def)
@@ -1576,10 +1580,10 @@ done
 
 lemma cspF_Rec_prefix_Renaming2_channel_step_notin:
   "[| inj h;
-      (ALL x y. f x ~= h y) | range f Int range h = {} ;
-       ALL x y. f x ~= g y |] ==>
+      (disjoint_range f h) | range f Int range h = {} ;
+       disjoint_range f g |] ==>
     (h ? x:X -> Pf x)[[f<==g]] =F[M,M] h ? x:X -> (Pf x)[[f<==g]]"
-apply (subgoal_tac "(ALL x y. f x ~= h y)")
+apply (subgoal_tac "(disjoint_range f h)")
 apply (simp add: Renaming_channel_def)
 apply (simp add: csp_prefix_ss_def)
 apply (rule cspF_rw_left)
@@ -1895,7 +1899,7 @@ lemmas cspF_Nondet_send_prefix_Renaming_event_step =
 (* <==> *)
 
 lemma cspF_Nondet_send_prefix_Renaming1_channel1_step_in:
-  "[| inj f ; inj g ; ALL x y. f x ~= g y |] ==> 
+  "[| inj f ; inj g ; disjoint_range f g |] ==> 
    (f !? x:X -> Pf x)[[f<==>g]] =F[M,M] g !? x:X -> (Pf x)[[f<==>g]]"
 apply (simp add: csp_prefix_ss_def)
 apply (rule cspF_rw_left)
@@ -1930,15 +1934,15 @@ apply (rule cspF_ref_eq)
 done
 
 lemma cspF_Nondet_send_prefix_Renaming1_channel2_step_in:
-  "[| inj f ; inj g ; ALL x y. f x ~= g y |] ==> 
+  "[| inj f ; inj g ; disjoint_range f g |] ==> 
    (f !? x:X -> Pf x)[[g<==>f]] =F[M,M] g !? x:X -> (Pf x)[[g<==>f]]"
 apply (simp add: Renaming_commut)
 apply (simp add: cspF_Nondet_send_prefix_Renaming1_channel1_step_in)
 done
 
 lemma cspF_Nondet_send_prefix_Renaming1_channel_step_notin:
-  "[| (ALL x y. f x ~= h y) | (range f Int range h = {}) ;
-      (ALL x y. g x ~= h y) | (range g Int range h = {}) |] ==>
+  "[| (disjoint_range f h) | (range f Int range h = {}) ;
+      (disjoint_range g h) | (range g Int range h = {}) |] ==>
    (h !? x:X -> Pf x)[[f<==>g]] =F[M,M] h !? x:X -> (Pf x)[[f<==>g]]"
 apply (simp add: csp_prefix_ss_def)
 apply (rule cspF_rw_left)
@@ -1961,7 +1965,7 @@ lemmas cspF_Nondet_send_prefix_Renaming1_channel_step =
 (* <== *)
 
 lemma cspF_Nondet_send_prefix_Renaming2_channel_step_in:
-  "[| inj f ; inj g ; ALL x y. f x ~= g y |] ==> 
+  "[| inj f ; inj g ; disjoint_range f g |] ==> 
    (f !? x:X -> Pf x)[[f<==g]] =F[M,M] g !? x:X -> (Pf x)[[f<==g]]"
 apply (simp add: csp_prefix_ss_def)
 apply (rule cspF_rw_left)
@@ -1996,7 +2000,7 @@ apply (rule cspF_ref_eq)
 done
 
 lemma cspF_Nondet_send_prefix_Renaming2_channel_step_notin:
-  "[| (ALL x y. f x ~= h y) | (range f Int range h = {}) |] ==>
+  "[| (disjoint_range f h) | (range f Int range h = {}) |] ==>
    (h !? x:X -> Pf x)[[f<==g]] =F[M,M] h !? x:X -> (Pf x)[[f<==g]]"
 apply (simp add: csp_prefix_ss_def)
 apply (rule cspF_rw_left)
