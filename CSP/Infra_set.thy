@@ -16,7 +16,11 @@
             |        CSP-Prover on Isabelle2016         |
             |                  April 2016  (modified)   |
             |                                           |
+            |        CSP-Prover on Isabelle2021         |
+            |                 August 2021  (modified)   |
+            |                                           |
             |        Yoshinao Isobe (AIST JAPAN)        |
+            | Joabe Jesus (eComp POLI UPE and CIn UFPE) |
             *-------------------------------------------*)
 
 theory Infra_set
@@ -237,9 +241,6 @@ apply (simp add: card_insert_if)
 apply (simp add: card_insert_if)
 apply (force)
 
-apply (simp add: card_insert)
-apply (subgoal_tac "set list - {a} = set list")
-apply (simp)
 apply (case_tac "a ~: set list")
 apply (simp)
 apply (simp)
@@ -287,6 +288,8 @@ definition
   isListOf_def : 
     "s isListOf X  == 
      X = set s & (card (set s) = length s)"
+
+
 
 lemma isListOf_EX: "(finite X) ==> EX s. s isListOf X"
 apply (simp add: isListOf_def)
@@ -368,18 +371,11 @@ apply (rule allI)
 apply (induct_tac t)
 apply (simp add: isListOf_def)
 
-apply (intro allI impI)
-apply (insert list_nil_or_unnil)
-apply (drule_tac x="list" in spec)
-apply (elim exE disjE)
 apply (simp add: isListOf_def)
-
-apply (simp add: isListOf_def)
-apply (elim conjE)
-apply (simp)
-apply (simp add: card_insert)
-apply (subgoal_tac "set s - {aa} = {}")
-apply (simp_all)
+apply (elim allE disjE)
+apply (auto)
+apply (drule subset_singletonD, elim disjE, simp_all)
+apply (drule subset_singletonD, elim disjE, simp_all)
 done
 
 lemma isListOf_oneset_to_onelist[simp]: "(t isListOf {a}) = (t = [a])"
@@ -391,6 +387,8 @@ lemma isListOf_onelist_to_oneset[simp]: "([a] isListOf X) = (X = {a})"
 apply (simp add: isListOf_def)
 done
 
+
+(* SOME isListOf *)
 
 lemma some_isListOf_Empty :
     "I = {} \<Longrightarrow> (SOME x. x isListOf I) = []"

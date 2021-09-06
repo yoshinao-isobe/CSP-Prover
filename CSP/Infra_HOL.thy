@@ -5,12 +5,28 @@
             |        CSP-Prover on Isabelle2009         |
             |                   June 2009  (modified)   |
             |                                           |
+            |        CSP-Prover on Isabelle2021         |
+            |                 August 2021  (modified)   |
+            |                                           |
             |        Yoshinao Isobe (AIST JAPAN)        |
+            | Joabe Jesus (eComp POLI UPE and CIn UFPE) |
             *-------------------------------------------*)
 
 theory Infra_HOL
 imports Infra_common
 begin
+
+
+(*--------------------------*
+ |  exchange order in EX    |
+ *--------------------------*)
+
+lemma ex_comm3 : "(EX a b c . P a b c) = (EX c a b. P a b c)"
+by (auto)
+
+lemma ex_rot_r: "(EX x y z. P x y z) = (EX z x y. P x y z)"
+  by (auto)
+
 
 (*--------------------------*
  |  exchange order in ALL   |
@@ -334,6 +350,48 @@ apply (drule_tac x="X6a" in spec)
 apply (simp)
 done
 
+
+(* =================================================== *
+ |             addition for CSP-Prover 6               |
+ * =================================================== *)
+
+abbreviation disjoint_range where
+  "disjoint_range f g == ALL x y. f x ~= g y"
+
+lemma not_disjoint_rangeI :
+  "range f = range g \<Longrightarrow> \<not> disjoint_range f g"
+  by (simp add: image_def, force)
+
+lemma disjoint_range_iff_not_equal :
+    "disjoint_range f g \<longleftrightarrow> range f \<inter> range g = {}"
+  by (simp add: disjoint_iff_not_equal)
+
+lemma disjoint_range_iff :
+    "disjoint_range f g \<longleftrightarrow> (\<forall>x. x\<in>(range f) \<longrightarrow> x \<notin> (range g))"
+  by (simp only: disjoint_range_iff_not_equal disjoint_iff)
+
+lemma disjoint_range_eq_subset_Compl :
+    "disjoint_range f g \<longleftrightarrow> (range f \<subseteq> - range g)"
+  by (simp only: disjoint_range_iff_not_equal disjoint_eq_subset_Compl)
+
+lemma disjoint_rangeI :
+    "range f Int range g = {} ==> (disjoint_range f g)"
+  by (simp only: disjoint_range_iff_not_equal)
+
+
+lemma disjoint_range_commute :
+    "disjoint_range f g \<longleftrightarrow> disjoint_range g f"
+  by (simp only: disjoint_range_iff_not_equal Int_commute)
+
+lemma disjoint_range_only_if :
+    "disjoint_range f g \<Longrightarrow> range f Int range g = {}"
+  by (simp only: disjoint_range_iff_not_equal)
+
+lemma disjoint_range_only_if_commute :
+    "disjoint_range f g \<Longrightarrow> disjoint_range g f"
+  by (simp add: not_sym)
+
+
 (* =================================================== *
  |             addition for CSP-Prover 5               |
  * =================================================== *)
@@ -343,11 +401,11 @@ done
  * ----------- *)
 
 lemma add_not_eq_sym_funE: 
-  "[| ALL x y. f x ~= g y ; 
-      [| (ALL x y. f x ~= g y) & (ALL x y. g x ~= f y) |] ==> R |] 
+  "[| disjoint_range f g ; 
+      [| (disjoint_range f g) & (disjoint_range g f) |] ==> R |] 
    ==> R"
 apply (auto)
-apply (subgoal_tac "(ALL x y. f x ~= g y) = (ALL x y. g x ~= f y)")
+apply (subgoal_tac "(disjoint_range f g) = (disjoint_range g f)")
 apply (auto)
 apply (rotate_tac -1)
 apply (drule sym)
@@ -371,24 +429,9 @@ lemmas add_not_eq_symE =
        add_not_eq_sym_cons_funE
        add_not_eq_sym_consE
 
-lemma not_eq_fun_range_Int:
-  "(ALL x y. f x ~= g y) = (range f Int range g = {})"
-by (auto)
+lemmas not_eq_fun_range_Int = disjoint_range_iff_not_equal
+lemmas not_eq_fun_range_Int_only_if = disjoint_range_only_if
+lemmas not_eq_fun_range_Int_if = disjoint_rangeI
 
-lemma not_eq_fun_range_Int_only_if:
-  "(ALL x y. f x ~= g y) ==> range f Int range g = {}"
-by (auto)
-
-lemma not_eq_fun_range_Int_if:
-  "range f Int range g = {} ==> (ALL x y. f x ~= g y)"
-by (auto)
-
-
-
-lemma not_cong : "P = Q \<Longrightarrow> (\<not> P) = (\<not> Q)"
-by (auto)
-
-lemma ex_comm3 : "(\<exists>a b c . P a b c) = (\<exists>c a b. P a b c)"
-by (auto)
 
 end
