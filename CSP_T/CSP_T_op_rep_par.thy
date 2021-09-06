@@ -15,7 +15,11 @@
             |        CSP-Prover on Isabelle2017         |
             |                  April 2018  (modified)   |
             |                                           |
+            |        CSP-Prover on Isabelle2021         |
+            |                 August 2021  (modified)   |
+            |                                           |
             |        Yoshinao Isobe (AIST JAPAN)        |
+            | Joabe Jesus (eComp POLI UPE and CIn UFPE) |
             *-------------------------------------------*)
 
 theory CSP_T_op_rep_par
@@ -197,7 +201,7 @@ lemma traces_Rep_parallel:
               (ALL i:I. (u rest-tr (snd (PXf i))) :t traces (fst (PXf i)) M))}t"
   (* using [[simp_trace=true]]*)
   (* Modified for Isabelle 2017 *)
-    apply (simp del: UN_simps SUP_image 
+    apply (simp del: UN_simps 
                 add: in_traces_Rep_parallel[THEN sym])
 done
 
