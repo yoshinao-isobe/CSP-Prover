@@ -385,4 +385,28 @@ declare Inter_image_eq [simp]
 declare Sup_image_eq [simp]
 declare Inf_image_eq [simp]
 *)
+
+
+(* -------------------------------------------------- *
+           convenient lemmas for mappings
+ * -------------------------------------------------- *)
+
+lemma Lemma_fp_induct_eqF_isMapping_procfun :
+    "\<lbrakk> Pf = PNfun ; guardedfun (Pf::'up \<Rightarrow> ('up,'e) proc) ;
+     Qf = PNfun ; guardedfun (Qf::'down \<Rightarrow> ('down,'e) proc) ;
+     isMapping_procfun (f::'down \<Rightarrow> ('up,'e) proc);
+     f q = $p; Pf (p) =F (Qf q) << f \<rbrakk> \<Longrightarrow>
+    f (q::'down) =F (Qf (q)) << f"
+  apply (simp add: isMapping_procfun_def)
+  by (rule cspF_rw_left, rule cspF_unwind, simp_all)
+
+lemma Lemma_fp_induct_refF_isMapping_procfun :
+    "\<lbrakk> Pf = PNfun ; guardedfun (Pf::'up \<Rightarrow> ('up,'e) proc) ;
+     Qf = PNfun ; guardedfun (Qf::'down \<Rightarrow> ('down,'e) proc) ;
+     isMapping_procfun (f::'down \<Rightarrow> ('up,'e) proc);
+     f q = $p; Pf (p) <=F (Qf q) << f \<rbrakk> \<Longrightarrow>
+    f (q::'down) <=F (Qf (q)) << f"
+  apply (simp add: isMapping_procfun_def)
+  by (rule cspF_rw_left, rule cspF_unwind, simp_all)
+
 end
