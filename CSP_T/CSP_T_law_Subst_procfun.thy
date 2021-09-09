@@ -9,7 +9,7 @@
             *-------------------------------------------*)
 
 theory CSP_T_law_Subst_procfun
-imports CSP_T_law_decompo CSP_T_law_basic
+imports CSP_T_law_basic
 begin
 
 lemma cspT_Subst_procfun_comp :
