@@ -10,11 +10,15 @@
             |                  March 2007  (modified)   |
             |                 August 2007  (modified)   |
             |                                           |
+            |        CSP-Prover on Isabelle2021         |
+            |                 August 2021  (modified)   |
+            |                                           |
             |        Yoshinao Isobe (AIST JAPAN)        |
+            | Joabe Jesus (eComp POLI UPE and CIn UFPE) |
             *-------------------------------------------*)
 
 theory CSP_F_failures
-imports CSP_F_semantics
+imports CSP_F_semantics CSP_T.CSP_T_traces
 begin
 
 (*  The following simplification rules are deleted in this theory file *)
@@ -26,6 +30,32 @@ declare disj_not1 [simp del]
 (*********************************************************
                         setF
  *********************************************************)
+
+lemma in_failures_conj :
+    "(f :f failures(P) M \<and> f :f failures(Q) M)
+      = (f :f ( failures(P) M IntF failures(Q) M ) )"
+by (auto)
+
+lemma in_failures_disj :
+    "(f :f failures(P) M \<or> f :f failures(Q) M)
+      = (f :f ( failures(P) M UnF failures(Q) M ) )"
+by (auto)
+
+lemma set_failures_disj :
+    "({ f. f :f failures(P) M \<or> f :f failures(Q) M }f)
+      = (failures(P) M UnF failures(Q) M)"
+by (simp add: UnionF_def memF_def Un_def)
+
+lemma failures_conj_dist :
+    "((((f::'a failure) = (<>, Y)) \<or> P) \<and> ((f = (<>, Y)) \<or> Q))
+     = ((f = (<>, Y)) \<or> (P \<and> Q))"
+by (simp add: disj_conj_distribL)
+
+lemma set_failures_conj :
+    "({ f. f :f failures(P) M \<and> f :f failures(Q) M }f)
+      = (failures(P) M IntF failures(Q) M)"
+by (simp add: InterF_def memF_def Int_def)
+
 
 (*--------------------------------*
  |             STOP               |
@@ -121,6 +151,16 @@ lemma in_failures_Ext_pre_choice:
 apply (simp add: failures_iff)
 by (simp add: CollectF_open_memF Ext_pre_choice_setF)
 
+
+(*** Act_prefix to Ext_pre_choice ***)
+
+
+lemma in_failures_Act_prefix_to_Ext_pre_choice: 
+  "(f :f failures(a -> P) M) 
+    = (f :f failures(? :{a} -> (\<lambda> x. P)) M)"
+by (simp add: in_failures_Act_prefix in_failures_Ext_pre_choice)
+
+
 (*--------------------------------*
  |          Ext_choice            |
  *--------------------------------*)
@@ -164,6 +204,72 @@ lemma in_failures_Ext_choice:
             (<Tick> :t traces P (fstF o M) | <Tick> :t traces Q (fstF o M)) & X <= Evset))"
 apply (simp add: failures_iff)
 by (simp only: CollectF_open_memF Ext_choice_setF)
+
+
+(*** Inductive_Ext_choice ***)
+
+lemma in_failures_Inductive_ext_choice :
+    "f :f failures ([+] PXs) Mf = in_f_Inductive_ext_choice PXs Mf f"
+  apply (induct_tac PXs)
+    apply (simp add: Inductive_ext_choice_failures in_failures_STOP)
+    apply (simp add: failures_iff traces_iff comp_def)
+    apply (rule trans, rule CollectF_open_memF, rule Ext_choice_setF)
+    by (simp add: comp_def)
+
+(*** Replicated_Ext_choice ***)
+
+lemma in_failures_Rep_ext_choice :
+    "finite X \<Longrightarrow> l = map PXf (SOME l. l isListOf X)
+     \<Longrightarrow> f :f failures([+] X .. PXf) Mf = in_f_Inductive_ext_choice l Mf f"
+  apply (simp (no_asm) only: Rep_ext_choice_def)
+  by (simp only: in_failures_Inductive_ext_choice[THEN sym])
+
+
+(*------------------------------------------------*
+ | Inductive external choice to Ext_prefix_choice |
+ *------------------------------------------------*)
+
+lemma failures_Inductive_ext_choice_to_Ext_pre_choice :
+    "failures([+] map (\<lambda>x . x -> PXf x) l) Mf = (failures(? :set l -> PXf) Mf)"
+  apply (induct l)
+    (* l = [] *)
+    apply (simp add: failures_iff)
+    (* l = a#l *)
+    apply (rule trans, rule Inductive_ext_choice_failures)
+      apply (simp add: in_failures_Act_prefix_to_Ext_pre_choice)
+
+      (* traces *)
+      apply (simp only: in_traces_Act_prefix_to_Ext_pre_choice)
+      apply (simp add: traces_Inductive_ext_choice_to_Ext_pre_choice)
+      apply (simp add: in_traces_Ext_pre_choice)
+
+      apply (rule trans)
+        apply (rule trans)
+          apply (rule set_CollectF_eq, rule Collect_cong)
+          apply (rule disj_cong)
+            apply (rule ex_simps[THEN sym])
+            apply (rule trans, rule ex_cong1)
+            apply (rule trans, rule ex_simps[THEN sym])
+            apply (rule refl)
+          apply (rule ex_comm)
+        apply (rule refl)
+        apply (rule trans)
+          apply (rule set_CollectF_eq, rule Collect_cong)
+          apply (rule ex_disj_distrib[THEN sym])
+
+      apply (rule trans[THEN sym], simp add: failures.simps)
+        apply (rule set_CollectF_eq, rule Collect_cong)
+        apply (rule trans, rule disj_cong, rule refl)
+        apply (rule ex_comm3)
+        apply (rule trans, rule ex_disj_distrib[THEN sym])
+      
+     apply (simp (no_asm) only: in_failures_Ext_pre_choice)
+  by (auto)
+
+lemma failures_Ext_pre_choice_to_Inductive_ext_choice :
+    "finite X \<Longrightarrow> failures(? :X -> PXf) Mf = failures([+] map (\<lambda>x . x -> PXf x) (SOME l. l isListOf X)) Mf"
+  by (simp add: failures_Inductive_ext_choice_to_Ext_pre_choice isListOf_set_eq set_SOME_isListOf)
+
 
 (*--------------------------------*
  |          Int_choice            |
@@ -283,6 +389,30 @@ lemma in_failures_Parallel:
       (EX s t. u : s |[X]|tr t & (s,Y) :f failures(P) M & (t,Z) :f failures(Q) M))"
 apply (simp add: failures_iff)
 by (simp only: CollectF_open_memF Parallel_setF)
+
+
+(*--------------------------------*
+ |     Inductive_interleave       |
+ *--------------------------------*)
+
+lemma in_failures_Inductive_interleave :
+    "f :f failures ( ||| l) Mf = in_f_Induct_interleave l Mf f"
+  apply (induction l)
+  apply (simp add: Inductive_interleave_failures in_failures_SKIP)
+  apply (simp add: CollectF_open_memF SKIP_setF in_failures_Parallel)
+  done
+
+
+(*--------------------------------*
+ |        Rep_interleaving        |
+ *--------------------------------*)
+
+lemma in_failures_Rep_interleaving :
+    "finite X \<Longrightarrow> l = map PXf (SOME l. l isListOf X)
+     \<Longrightarrow> f :f failures ( ||| X .. PXf) Mf = in_f_Induct_interleave l Mf f"
+  by (simp (no_asm) only: Rep_interleaving_def in_failures_Inductive_interleave[THEN sym], simp)
+
+
 
 (*--------------------------------*
  |            Hiding              |

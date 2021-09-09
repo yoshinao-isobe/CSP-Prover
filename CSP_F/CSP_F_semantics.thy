@@ -128,10 +128,82 @@ lemmas Rep_int_choice_failures =
        Rep_int_choice_failures_com
        Rep_int_choice_failures_f
 
+
+(*--------------------------------*
+ |      Inductive_Ext_choice      |
+ *--------------------------------*)
+
+abbreviation in_f_Inductive_ext_choice ::
+    "(('p,'a) proc) list \<Rightarrow> ('p \<Rightarrow> 'a domF) \<Rightarrow> 'a failure \<Rightarrow> bool"
+where "in_f_Inductive_ext_choice l Mf f ==
+        ((l = [] \<and> (\<exists> X. f = (<>,X)))
+        \<or>(l \<noteq> []
+         \<and> ((\<exists>X. f = (<>,X) \<and> f :f failures(hd l) Mf
+                                    IntF failures([+] tl l) Mf)
+            \<or> (\<exists>s X. f = (s,X)
+                \<and> f :f failures(hd l) Mf
+                        UnF failures([+] tl l) Mf
+                \<and> s ~= <>)
+            \<or> (\<exists>X. f = (<>,X)
+                \<and> <Tick> :t traces(hd l) (fstF \<circ> Mf)
+                            UnT traces([+] tl l) (fstF \<circ> Mf)
+                \<and> X <= Evset))))"
+
+
+theorem Inductive_ext_choice_failures :
+    "failures ([+] PXs) Mf = { f. in_f_Inductive_ext_choice PXs Mf f }f"
+  apply (induct PXs, simp add: failures.simps)
+  by (simp add: failures.simps traces_iff comp_def)
+
+
+(*--------------------------------*
+ |      Replicated_Ext_choice     |
+ *--------------------------------*)
+
+theorem Rep_ext_choice_failures :
+    "finite X \<Longrightarrow> l = map PXf (SOME l. l isListOf X)
+     \<Longrightarrow> failures ([+] X .. PXf) Mf = {f. in_f_Inductive_ext_choice l Mf f }f"
+  apply (simp (no_asm) only: Rep_ext_choice_def)
+  by (simp only: Inductive_ext_choice_failures[THEN sym])
+
+
+(*--------------------------------*
+ |        Induct_interleave       |
+ *--------------------------------*)
+
+abbreviation in_f_Induct_interleave ::
+    "(('p,'a) proc) list \<Rightarrow> ('p \<Rightarrow> 'a domF) \<Rightarrow> 'a failure \<Rightarrow> bool"
+where "in_f_Induct_interleave l Mf f ==
+    ((l = [] \<and> ((EX X. f = (<>, X) & X <= Evset) \<or> (EX X. f = (<Tick>, X))))
+    \<or> (l \<noteq> [] \<and> (EX u Y Z. f = (u, Y Un Z) \<and> Y-{Tick}= Z-{Tick}
+               \<and> (EX s t. u : s |[{}]|tr t
+                        \<and> (s,Y) :f failures(hd l) Mf
+                        \<and> (t,Z) :f failures( ||| tl l) Mf))))"
+
+theorem Inductive_interleave_failures :
+    "failures ( ||| l) Mf = {f. in_f_Induct_interleave l Mf f }f"
+  apply (induction l)
+  apply (simp add: failures.simps)
+  by (simp add: failures.simps traces_iff)
+
+
+(*--------------------------------*
+ |         Rep_interleaving       |
+ *--------------------------------*)
+
+theorem Rep_interleaving_failures :
+    "finite X \<Longrightarrow> l = map PXf (SOME l. l isListOf X)
+     \<Longrightarrow> failures ( ||| X .. PXf) Mf = {f. in_f_Induct_interleave l Mf f }f"
+  by (simp (no_asm) only: Rep_interleaving_def Inductive_interleave_failures[THEN sym], simp)
+
+
 (*
 lemmas failures_def = failures.simps Rep_int_choice_failures
 *)
-lemmas failures_iff = failures.simps Rep_int_choice_failures
+lemmas failures_iff = failures.simps
+                      Rep_int_choice_failures
+                      (*Inductive_ext_choice_failures
+                      Rep_ext_choice_failures*)
 
 (*********************************************************
                      semantics
