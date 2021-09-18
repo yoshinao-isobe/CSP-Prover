@@ -3,7 +3,11 @@
             |                                           |
             |                   June 2007               |
             |                                           |
+            |        CSP-Prover on Isabelle2021         |
+            |                 August 2021  (modified)   |
+            |                                           |
             |        Yoshinao Isobe (AIST JAPAN)        |
+            | Joabe Jesus (eComp POLI UPE and CIn UFPE) |
             *-------------------------------------------*)
 
 theory DFP_DFtick
@@ -133,7 +137,6 @@ apply (simp add: Evset_def)
 apply (force)
 
 apply (cspF_unwind)
-apply (simp add: CPOmode_or_CMSmode_or_MIXmode)
 
 apply (subgoal_tac 
   "failures (($DFtick)::(DFtickName, 'event) proc) MF = 
@@ -150,7 +153,6 @@ apply (subgoal_tac
    ((DFtickfun DFtick)::(DFtickName, 'event) proc)")
 apply (simp add: cspF_eqF_semantics)
 apply (cspF_unwind)
-apply (simp add: CPOmode_or_CMSmode_or_MIXmode)
 done
 
 (*** main ***)
@@ -256,7 +258,7 @@ apply (rule cspF_rw_left)
 apply (rule cspF_FIX)
 prefer 2
 apply (simp)
-apply (simp add: CPOmode_or_CMSmode_or_MIXmode)
+apply (simp)
 apply (simp add: cspF_refF_semantics)
 
 apply (rule conjI)
@@ -315,7 +317,7 @@ apply (rule cspF_Int_choice_right)
 apply (rule cspF_rw_left)
 apply (rule cspF_unwind)
 apply (simp_all)
-apply (simp add: CPOmode_or_CMSmode_or_MIXmode)
+apply (simp)
 apply (simp)
 done
 
@@ -323,7 +325,7 @@ lemma RDFtick_DFtick_ref1:
   "($DFtick :: (DFtickName, 'event) proc) <=F $RDFtick"
 apply (rule cspF_fp_induct_right[of _ _ "RepDF_to_DF"])
 apply (simp)
-apply (simp add: CPOmode_or_CMSmode_or_MIXmode)
+apply (simp)
 apply (simp)
 
 apply (induct_tac p)
@@ -331,7 +333,7 @@ apply (simp)
 apply (rule cspF_rw_left)
 apply (rule cspF_unwind)
 apply (simp)
-apply (simp add: CPOmode_or_CMSmode_or_MIXmode)
+apply (simp)
 apply (simp)
 apply (rule cspF_decompo)
 apply (rule cspF_decompo)
@@ -356,7 +358,7 @@ lemma RDFtick_DFtick_ref2:
   "$RDFtick <=F ($DFtick :: (DFtickName, 'event) proc)"
 apply (rule cspF_fp_induct_right[of _ _ "DF_to_RepDF"])
 apply (simp)
-apply (simp add: CPOmode_or_CMSmode_or_MIXmode)
+apply (simp)
 apply (simp)
 
 apply (induct_tac p)
@@ -364,7 +366,7 @@ apply (simp)
 apply (rule cspF_rw_left)
 apply (rule cspF_unwind)
 apply (simp)
-apply (simp add: CPOmode_or_CMSmode_or_MIXmode)
+apply (simp)
 apply (simp)
 apply (rule cspF_decompo)
 apply (rule cspF_decompo)
