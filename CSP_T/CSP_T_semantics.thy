@@ -125,9 +125,9 @@ lemmas Rep_int_choice_traces =
  |      Inductive_Ext_choice      |
  *--------------------------------*)
 
-lemma Inductive_external_choice_domT: 
+lemma Inductive_external_choice_P_domT: 
     "{t. t = <> | 
-         (\<exists> P\<in> set l. t :t traces P M) } : domT"
+         (\<exists> P\<in>set l. t :t traces P M) } : domT"
   apply (simp add: domT_def HC_T1_def)
   apply (simp add: prefix_closed_def)
   apply (rule conjI)
@@ -143,6 +143,28 @@ lemma Inductive_external_choice_domT:
   apply (rule memT_prefix_closed)
   by (simp_all)
 
+lemma Inductive_external_choice_i_domT: 
+    "{t. t = <> | 
+         (\<exists> i\<in>set l. t :t traces (Pf i) M) } : domT"
+  apply (simp add: domT_def HC_T1_def)
+  apply (simp add: prefix_closed_def)
+  apply (rule conjI)
+  apply (rule_tac x="<>" in exI, simp)
+  
+  apply (intro allI impI)
+  apply (elim conjE exE)
+  apply (elim disjE, simp)
+  
+  apply (rule disjI2)
+  apply (elim bexE)
+  apply (rule_tac x="i" in bexI)
+  apply (rule memT_prefix_closed)
+  by (simp_all)
+
+lemmas Inductive_external_choice_domT =
+    Inductive_external_choice_P_domT
+    Inductive_external_choice_i_domT
+
 theorem Inductive_ext_choice_traces:
     "traces ([+] l) M = {u. u = <> \<or> (\<exists> P\<in> set l. u :t traces P M)}t"
   apply (induct_tac l)
@@ -155,11 +177,16 @@ theorem Inductive_ext_choice_traces:
  |      Replicated_Ext_choice     |
  *--------------------------------*)
 
-theorem Rep_ext_choice_traces:
+(*theorem Rep_ext_choice_traces:
     "finite X \<Longrightarrow> l = (SOME l. l isListOf X)
      \<Longrightarrow> traces ([+] x:X .. PXf x) M = {u. u = <> \<or> (\<exists> P\<in>(set (map PXf l)). u :t traces P M)}t"
   apply (simp (no_asm) only: Rep_ext_choice_def)
-  by (simp only: Inductive_ext_choice_traces)
+  by (simp only: Inductive_ext_choice_traces)*)
+
+theorem Rep_ext_choice_traces:
+    "traces ([+] X .. PXf) M = {u. u = <> \<or> (\<exists> i\<in> set X. u :t traces (PXf i) M)}t"
+  apply (simp add: Rep_ext_choice_def)
+  by (simp add: Inductive_ext_choice_traces)
 
 
 
@@ -167,30 +194,50 @@ theorem Rep_ext_choice_traces:
  |       Inductive_interleave     |
  *--------------------------------*)
 
-abbreviation
-    "in_t_Induct_interleave u l M
-     == ((l = [] \<and> (u = <> \<or> u = <Tick>))
-         \<or> (l \<noteq> [] \<and> (\<exists>s t. u \<in> s |[{}]|tr t
-                           \<and> s :t traces (hd l) M
-                           \<and> t :t traces ( ||| tl l) M)))"
-
 theorem Inductive_interleave_traces :
-    "traces ( ||| l) M = {u. in_t_Induct_interleave u l M }t"
+    "traces ( ||| l) M = {u. ((l = [] \<and> (u = <> \<or> u = <Tick>))
+                           \<or> (l \<noteq> [] \<and> (\<exists>s t. u \<in> s |[{}]|tr t
+                                             \<and> s :t traces (hd l) M
+                                             \<and> t :t traces ( ||| tl l) M))) }t"
   apply (induct_tac l)
-  apply (simp_all add: traces.simps)
-  apply (rule_tac f="Abs_domT" in arg_cong)
-  by (fast)
+  by (simp_all add: traces.simps nilt_one_CollectT)
 
 (*--------------------------------*
  |         Rep_interleaving       |
  *--------------------------------*)
 
 theorem Rep_interleaving_traces :
-    "finite X \<Longrightarrow> map PXf (SOME x. x isListOf X) = Ps
-     \<Longrightarrow> traces ( ||| X .. PXf) M = {u. in_t_Induct_interleave u Ps M }t"
-  apply (simp (no_asm_use) only: Rep_interleaving_def)
-  apply (rule someI2, rule isListOf_EX, simp)
-  by (simp add: Inductive_interleave_traces[THEN sym])
+    "traces ( ||| X .. PXf) M = {u. ((X = [] \<and> (u = <> \<or> u = <Tick>))
+                                  \<or> (X \<noteq> [] \<and> (\<exists>s t. u \<in> s |[{}]|tr t
+                                                   \<and> s :t traces (PXf (hd X)) M
+                                                   \<and> t :t traces ( ||| map PXf (tl X)) M))) }t"
+  apply (simp only: Rep_interleaving_def)
+  apply (rule trans, rule Inductive_interleave_traces)
+  by (case_tac X, simp_all add: map_tl hd_map)
+
+
+(*
+lemma isListOf_nonEmpty_minus_hd :
+    "\<And>X . X \<noteq> {} \<Longrightarrow> x isListOf X \<Longrightarrow> xa isListOf X - {hd x} \<Longrightarrow>
+    xa = tl x"
+  apply (frule isListOf_distinct)
+  apply (frule isListOf_set_eq)
+  apply (frule_tac X="X - {hd x}" in isListOf_distinct)
+  apply (frule_tac X="X - {hd x}" in isListOf_set_eq)
+  apply (elim conjE)
+  oops (* xa could be a permutation of x elements *)
+*)
+
+lemma Rep_interleaving_traces :
+    "traces ( ||| :X .. PXf) M = {u. (X = [] \<and> (u = <> \<or> u = <Tick>))
+                                   \<or> (X \<noteq> [] \<and> (\<exists>i\<in> set X . (\<exists>s t. u \<in> s |[{}]|tr t
+                                                           \<and> s :t traces (PXf i) M
+                                                           \<and> t :t traces ( ||| :(remove1 i X) .. PXf) M))) }t"
+  apply (simp add: Rep_interleaving_def)
+  apply (rule trans, rule Inductive_interleave_traces)
+  apply (induct_tac X, simp_all add: map_tl hd_map)
+  apply (rule CollectT_eq)
+  oops
 
 
 lemmas traces_iff = traces.simps Rep_int_choice_traces

@@ -24,6 +24,8 @@ imports CSP_F_law_SKIP      CSP_F_law_ref
         CSP_F_law_rep_ext_choice
         CSP_F_law_rep_interleaving
         CSP_F_law_Subst_procfun
+        CSP_F_law_CHAOS
+        CSP_F_law_RUN
         CSP_T.CSP_T_law
 begin
 

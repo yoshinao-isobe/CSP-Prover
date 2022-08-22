@@ -1,2 +1,7 @@
 
 *.thy~
+CSP/CSP_TODO.thy
+CSP_T/CSP_T_TODO.thy
+CSP_F/CSP_F_TODO.thy
+DFP/DFP_TODO.thy
+ROOT~

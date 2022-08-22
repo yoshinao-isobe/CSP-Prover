@@ -10,6 +10,13 @@ imports DFP_DFtick CSP_F
 begin
 
 
+subsection \<open> DFtick \<close>
+
+lemma dfp_DFtick : "$DFtick \<sqsubseteq>F $DFtick"
+  by (simp)
+
+
+subsection \<open> STOP \<close>
 
 
 lemma not_isDeadlockFree_STOP : "\<not> STOP isDeadlockFree"
@@ -22,14 +29,22 @@ lemma not_dfp_STOP : "\<not> $DFtick <=F STOP"
   by (simp only: DeadlockFree_DFtick_ref[THEN sym] not_isDeadlockFree_STOP)
 
 
+subsection \<open> DIV \<close>
 
 lemma dfp_DIV : "$DFtick \<sqsubseteq>F DIV"
-  by (cspF_auto)
+  by (rule cspF_DIV_top)
+
+
+
+subsection \<open> SKIP \<close>
 
 lemma dfp_SKIP : "$DFtick \<sqsubseteq>F SKIP"
   apply (cspF_auto)
   by (rule cspF_Int_choice_left2, simp)
 
+
+
+subsection \<open> Ext_pre_choice \<close>
 
 lemma dfp_Ext_pre_choice : "X \<noteq> {} \<Longrightarrow> \<lbrakk> \<And>a. a \<in> X \<Longrightarrow> $DFtick \<sqsubseteq>F P a \<rbrakk> \<Longrightarrow> $DFtick \<sqsubseteq>F ? :X -> P"
   apply (cspF_auto_left)
@@ -62,6 +77,10 @@ lemma dfp_Ext_pre_choice_DIV : "X \<noteq> {} \<Longrightarrow> $DFtick \<sqsubs
    apply (simp add: UFP_def hasUFP_def isUFP_def semFfun_def semFf_def)
    apply (simp add: UFP_def LFP_def)*)
 
+
+subsection \<open> Act_prefix, Send_prefix and Rec_prefix \<close>
+
+
 lemma dfp_Act_prefix : "$DFtick \<sqsubseteq>F P \<Longrightarrow> $DFtick \<sqsubseteq>F x \<rightarrow> P"
   apply (cspF_auto_right)
   by (rule dfp_Ext_pre_choice, rule, simp)
@@ -78,6 +97,9 @@ lemma dfp_Rec_prefix2 : "X \<noteq> {} \<Longrightarrow> \<forall>x \<in> (f ` X
   apply (simp add: Rec_prefix_def)
   by (rule dfp_Ext_pre_choice2, simp, clarsimp)
 
+
+
+subsection \<open> Int_choice \<close>
 
 (*
 lemma dfp_Int_choice_STOP_l : "P =F ? x:X \<rightarrow> Pf \<Longrightarrow> X \<noteq> {} \<Longrightarrow> $DFtick <=F Pf \<Longrightarrow> $DFtick \<sqsubseteq>F STOP |~| P"
@@ -100,6 +122,10 @@ lemma dfp_Int_choice_SKIP_l : "$DFtick \<sqsubseteq>F P \<Longrightarrow> $DFtic
 
 lemma dfp_Int_choice_SKIP_r : "$DFtick \<sqsubseteq>F P \<Longrightarrow> $DFtick \<sqsubseteq>F P |~| SKIP"
   by (rule dfp_Int_choice, simp, rule dfp_SKIP)
+
+
+
+subsection \<open> Ext_choice \<close>
 
 
 lemma dfp_Ext_choice_STOP_l : "P =F ? x:X \<rightarrow> Pf \<Longrightarrow> X \<noteq> {} \<Longrightarrow> $DFtick <=F Pf \<Longrightarrow> $DFtick \<sqsubseteq>F STOP [+] P"
@@ -134,6 +160,7 @@ done
 
 
 
+subsection \<open> IF \<close>
 
 lemma dfp_IF : "(b \<Longrightarrow> $DFtick \<sqsubseteq>F P) \<Longrightarrow> (\<not>b \<Longrightarrow> $DFtick \<sqsubseteq>F Q) \<Longrightarrow>  $DFtick \<sqsubseteq>F IF b THEN P ELSE Q"
   by (case_tac b, cspF_simp+)
@@ -141,6 +168,7 @@ lemma dfp_IF : "(b \<Longrightarrow> $DFtick \<sqsubseteq>F P) \<Longrightarrow>
 
 
 
+subsection \<open> Seq_compo \<close>
 
 fun Seq_compo_DFtick :: "DFtickName \<Rightarrow> (DFtickName, 'e) proc"
 where
@@ -181,6 +209,10 @@ lemma dfp_Seq_compo :
      apply (rule cspF_Int_choice_left2, simp)
   done
 
+
+
+subsection \<open> Timeout \<close>
+
 lemma dfp_Timeout1 :
     "$DFtick <=F P \<Longrightarrow> $DFtick <=F Qf \<Longrightarrow> $DFtick <=F P [> x \<rightarrow> Qf"
   apply (cspF_auto_right)
@@ -214,87 +246,27 @@ lemmas dfp_Timeout = dfp_Timeout1 dfp_Timeout2 dfp_Timeout3
 
 
 
-(*TODO dfp_Hiding*)
-lemma isDeadlockFree_Hiding : "P isDeadlockFree \<Longrightarrow> (P -- R) isDeadlockFree"
+
+subsection \<open> Hiding \<close>
+
+
+lemma isDeadlockFree_Hiding :
+    "P isDeadlockFree \<Longrightarrow> (P -- R) isDeadlockFree"
   apply (simp add: DeadlockFree_def)
   apply (simp add: in_failures in_traces)
-  apply (rule allI, rule impI, erule_tac x="s" in allE, simp)
   apply (rule allI, rule impI)
-  apply (induct_tac sa rule: induct_trace)
-  sorry
+  apply (rule allI)
+  apply (erule_tac x="sa" in allE)
+  apply (rule)
+  by (simp add: image_def)
+
 
 lemma dfp_Hiding : "$DFtick <=F P \<Longrightarrow> $DFtick <=F P -- R"
   by (simp only: DeadlockFree_DFtick_ref[THEN sym] isDeadlockFree_Hiding)
 
 
 
-fun Hiding_DFtick :: "('e) set \<Rightarrow> 'pn \<Rightarrow> (DFtickName, 'e) proc"
-where
-  "Hiding_DFtick R (_)      = $DFtick -- R"
-
-
-lemma dfp_Hiding_lm :
-    "FPmode \<noteq> CPOmode \<Longrightarrow> $DFtick <=F P \<longrightarrow> $DFtick <=F P -- R"
-  apply (induct P)
-  apply (simp add: not_dfp_STOP)
-  apply (rule, cspF_hsf_right)
-  apply (cspF_hsf_right)
-  apply (rule, cspF_hsf_right)
-
-  apply (cspF_unwind)
-  apply (cspF_step_left)
-   apply (cspF_hsf_right)
-   apply (rule cspF_rw_right, rule cspF_IF_split, simp, rule)
-   apply (rule)
-   apply (rule cspF_Int_choice_left1)
-   apply (rule cspF_decompo_ref, simp, simp, simp)
-   apply (subgoal_tac " $DFtick <=F x1 -> P \<longrightarrow> $DFtick <=F P", simp, simp)
-
-oops
-
-lemma dfp_Hiding2 :
-    "FPmode \<noteq> CPOmode \<Longrightarrow>
-     $DFtick \<sqsubseteq>F P \<Longrightarrow>
-     $DFtick \<sqsubseteq>F P -- R"
-
-  apply (rule cspF_fp_induct_ref_left[of "DFtickfun" "Hiding_DFtick R"], simp_all)
-
-  apply (induct_tac p, simp)
-
-  apply (cspF_step_left)
-  apply (cspF_unwind_right)
-
-   apply (cspF_hsf_right)
-   apply (cspF_hsf_right)
-   apply (cspF_hsf_right)
-   apply (rule cspF_Int_choice_right)
-
-   apply (rule cspF_Int_choice_left1)
-   apply (rule cspF_Rep_int_choice_right)
-   apply (rule cspF_Rep_int_choice_left, rule_tac x="a" in exI, simp)
-
-   apply (case_tac "a \<in> R")
-   (* a \<in> R *)
-   apply (cspF_hsf_right, cspF_hsf_right, cspF_hsf_right)
-   apply (rule cspF_rw_right, rule cspF_Timeout_cong, rule cspF_STOP_step[THEN cspF_sym], rule cspF_reflex)
-   apply (rule cspF_rw_right, rule cspF_STOP_Timeout)
-   apply (cspF_hsf)
-defer
-   apply (cspF_hsf_right)
-   apply (cspF_hsf_right)
-   apply (cspF_hsf_right)
-   apply (cspF_step)
-
-   (* SKIP *)
-   apply (rule cspF_Int_choice_left2)
-   apply (cspF_simp)
-
-
-   apply (cspF_unwind_right, cspF_hsf_right, cspF_step_right)
-   apply (cspF_hsf_right)
-sorry
-
-
+subsection \<open> Renamming \<close>
 
 
 fun Renaming_DFtick :: "('e \<times> 'e) set \<Rightarrow> 'pn \<Rightarrow> (DFtickName, 'e) proc"
@@ -333,6 +305,8 @@ lemma dfp_Renaming :
 done
 
 
+subsection \<open> Rep_int_choice \<close>
+
 lemma dfp_Rep_int_choice_f :
     "\<lbrakk> inj f ; !!a. a:X \<Longrightarrow> $DFtick <=F Pf a \<rbrakk> \<Longrightarrow> $DFtick <=F !<f> :X .. Pf"
   by (rule cspF_Rep_int_choice_right, simp, simp)
@@ -343,6 +317,39 @@ lemma dfp_Rep_int_choice_nat :
   by (rule cspF_Rep_int_choice_right, simp)
 
 
+
+
+
+
+subsection \<open> Inductive_ext_choice and Rep_ext_choice \<close>
+
+lemma dfp_Inductive_ext_choice_lm :
+    "FPmode \<noteq> CPOmode \<Longrightarrow> l \<noteq> [] \<longrightarrow> (\<forall>a\<in> set l. $DFtick <=F PXf a) \<longrightarrow>
+     $DFtick <=F [+] map PXf l"
+  apply (induct_tac l)
+  apply (simp)
+  apply (rule, rule)
+  apply (case_tac list, simp)
+  apply (cspF_simp)
+  by (rule dfp_Ext_choice, simp_all)
+
+lemma dfp_Inductive_ext_choice :
+    "FPmode \<noteq> CPOmode \<Longrightarrow> l \<noteq> [] \<Longrightarrow> \<forall>a\<in> set l. $DFtick <=F PXf a \<Longrightarrow>
+     $DFtick <=F [+] map PXf l"
+  by (simp add: dfp_Inductive_ext_choice_lm)
+
+
+lemma dfp_Rep_ext_choice :
+    "FPmode \<noteq> CPOmode \<Longrightarrow> L \<noteq> [] \<Longrightarrow> \<forall>a\<in> set L. $DFtick <=F PXf a \<Longrightarrow>
+     $DFtick <=F [+] :L .. PXf"
+  apply (simp add: Rep_ext_choice_def)
+  by (rule dfp_Inductive_ext_choice, simp_all)
+
+
+
+
+
+subsection \<open> Interleave \<close>
 
 fun DF_Interleave :: "DFtickName \<Rightarrow> (DFtickName, 'e) proc"
 where
@@ -421,12 +428,56 @@ lemma dfp_Interleave :
   done
 
 
-lemmas dfp = ballI cspF_reflex (* $DFtick <=F $DFtick *)
+
+
+subsection \<open> Inductive_interleave and Rep_interleaving \<close>
+
+lemma dfp_Inductive_interleave_lm :
+    "FPmode \<noteq> CPOmode \<Longrightarrow> (\<forall>a\<in> set l. $DFtick <=F PXf a) \<longrightarrow>
+     $DFtick <=F ||| map PXf l"
+  apply (induct_tac l)
+  apply (rule, simp, rule dfp_SKIP)
+  apply (rule, simp add: Inductive_interleave_def)
+  by (rule dfp_Interleave, simp_all)
+
+lemma dfp_Inductive_interleave :
+    "FPmode \<noteq> CPOmode \<Longrightarrow> \<forall>a\<in> set l. $DFtick <=F PXf a \<Longrightarrow>
+     $DFtick <=F ||| map PXf l"
+  by (simp add: dfp_Inductive_interleave_lm)
+
+
+lemma dfp_Rep_interleaving :
+    "FPmode \<noteq> CPOmode \<Longrightarrow> \<forall>a \<in> (set X). $DFtick <=F PXf a \<Longrightarrow>
+     $DFtick <=F ||| :X .. PXf"
+  apply (simp add: Rep_interleaving_def)
+  by (rule dfp_Inductive_interleave, simp_all)
+
+
+
+
+subsection \<open> Int_pre_choice \<close>
+
+lemma dfp_Int_pre_choice :
+    "\<forall>x\<in>X . $DFtick <=F P x \<Longrightarrow> $DFtick <=F ! :X -> P"
+  apply (cspF_unwind)
+  apply (cspF_step)+
+  apply (rule cspF_Int_choice_left1)
+  apply (rule cspF_decompo_ref, simp)
+  by (cspF_step)+
+
+
+
+
+
+lemmas dfp = allI
+             ballI
+             dfp_DFtick
              not_dfp_STOP
              dfp_SKIP dfp_DIV
              dfp_Timeout
              dfp_Ext_pre_choice dfp_Send_prefix dfp_Rec_prefix dfp_Rec_prefix2 dfp_Act_prefix
              dfp_Ext_choice_STOP_l dfp_Ext_choice_STOP_r dfp_Ext_choice
+             dfp_Int_pre_choice
              dfp_Int_choice
              dfp_IF
              dfp_Seq_compo
@@ -434,4 +485,9 @@ lemmas dfp = ballI cspF_reflex (* $DFtick <=F $DFtick *)
              dfp_Hiding
              dfp_Rep_int_choice_nat dfp_Rep_int_choice_f
              dfp_Interleave
+             dfp_Inductive_ext_choice
+             dfp_Rep_ext_choice
+             dfp_Inductive_interleave
+             dfp_Rep_interleaving
+
 end

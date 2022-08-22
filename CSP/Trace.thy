@@ -364,7 +364,7 @@ lemma app_notin_trace_right:
 apply (auto simp add: trace_def)
 apply (simp add: in_butlast_decompo)
 apply (rule disjI1)
-by (rule in_set_butlast, simp)
+by (rule in_set_butlastD, simp)
 
 lemmas app_notin_trace = 
        app_notin_trace_left app_notin_trace_right
@@ -1224,6 +1224,36 @@ apply (force)
 apply (rule disjI1)
 apply (force)
 done
+
+
+
+(* =================================================== *
+ |             addition for CSP-Prover 6               |
+ * =================================================== *)
+
+
+lemma sett_Int_Evset_empty_iff_nilt_or_Tick :
+    "(sett s \<inter> range Ev = {}) == (s = <> | s = <Tick>)"
+  by (induct s rule: induct_trace, simp_all add: image_def)
+
+
+lemma Ev_UNIV_eq_Evset : "Ev ` UNIV = Evset"
+  by (simp add: image_def not_Tick_to_Ev[THEN sym] Evset_def)
+
+
+lemma Ev_Un_Tick : "(Ev ` UNIV) \<union> {Tick} = UNIV"
+  apply (auto simp add: image_def)
+  by (case_tac x, auto)
+
+
+lemma Tick_Un_Ev : "{Tick} \<union> (Ev ` UNIV) = UNIV"
+  apply (auto simp add: image_def)
+  by (case_tac x, auto)
+
+
+lemma insert_Tick_Ev : "insert Tick (Ev ` UNIV) = UNIV"
+  apply (auto simp add: image_def)
+  by (case_tac x, auto)
 
 
 (****************** to add it again ******************)

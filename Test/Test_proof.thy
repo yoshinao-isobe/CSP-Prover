@@ -58,8 +58,6 @@ apply (rule order_antisym)
  apply (elim conjE exE disjE)
  apply (simp_all add: par_tr_nil par_tr_head_Ev_Ev)
  apply (force)
- apply (force)
- apply (force)
 
  (* => *)
  apply (rule)

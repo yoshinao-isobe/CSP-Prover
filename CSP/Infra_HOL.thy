@@ -24,6 +24,21 @@ begin
 lemma ex_comm3 : "(EX a b c . P a b c) = (EX c a b. P a b c)"
 by (auto)
 
+lemma ex_comm4: "(EX a b c d . P a b c d) = (EX d a b c. P a b c d)"
+  by (auto)
+
+lemma ex_comm5: "(EX a b c d e . P a b c d e) = (EX e a b c d . P a b c d e)"
+  by (force)
+
+lemma ex_comm6: "(EX a b c d e f . P a b c d e f) = (EX f a b c d e . P a b c d e f)"
+  by (force)
+
+lemma ex_comm7: "(EX a b c d e f g . P a b c d e f g) = (EX g a b c d e f. P a b c d e f g)"
+  by (force)
+
+lemma ex_comm8: "(EX a b c d e f g h . P a b c d e f g h) = (EX h a b c d e f g . P a b c d e f g h)"
+  by (force)
+
 lemma ex_rot_r: "(EX x y z. P x y z) = (EX z x y. P x y z)"
   by (auto)
 
@@ -428,10 +443,6 @@ lemmas add_not_eq_symE =
        add_not_eq_sym_funE
        add_not_eq_sym_cons_funE
        add_not_eq_sym_consE
-
-lemmas not_eq_fun_range_Int = disjoint_range_iff_not_equal
-lemmas not_eq_fun_range_Int_only_if = disjoint_range_only_if
-lemmas not_eq_fun_range_Int_if = disjoint_rangeI
 
 
 end

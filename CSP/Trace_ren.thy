@@ -742,7 +742,7 @@ lemma Renaming1_channel_sett2:
        sett t <= insert Tick (Ev ` (range h Un range f)) ;
        s [[f<==>g]]* t |]
    ==> sett s <= insert Tick (Ev ` (range h Un range g))"
-apply (simp add: Un_sym)
+apply (simp add: Un_commute)
 apply (simp add: Renaming1_channel_sett1)
 done
 

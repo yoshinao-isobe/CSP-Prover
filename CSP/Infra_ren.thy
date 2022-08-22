@@ -248,36 +248,35 @@ lemmas Renaming_channel_fun_simp
 
 (* --- range (chanset) --- *)
 
-lemma Renaming_Image_singleton_notin_f [simp]:
+lemma Renaming_Image_singleton_notin_f :
     "e \<notin> (range f) \<Longrightarrow> (f<==g `` {e}) = {e}"
   apply (simp add: Image_def Renaming_channel_def fun_to_rel_def)
   by (simp add: Renaming2_channel_fun_def image_def, force)
 
-lemma Renaming_range_f [simp]:
+lemma Renaming_range_f :
    "inj f \<Longrightarrow> disjoint_range f g \<Longrightarrow> (f <== g `` (range f)) = (range g)"
   apply (simp add: Image_def Renaming_channel_def fun_to_rel_def)
   by (simp add: Renaming_channel_fun_f image_def)
 
-lemma Renaming_range_g [simp]:
+lemma Renaming_range_g :
     "inj g \<Longrightarrow> disjoint_range f g \<Longrightarrow> (f <== g `` (range g)) = (range g)"
   apply (simp add: Image_def Renaming_channel_def fun_to_rel_def)
   by (simp add: Renaming_channel_fun_g image_def)
 
-lemma Renaming_range_h [simp]:
+lemma Renaming_range_h :
     "disjoint_range f h \<Longrightarrow> disjoint_range f g \<Longrightarrow> f <== g `` (range h) = (range h)"
   apply (simp add: Image_def Renaming_channel_def fun_to_rel_def)
   by (simp add: Renaming_channel_fun_h image_def)
 
-lemma Renaming_Image_singleton_f [simp]:
+lemma Renaming_Image_singleton_f :
     "inj f \<Longrightarrow> disjoint_range f g \<Longrightarrow> (f<==g `` {f a}) = {g a}"
   apply (simp add: Image_def Renaming_channel_def fun_to_rel_def)
   by (simp add: Renaming_channel_fun_f image_def)
 
 (* --- Ren --- *)
 
-lemma pair_in_Renaming_channel_1:
-   "[| inj f; inj g; disjoint_range f g |]
-    ==> (a, g x) : f<==>g = (a = f x)"
+lemma pair_in_Renaming1_channel_1:
+   "[| inj f; inj g; disjoint_range f g |]  ==> (a, g x) : f<==>g = (a = f x)"
 apply (simp add: Renaming_channel_def)
 apply (simp add: Renaming_channel_fun_def)
 apply (simp add: fun_to_rel_def)
@@ -289,15 +288,14 @@ apply (simp add: inj_on_def)
 apply (fast)
 done
 
-lemma pair_in_Renaming_channel_2:
+lemma pair_in_Renaming1_channel_2:
    "[| inj f; inj g; disjoint_range f g |] ==> (a, g x) : g<==>f = (a = f x)"
 apply (simp add: Renaming_commut)
-apply (simp add: pair_in_Renaming_channel_1)
+apply (simp add: pair_in_Renaming1_channel_1)
 done
 
 lemma pair_in_Renaming1_channel_3:
-   "[| inj f; inj g; disjoint_range f g |]
-    ==> (f x, a) : f<==>g = (a = g x)"
+   "[| inj f; inj g; disjoint_range f g |] ==> (f x, a) : f<==>g = (a = g x)"
 apply (simp add: Renaming_channel_def)
 apply (simp add: Renaming_channel_fun_def)
 apply (simp add: fun_to_rel_def)
@@ -305,8 +303,7 @@ apply (auto)
 done
 
 lemma pair_in_Renaming2_channel_3:
-   "[| inj f; inj g; disjoint_range f g |]
-    ==> (f x, a) : f<==g = (a = g x)"
+   "[| inj f; inj g; disjoint_range f g |] ==> (f x, a) : f<==g = (a = g x)"
 apply (simp add: Renaming_channel_def)
 apply (simp add: Renaming_channel_fun_def)
 apply (simp add: fun_to_rel_def)
@@ -317,16 +314,14 @@ lemmas pair_in_Renaming_channel_3 =
        pair_in_Renaming1_channel_3
        pair_in_Renaming2_channel_3
 
-lemma pair_in_Renaming_channel_4:
-   "[| inj f; inj g; disjoint_range f g |]
-    ==> (f x, a) : g<==>f = (a = g x)"
+lemma pair_in_Renaming1_channel_4:
+   "[| inj f; inj g; disjoint_range f g |] ==> (f x, a) : g<==>f = (a = g x)"
 apply (simp add: Renaming_commut)
 apply (simp add: pair_in_Renaming_channel_3)
 done
 
-lemma pair_in_Renaming_channel_5:
-   "[| inj f; inj g; 
-       disjoint_range f g ;
+lemma pair_in_Renaming1_channel_5:
+   "[| inj f; inj g; disjoint_range f g ;
        ALL x. b ~= f x ;
        ALL x. b ~= g x |] ==> (a, b) : f<==>g = (a = b)"
 apply (simp add: Renaming_channel_def)
@@ -361,11 +356,11 @@ lemmas pair_in_Renaming_channel_6 =
        pair_in_Renaming2_channel_6
 
 lemmas pair_in_Renaming_channel =
-       pair_in_Renaming_channel_1
-       pair_in_Renaming_channel_2
+       pair_in_Renaming1_channel_1
+       pair_in_Renaming1_channel_2
        pair_in_Renaming_channel_3
-       pair_in_Renaming_channel_4
-       pair_in_Renaming_channel_5
+       pair_in_Renaming1_channel_4
+       pair_in_Renaming1_channel_5
        pair_in_Renaming_channel_6
 
 (* --- sym --- *)

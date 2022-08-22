@@ -472,6 +472,12 @@ lemma set_CollectT_commute_left :
      = {u. u :t S \<or> Q u \<or> P u}t"
 by (rule set_CollectT_eq, force)
 
+
+lemma nilt_one_CollectT : "{t. t = <> | t = <a> }t = {<>, <a>}t"
+  apply (subst Abs_domT_inject)
+  apply (simp add: domT_def HC_T1_def prefix_closed_def, force)
+  by (simp only: one_t_set_in, force)
+
 (****************** to add them again ******************)
 (*
 declare Union_image_eq [simp]

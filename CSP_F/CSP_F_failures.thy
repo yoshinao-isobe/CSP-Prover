@@ -219,10 +219,10 @@ lemma in_failures_Inductive_ext_choice :
 (*** Replicated_Ext_choice ***)
 
 lemma in_failures_Rep_ext_choice :
-    "finite X \<Longrightarrow> l = map PXf (SOME l. l isListOf X)
-     \<Longrightarrow> f :f failures([+] X .. PXf) Mf = in_f_Inductive_ext_choice l Mf f"
-  apply (simp (no_asm) only: Rep_ext_choice_def)
-  by (simp only: in_failures_Inductive_ext_choice[THEN sym])
+    "f :f failures([+] X .. PXf) Mf = in_f_Inductive_ext_choice (map PXf X) Mf f"
+  apply (simp add: Rep_ext_choice_def)
+  apply (rule trans, rule in_failures_Inductive_ext_choice)
+  by (case_tac X, simp_all add: hd_map map_tl)
 
 
 (*------------------------------------------------*
@@ -391,6 +391,64 @@ apply (simp add: failures_iff)
 by (simp only: CollectF_open_memF Parallel_setF)
 
 
+
+lemma Parallel_setF_nilt_Tick :
+    "{(u, Y \<union> Z) |u Y Z.
+     \<exists>s t. u \<in> s |[UNIV]|tr t \<and>
+           (s = <> \<and> Y \<subseteq> Evset \<or> s = <Tick>) \<and> (t, Z) :f E}
+    \<in> setF"
+  apply (simp add: setF_def HC_F2_def)
+  apply (intro allI impI)
+  apply (elim conjE exE, simp)
+  apply (rename_tac u Y Z Y1 Y2 s t)
+  apply (elim subset_UnE)
+  apply (rule_tac x="A'" in exI)
+  apply (rule_tac x="B'" in exI, simp)
+  apply (rule_tac x="s" in exI)
+  apply (rule_tac x="t" in exI)
+  apply (simp add: memF_F2)
+  apply (elim disjE, simp, simp)
+  done
+
+
+(*--------------------------------*
+ |            Interleave          |
+ *--------------------------------*)
+
+(*** Interleave_setF ***)
+
+lemma Interleave_setF : 
+  "{(u, Y Un Z) |u Y Z.
+     Y - {Tick} = Z - {Tick} &
+     (EX s t. u : s |[{}]|tr t & (s, Y) :f F & (t, Z) :f E)}
+    : setF"
+apply (simp add: setF_def HC_F2_def)
+apply (intro allI impI)
+apply (elim conjE exE, simp)
+apply (rename_tac u Y Z Y1 Y2 s t)
+apply (rule_tac x="Z Int (Y1 - (Y2 - {Tick})) Un Z Int (Y2 - {Tick})" in exI)
+apply (rule_tac x="Z Int (Y2 - (Y2 - {Tick})) Un Z Int (Y2 - {Tick})" in exI)
+
+(* (s,Y), Z <= Y, Y = Y1 Un Y2, Z = Z1 Un Z2 *)
+
+apply (rule conjI, force)
+apply (rule conjI, force)
+
+apply (rule_tac x="s" in exI)
+apply (rule_tac x="t" in exI)
+apply (simp)
+apply (rule conjI)
+apply (rule memF_F2, simp, force)+
+done
+
+lemma in_failures_Interleave:
+  "(f :f failures(P ||| Q) M) = 
+   (EX u Y Z. f = (u, Y Un Z) & Y - {Tick} = Z - {Tick} &
+      (EX s t. u : s |[{}]|tr t & (s,Y) :f failures(P) M & (t,Z) :f failures(Q) M))"
+apply (simp add: failures_iff)
+by (simp only: CollectF_open_memF Interleave_setF)
+
+
 (*--------------------------------*
  |     Inductive_interleave       |
  *--------------------------------*)
@@ -407,10 +465,11 @@ lemma in_failures_Inductive_interleave :
  |        Rep_interleaving        |
  *--------------------------------*)
 
-lemma in_failures_Rep_interleaving :
-    "finite X \<Longrightarrow> l = map PXf (SOME l. l isListOf X)
-     \<Longrightarrow> f :f failures ( ||| X .. PXf) Mf = in_f_Induct_interleave l Mf f"
-  by (simp (no_asm) only: Rep_interleaving_def in_failures_Inductive_interleave[THEN sym], simp)
+lemma in_failures_Rep_interleaving :              
+    "f :f failures ( ||| X .. PXf) Mf = in_f_Induct_interleave (map PXf X) Mf f"
+  apply (simp add: Rep_interleaving_def)
+  apply (rule trans, rule in_failures_Inductive_interleave)
+  by (case_tac X, simp_all add: hd_map map_tl)
 
 
 

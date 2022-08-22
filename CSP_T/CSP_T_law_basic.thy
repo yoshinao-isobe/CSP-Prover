@@ -183,6 +183,39 @@ apply (rule cspT_sym)
 apply (simp add: cspT_Int_choice_assoc)
 done
 
+
+(* --------------------------------------------------- *
+              Associativity of Interleave
+ * --------------------------------------------------- *)
+
+
+
+lemma cspT_Interleave_assoc :
+    "P ||| (Q ||| R) =T[M,M] (P ||| Q) ||| R"                 
+  apply (simp add: cspT_semantics)
+  apply (simp add: traces_iff)
+
+  apply (simp add: CollectT_open_memT Parallel_domT)
+  apply (rule CollectT_eq)
+
+  apply (simp only: ex_simps[THEN sym] conj_assoc conj_left_commute)
+
+  apply (rule sym, rule trans, rule ex_comm3, rule sym)
+  apply (rule ex_cong1)
+  apply (rule trans, rule ex_comm)
+  apply (rule sym, rule trans, rule ex_comm3, rule sym)
+  apply (rule ex_cong1)
+  apply (rule trans, rule ex_comm)
+  apply (rule sym, rule trans, rule ex_comm, rule sym)
+  apply (rule ex_cong1)
+
+  apply (simp only: ex_simps)
+  apply (rule conj_cong, simp)+
+  apply (simp only: conj_assoc[THEN sym])
+
+  by (simp only: ex_simps inter_tr_assoc)
+
+
 (*------------------*
  |      csp law     |
  *------------------*)
@@ -210,6 +243,25 @@ done
 
 lemmas cspT_left_commut = 
        cspT_Ext_choice_left_commut cspT_Int_choice_left_commut
+
+
+
+(*-----------------------------------*
+ |     Interleave Commutativity      |
+ *-----------------------------------*)
+
+lemma cspT_Interleave_commute :
+    "P ||| Q =T[M,M] Q ||| P"
+  by (rule cspT_Parallel_commut)
+
+lemma cspT_Interleave_left_commute :
+    "P ||| (Q ||| R) =T[M,M] Q ||| (P ||| R)"
+  apply (rule cspT_rw_left, rule cspT_Interleave_commute)
+  apply (rule cspT_rw_left, rule cspT_Interleave_assoc[THEN cspT_sym])
+  apply (rule cspT_decompo, simp_all, rule cspT_Interleave_commute)
+  done
+
+
 
 (*-----------------------------------*
  |              Unit                 |
@@ -919,7 +971,6 @@ apply (rule order_antisym)
   apply (rule_tac x="sa ^^^ <Tick>" in exI)
   apply (simp)
 done
-
 
 
 (* ---------------------------------------------- *

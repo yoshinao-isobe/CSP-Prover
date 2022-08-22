@@ -7,7 +7,7 @@
             *-------------------------------------------*)
 
 theory CSP_F_law_aux
-imports CSP_F_law
+imports CSP_F_law CSP_T.CSP_T_law_aux
 begin
 
 (*---------------------------------------------------------------*
@@ -649,6 +649,25 @@ apply (rule cspF_step)
 apply (rule cspF_decompo)
 apply (auto)
 done
+
+
+(* =================================================== *
+ |             addition for CSP-Prover 6               |
+ * =================================================== *)
+
+
+(*********************************************************
+            Seq Compo and Ext choice
+ *********************************************************)
+
+lemma cspF_Seq_compo_Ext_dist:
+    "(P1 [+] P2) ;; Q =F[M,M] (P1 ;; Q) [+] (P2 ;; Q)"
+  apply (simp add: cspF_cspT_semantics)
+  apply (simp add: cspT_Seq_compo_Ext_dist)
+  apply (simp add: failures_iff in_traces)
+  apply (rule set_CollectF_eq, rule Collect_cong)
+  oops
+
 
 (* =================================================== *
  |             addition for CSP-Prover 5               |

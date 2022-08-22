@@ -106,11 +106,10 @@ apply (induct_tac n)
 apply (simp_all)
 done
 
-(* -------------------------------------------------*
- |                                                  |
- |  syntactical approach --> semantical approach    |
- |                                                  |
- * -------------------------------------------------*)
+
+
+subsection \<open> syntactical approach --> semantical approach \<close>
+
 
 (*** sub ***)
 
@@ -165,11 +164,11 @@ apply (simp add: cspF_refF_semantics)
 apply (auto)
 done
 
-(* -------------------------------------------------*
- |                                                  |
- |  semantical approach --> syntactical approach    |
- |                                                  |
- * -------------------------------------------------*)
+
+
+
+subsection \<open> semantical approach --> syntactical approach \<close>
+
 
 lemma traces_included_in_DFtick:
   "t :t traces ((FIX DFtickfun) (DFtick)) (fstF o MF)"
@@ -277,11 +276,9 @@ apply (auto)
 done
 
 
-(* -------------------------------------------------*
- |                                                  |
- |  syntactical approach <--> semantical approach   |
- |                                                  |
- * -------------------------------------------------*)
+
+
+subsection \<open> syntactical approach <--> semantical approach \<close>
 
 theorem DeadlockFree_DFtick_ref:
   "P isDeadlockFree = (($DFtick:: (DFtickName, 'event) proc) <=F P)"

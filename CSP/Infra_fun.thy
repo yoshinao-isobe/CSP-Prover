@@ -320,98 +320,101 @@ lemma range_Un_commute :
     "(range f \<union> range g) = (range g \<union> range f)"
   by (auto)
 
-
-subsection \<open> Range and Set Minus \<close>
-
-lemma singleton_minus_range [simp]:
-    "{f x} - (range f) = {}"
-  by (simp add: image_def, auto)
-
-lemma range_minus_self [simp]:
-    "(range f) - (range f) = {}"
-  by (simp add: image_def)
-
-lemma range_minus_range_Un_self_l [simp]:
-    "((range f) - (range f \<union> range g)) = {}"
-  by (auto)
-
-lemma range_minus_range_Un_self_r [simp]:
-    "((range f) - (range g \<union> range f)) = {}"
-  by (auto)
-
-
-subsection \<open> Disjoint Range and Set Minus \<close>
-
-lemma disjoint_singleton_minus_range [simp]:
-    "disjoint_range f g \<Longrightarrow> {f x} - (range g) = {f x}"
-  by (simp add: image_def, auto)
-
-lemma disjoint_range_singleton_minus_range_Un [simp]:
-    "disjoint_range g f \<Longrightarrow> disjoint_range g h \<Longrightarrow> {g x} - (range f \<union> range h) = {g x}"
-  by (simp add: image_def, auto)
-
-lemma disjoint_range_range_minus [simp]:
-    "disjoint_range f g \<Longrightarrow> (range f) - (range g) = (range f)"
-  by (auto)
-
-lemma disjoint_range_range_minus_range_Un [simp]:
-    "disjoint_range f g \<Longrightarrow> disjoint_range f h \<Longrightarrow> ((range f) - (range g \<union> range h)) = (range f)"
-  by (auto)
-
-lemma disjoint_range_range_Un_minus_range_Un [simp]:
-    "disjoint_range g f \<Longrightarrow> disjoint_range g h \<Longrightarrow> (range f \<union> range g) - (range f \<union> range h) = (range g)"
-  by (auto)
-
-
-subsection \<open> Range and Membership \<close>
-
 (* lemmas singleton_in_range = rangeI *)
 
 
-subsection \<open> Disjoint Range and Membership \<close>
+subsection \<open> Range and Set Minus \<close>
 
-lemma disjoint_range_singleton_notin_range [simp]:
-    "disjoint_range f g \<Longrightarrow> f x \<notin> (range g)"
-  by (simp add: image_def)
+lemma singleton_minus_range:
+    "{f x} - (range f) = {}"
+  by (simp add: image_def, auto)
 
-lemma not_in_two_disjoint_ranges [simp]:
-    "disjoint_range f g \<Longrightarrow> \<not> (x \<in> (range f) \<and> x \<in> (range g))"
+lemmas range_minus_self = Diff_cancel
+
+lemma range_minus_range_Un_self_l:
+    "((range f) - (range f \<union> range g)) = {}"
+  by (auto)
+
+lemma range_minus_range_Un_self_r:
+    "((range f) - (range g \<union> range f)) = {}"
   by (auto)
 
 
 subsection \<open> Range and Intersection \<close>
 
-lemma insert_range_Int_self [simp]:
+lemma insert_range_Int_self:
     "e \<notin> (range f) \<Longrightarrow> insert e (range f) \<inter> (range f) = (range f)"
   by (auto)
 
-lemma singleton_inter_range_self [simp]: "{f x} \<inter> (range f) = {f x}"
+lemma singleton_Int_range_self: "{f x} \<inter> (range f) = {f x}"
   by (simp add: image_def, auto)
 
-lemma range_inter_self_singleton [simp]: "(range f) \<inter> {f x} = {f x}"
+lemma range_Int_self_singleton: "(range f) \<inter> {f x} = {f x}"
   by (simp add: image_def, auto)
+
+lemma range_Un_Int_range_l: "(range f \<union> range g) \<inter> (range f) = (range f)"
+  by (auto)
+
+lemma range_Un_Int_range_r: "(range f \<union> range g) \<inter> (range g) = (range g)"
+  by (auto)
+
+
+subsection \<open> Disjoint Range and Set Minus \<close>
+
+lemma disjoint_singleton_minus_range:
+    "disjoint_range f g \<Longrightarrow> {f x} - (range g) = {f x}"
+  by (simp add: image_def, auto)
+
+lemma disjoint_range_singleton_minus_range_Un:
+    "disjoint_range g f \<Longrightarrow> disjoint_range g h \<Longrightarrow> {g x} - (range f \<union> range h) = {g x}"
+  by (simp add: image_def, auto)
+
+lemma disjoint_range_range_minus:
+    "disjoint_range f g \<Longrightarrow> (range f) - (range g) = (range f)"
+  by (auto)
+
+lemma disjoint_range_range_minus_range_Un:
+    "disjoint_range f g \<Longrightarrow> disjoint_range f h \<Longrightarrow> ((range f) - (range g \<union> range h)) = (range f)"
+  by (auto)
+
+lemma disjoint_range_range_Un_minus_range_Un:
+    "disjoint_range g f \<Longrightarrow> disjoint_range g h \<Longrightarrow> (range f \<union> range g) - (range f \<union> range h) = (range g)"
+  by (auto)
+
+
+subsection \<open> Disjoint Range and Membership \<close>
+
+lemma disjoint_range_singleton_notin_range:
+    "disjoint_range f g \<Longrightarrow> f x \<notin> (range g)"
+  by (simp add: image_def)
+
+lemma not_in_two_disjoint_ranges:
+    "disjoint_range f g \<Longrightarrow> \<not> (x \<in> (range f) \<and> x \<in> (range g))"
+  by (auto)
 
 
 subsection \<open> Disjoint Range and Intersection \<close>
 
-(*lemma disjoint_range_range_inter_singleton [simp]:
+(*lemma disjoint_range_range_Int_singleton:
    "disjoint_range f g \<Longrightarrow> (range g) \<inter> {f x} = {}"
   by (auto)*)
 
-lemma disjoint_range_range_Un_inter_range_Un [simp]:
+lemma disjoint_range_range_Un_Int_range_Un:
     "disjoint_range g h \<Longrightarrow> (range f \<union> range g) \<inter> (range f \<union> range h) = (range f)"
   by (auto)
 
-lemma range_Un_inter_range_l [simp]: "(range f \<union> range g) \<inter> (range f) = (range f)"
-  by (auto)
-
-lemma range_Un_inter_range_r [simp]: "(range f \<union> range g) \<inter> (range g) = (range g)"
-  by (auto)
-
-lemma disjoint_range_range_Un_inter_range [simp]:
+lemma disjoint_range_range_Un_Int_range:
     "disjoint_range h g \<Longrightarrow> disjoint_range h f \<Longrightarrow> (range f \<union> range g) \<inter> (range h) = {}"
   by (auto)
 
-
+lemmas disjoint_range_simps = disjoint_singleton_minus_range
+                              disjoint_range_singleton_minus_range_Un
+                              disjoint_range_range_minus
+                              disjoint_range_range_minus_range_Un
+                              disjoint_range_range_Un_minus_range_Un
+                              disjoint_range_singleton_notin_range
+                              not_in_two_disjoint_ranges
+                              disjoint_range_range_Un_Int_range_Un
+                              disjoint_range_range_Un_Int_range
 
 end

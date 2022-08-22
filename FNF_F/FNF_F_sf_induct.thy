@@ -240,7 +240,6 @@ apply (erule fsfF_induct2_rel.cases, simp_all)
  apply (simp add: fsfF_proc_ext)
 
  apply (subgoal_tac "SPf = SPfa & SPf1 = SPf1a & SPf2 = SPf2a ", simp)
- apply (elim conjE)
 
   apply (rule conjI)
   apply (simp add: fun_eq_iff)
@@ -385,7 +384,7 @@ apply (erule fsfF_induct2_rel.cases, simp_all)
  apply (subgoal_tac "SPf = SPfa & SPf1 = SPf1a & SPf2 = SPf2a ", simp)
  apply (simp (no_asm_simp) add: fun_eq_iff)
  apply (intro allI conjI)
- apply (elim conjE)
+
  apply (drule_tac x="x" in spec)+
  apply (case_tac "x : A1a & x : A2a")
  apply (simp add: fsfF_induct2_rel_unique)

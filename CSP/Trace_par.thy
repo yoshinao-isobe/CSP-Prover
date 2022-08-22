@@ -108,7 +108,38 @@ definition
   par_tr_def : "s |[X]|tr t == {u. (u, s, t) : parx X}"
 
 lemma par_tr_defE: "[| u : s |[X]|tr t ; (u, s, t) : parx X ==> R |] ==> R"
-by (simp add: par_tr_def)
+  by (simp add: par_tr_def)
+
+
+
+(*************************************************************
+                 Additional parx intros
+ *************************************************************)
+
+lemma parx_intro_one_left_iff :
+    "((<Ev a>, <Ev a>, s) : parx X) = ((<Ev a> ^^^ <>, <Ev a> ^^^ <>, s) : parx X)"
+  by (simp)
+
+lemma parx_intro_one_left :
+    "a ~: X ==> ((<Ev a>, <Ev a>, <>) : parx X)"
+  apply (simp only: parx_intro_one_left_iff)
+  apply (rule parx.intros)+
+  by (simp)
+
+lemma parx_intro_one_right_iff :
+    "((<Ev a>, s, <Ev a>) : parx X) = ((<Ev a> ^^^ <>, s, <Ev a> ^^^ <>) : parx X)"
+  by (simp)
+
+lemma parx_intro_one_right :
+    "a ~: X ==> ((<Ev a>, <>, <Ev a>) : parx X)"
+  apply (simp only: parx_intro_one_right_iff)
+  apply (rule parx.intros)+
+  by (simp)
+
+lemmas parx_intros = parx.intros
+                     parx_intro_one_left
+                     parx_intro_one_right
+
 
 (*************************************************************
                  par_tr intros and elims
@@ -127,6 +158,16 @@ lemma par_tr_Tick_Tick:
   "<Tick> : <Tick> |[X]|tr <Tick>"
 apply (simp add: par_tr_def)
 by (simp add: parx.intros)
+
+lemma par_tr_one_nil: 
+    "[| a ~: X |] ==> <Ev a> : (<Ev a>) |[X]|tr <>"
+  apply (simp add: par_tr_def)
+  by (simp add: parx_intro_one_left)
+
+lemma par_tr_nil_one: 
+  "[| a ~: X |] ==> <Ev a> : <> |[X]|tr (<Ev a>)"
+  apply (simp add: par_tr_def)
+  by (simp add: parx_intro_one_right)
 
 lemma par_tr_Ev_nil: 
   "[| u : s |[X]|tr <> ; a ~: X |]
@@ -157,6 +198,26 @@ lemma par_tr_Ev_right:
    ==> <Ev a> ^^^ u : s |[X]|tr (<Ev a> ^^^ t)"
 apply (simp add: par_tr_def)
 by (simp add: parx.intros)
+
+(*lemma par_tr_Ev_nondet_r:
+  "[| u : (<Ev a> ^^^ s) |[X]|tr t ; a ~: X |]
+   ==> <Ev a> ^^^ u : (<Ev a> ^^^ s) |[X]|tr (<Ev a> ^^^ t)"
+  by (simp add: par_tr_Ev_right)
+
+lemma par_tr_Ev_nondet_l:
+  "[| u : s |[X]|tr (<Ev a> ^^^ t) ; a ~: X |]
+   ==> <Ev a> ^^^ u : (<Ev a> ^^^ s) |[X]|tr (<Ev a> ^^^ t)"
+  by (simp add: par_tr_Ev_left)*)
+
+lemma par_tr_Ev_Tick:
+  "[| u : s |[X]|tr <Tick> ; a ~: X |]
+   ==> <Ev a> ^^^ u : (<Ev a> ^^^ s) |[X]|tr <Tick>"
+  by (simp add: par_tr_Ev_left)
+
+lemma par_tr_Tick_Ev:
+  "[| u : <Tick> |[X]|tr t ; a ~: X |]
+   ==> <Ev a> ^^^ u : <Tick> |[X]|tr (<Ev a> ^^^ t)"
+  by (simp add: par_tr_Ev_right)
 
 (*** intro rule ***)
 
@@ -404,6 +465,7 @@ apply (rule iffI)
 apply (simp add: par_tr_head_only_if)
 apply (simp add: par_tr_head_if)
 done
+
 
 (* erule *)
 
@@ -1245,6 +1307,18 @@ apply (erule disjE)
  apply (force)
 done
 
+
+(* =================================================== *
+ |             addition for CSP-Prover 6               |
+ * =================================================== *)
+
+abbreviation
+  inter_tr :: "'a trace => 'a trace => 'a trace set"
+                                        ("(_ |||tr _)" [76,77] 76)
+where
+  "s |||tr t == s |[{}]|tr t"
+
+
 (* =================================================== *
  |             addition for CSP-Prover 5               |
  * =================================================== *)
@@ -1252,8 +1326,8 @@ done
 
 lemma interleave_appt_left_lm:
   "ALL u s t. 
-   (u : s |[{}]|tr t & (noTick v))
-     --> v ^^^ u : (v ^^^ s) |[{}]|tr t"
+   (u : s |||tr t & (noTick v))
+     --> v ^^^ u : (v ^^^ s) |||tr t"
 apply (induct_tac v rule: induct_trace)
 apply (simp_all)
 apply (intro allI impI)
@@ -1267,33 +1341,33 @@ apply (simp add: par_tr_head)
 done
 
 lemma interleave_appt_left_step:
-  "[| u : s |[{}]|tr t ; noTick v |] ==> v ^^^ u : (v ^^^ s) |[{}]|tr t"
+  "[| u : s |||tr t ; noTick v |] ==> v ^^^ u : (v ^^^ s) |||tr t"
 by (simp add: interleave_appt_left_lm)
 
 lemma interleave_appt_right_step:
-  "[| u : t |[{}]|tr s ; noTick v |] ==> v ^^^ u : t |[{}]|tr (v ^^^ s)"
+  "[| u : t |||tr s ; noTick v |] ==> v ^^^ u : t |||tr (v ^^^ s)"
 apply (simp add: par_tr_sym)
 apply (insert interleave_appt_left_step[of u s t v])
 apply (simp add: par_tr_sym)
 done
 
 lemma interleave_appt_left_nil:
-  "[| u : <> |[{}]|tr t ; noTick v |] ==> v ^^^ u : v |[{}]|tr t"
+  "[| u : <> |||tr t ; noTick v |] ==> v ^^^ u : v |||tr t"
 apply (insert interleave_appt_left_step[of u <> t v])
 by (simp)
 
 lemma interleave_appt_right_nil:
-  "[| u : t |[{}]|tr <> ; noTick v |] ==> v ^^^ u : t |[{}]|tr v"
+  "[| u : t |||tr <> ; noTick v |] ==> v ^^^ u : t |||tr v"
 apply (insert interleave_appt_right_step[of u t <> v])
 by (simp)
 
 lemma interleave_appt_left_nil_nil:
-  "noTick t ==> t : t |[{}]|tr <>"
+  "noTick t ==> t : t |||tr <>"
 apply (insert interleave_appt_left_step[of <> <> <> t])
 by (simp)
 
 lemma interleave_appt_right_nil_nil:
-  "noTick t ==> t : <> |[{}]|tr t"
+  "noTick t ==> t : <> |||tr t"
 apply (insert interleave_appt_right_step[of <> <> <> t])
 by (simp)
 
@@ -1330,5 +1404,146 @@ done
 (****************** to add it again ******************)
 
 declare disj_not1   [simp] 
+
+
+
+(* =================================================== *
+ |             addition for CSP-Prover 6               |
+ * =================================================== *)
+
+lemma inter_tr_appt_leftI :
+    "sa = <Ev a> ^^^ u \<and> u \<in> s' |||tr t \<Longrightarrow> sa \<in> (<Ev a> ^^^ s') |||tr t"
+  by (auto simp add: par_tr_intros)
+
+lemma inter_tr_appt_rightI :
+    "sa = <Ev a> ^^^ u \<and> u \<in> s |||tr t' \<Longrightarrow> sa \<in> s |||tr (<Ev a> ^^^ t')"
+  by (auto simp add: par_tr_intros)
+
+lemma inter_tr_head :
+   "<Ev a> ^^^ u : s |||tr t
+    = ((EX s'.    u : s' |||tr t & s = <Ev a> ^^^ s') |
+       (EX t'.    u : s |||tr t' & t = <Ev a> ^^^ t'))"
+  by (simp add: par_tr_head)
+
+lemma inter_tr_stepE:
+   "[| u : s |||tr t ;
+      ((u = <> & s = <> & t = <>) |
+       (u = <Tick> & s = <Tick> & t = <Tick>) |
+       (EX a v. u = <Ev a> ^^^ v & 
+        ((EX s'.    v : s' |||tr t & s = <Ev a> ^^^ s') |
+         (EX t'.    v : s |||tr t' & t = <Ev a> ^^^ t'))))
+     ==> R |] ==> R"
+  by (erule par_tr_stepE, simp)
+
+
+lemma inter_tr_assoc_lm :
+    "\<forall>x y z. (EX xy. xyz : xy |||tr z & xy : x |||tr y ) = ( EX yz. xyz : x |||tr yz & yz : y |||tr z )"
+  apply (induct_tac xyz rule: induct_trace)
+
+  (* 1) xyz = <> *)
+  apply (simp add: conj_commute conj_left_commute)
+
+  (* 2) xyz = <Tick> *)
+  apply (simp add: conj_commute conj_left_commute)
+
+  (* 3) xyz = <Ev a> ^^^ s *)
+  apply (rule, rule, rule)
+
+  apply (rule)
+
+    apply (elim exE conjE)
+
+    apply (simp only: inter_tr_head)
+    apply (elim disjE exE conjE)
+
+    (* xy = <Ev a> ^^^ s' *)
+    apply (simp add: inter_tr_head)
+    apply (elim disjE exE conjE)
+
+      (* x = <Ev a> ^^^ s'a *)
+      apply (simp add: conj_disj_distribR)
+      apply (simp add: ex_disj_distrib)
+      apply (rule disjI1)
+      apply (drule_tac x="s'a" in spec)
+      apply (drule_tac x="y" in spec)
+      apply (drule_tac x="z" in spec)
+      apply (clarsimp)
+
+      (* y = <Ev a> ^^^ t' *)
+      apply (simp add: conj_disj_distribR)
+      apply (simp add: ex_disj_distrib)
+      apply (rule disjI2)
+      apply (simp add: ex_simps[THEN sym])
+      apply (simp add: inter_tr_head)
+      apply (simp add: conj_disj_distribL)
+      apply (simp add: ex_disj_distrib)
+      apply (rule disjI1)
+      apply (drule_tac x="x" in spec)
+      apply (drule_tac x="t'" in spec)
+      apply (drule_tac x="z" in spec)
+      apply (clarsimp)
+
+      (* z = <Ev a> ^^^ t' *)
+      apply (simp add: conj_disj_distribR)
+      apply (simp add: ex_disj_distrib)
+      apply (rule disjI2)
+      apply (simp add: ex_simps[THEN sym])
+      apply (simp add: inter_tr_head)
+      apply (simp add: conj_disj_distribL)
+      apply (simp add: ex_disj_distrib)
+      apply (rule disjI2)
+      apply (drule_tac x="x" in spec)
+      apply (drule_tac x="y" in spec)
+      apply (drule_tac x="t'" in spec)
+      apply (clarsimp)
+
+    apply (elim disjE exE conjE)
+    apply (simp add: inter_tr_head)
+    apply (elim disjE exE conjE)
+
+      (* x = <Ev a> ^^^ s' *)
+      apply (simp add: conj_disj_distribR)
+      apply (simp add: ex_disj_distrib)
+      apply (rule disjI1)
+      apply (simp add: ex_simps[THEN sym])
+      apply (simp add: inter_tr_head)
+      apply (simp add: conj_disj_distribL)
+      apply (simp add: ex_disj_distrib)
+      apply (rule disjI1)
+      apply (drule_tac x="s'" in spec)
+      apply (drule_tac x="y" in spec)
+      apply (drule_tac x="z" in spec)
+      apply (clarsimp)
+
+    apply (simp add: conj_disj_distribR)
+    apply (simp add: ex_disj_distrib)
+    apply (simp add: inter_tr_head)
+    apply (elim disjE exE conjE)
+
+      (* y = <Ev a> ^^^ s' *)
+      apply (rule disjI1)
+      apply (simp add: ex_simps[THEN sym])
+      apply (simp add: inter_tr_head)
+      apply (simp add: conj_disj_distribL)
+      apply (simp add: ex_disj_distrib)
+      apply (rule disjI2)
+      apply (drule_tac x="x" in spec)
+      apply (drule_tac x="s'" in spec)
+      apply (drule_tac x="z" in spec)
+      apply (clarsimp)
+
+      (* z = <Ev a> ^^^ t'a *)
+      apply (rule disjI2)
+      apply (simp add: ex_simps[THEN sym])
+      apply (drule_tac x="x" in spec)
+      apply (drule_tac x="y" in spec)
+      apply (drule_tac x="t'a" in spec)
+      apply (clarsimp)
+  done
+
+lemma inter_tr_assoc :
+    "(EX xy. xyz : xy |||tr z & xy : x |||tr y ) = ( EX yz. xyz : x |||tr yz & yz : y |||tr z )"
+  by (simp add: inter_tr_assoc_lm)
+
 
 end

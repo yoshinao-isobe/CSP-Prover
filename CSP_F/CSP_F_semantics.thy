@@ -161,10 +161,10 @@ theorem Inductive_ext_choice_failures :
  *--------------------------------*)
 
 theorem Rep_ext_choice_failures :
-    "finite X \<Longrightarrow> l = map PXf (SOME l. l isListOf X)
-     \<Longrightarrow> failures ([+] X .. PXf) Mf = {f. in_f_Inductive_ext_choice l Mf f }f"
-  apply (simp (no_asm) only: Rep_ext_choice_def)
-  by (simp only: Inductive_ext_choice_failures[THEN sym])
+    "failures ([+] X .. PXf) Mf = {f. in_f_Inductive_ext_choice (map PXf X) Mf f }f"
+  apply (simp add: Rep_ext_choice_def)
+  apply (rule trans, rule Inductive_ext_choice_failures)
+  by (case_tac X, simp_all add: hd_map map_tl)
 
 
 (*--------------------------------*
@@ -192,9 +192,10 @@ theorem Inductive_interleave_failures :
  *--------------------------------*)
 
 theorem Rep_interleaving_failures :
-    "finite X \<Longrightarrow> l = map PXf (SOME l. l isListOf X)
-     \<Longrightarrow> failures ( ||| X .. PXf) Mf = {f. in_f_Induct_interleave l Mf f }f"
-  by (simp (no_asm) only: Rep_interleaving_def Inductive_interleave_failures[THEN sym], simp)
+    "failures ( ||| X .. PXf) Mf = {f. in_f_Induct_interleave (map PXf X) Mf f }f"
+  apply (simp add: Rep_interleaving_def)
+  apply (rule trans, rule Inductive_interleave_failures)
+  by (case_tac X, simp_all add: map_tl hd_map)
 
 
 (*
@@ -405,7 +406,8 @@ lemma cspF_trans_right_ref:
   "[| P2 <=F[M2,M3] P3 ;  P1 <=F[M1,M2] P2 |] ==> P1 <=F[M1,M3] P3"
 by (simp add: refF_def)
 
-lemmas cspF_trans_rught = cspF_trans_right_eq cspF_trans_right_ref
+lemmas cspF_trans_right = cspF_trans_right_eq cspF_trans_right_ref
+lemmas cspF_trans_rught = cspF_trans_right (* backward compatibility *)
 
 (*** rewrite (eq) ***)
 

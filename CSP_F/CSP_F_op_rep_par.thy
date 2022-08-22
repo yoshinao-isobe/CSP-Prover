@@ -84,7 +84,7 @@ lemma in_failures_Inductive_parallel_lm4:
    "Union {Y Int insert Tick (Ev ` X) |X Y. EX P. ((P, X), Y) : set zs} Int
     insert Tick (Ev ` Union (snd ` fst ` set zs))
     = Union {Y Int insert Tick (Ev ` X) |X Y. EX P. ((P, X), Y) : set zs}"
-  apply (rule Int_subset_eq)
+  apply (rule Int_absorb2)
 (* for Isabelle 2017 *)
 apply (simp add: in_failures_Inductive_parallel_lm3[simplified])
 done

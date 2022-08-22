@@ -16,7 +16,7 @@
             *-------------------------------------------*)
 
 theory CSP_F_law_step
-imports CSP_F_domain CSP_T.CSP_T_law_step
+imports CSP_F_domain CSP_F_law_basic CSP_T.CSP_T_law_step
 begin
 
 (*****************************************************************
@@ -112,6 +112,59 @@ apply (rule order_antisym)
  apply (simp_all add: in_failures)
 done
 
+
+lemma cspF_Ext_choice_step_disjnt :
+    "P =F[M,M] (? :X -> Pf) \<Longrightarrow>
+     Q =F[M,M] (? :Y -> Qf) \<Longrightarrow>
+     disjnt X Y \<Longrightarrow>
+     P [+] Q =F[M,M] ? x:(X \<union> Y) -> (IF (x \<in> X) THEN Pf x
+                                     ELSE Qf x)"
+  apply (rule cspF_rw_left, rule cspF_decompo, simp, simp)
+  apply (rule cspF_rw_left, rule cspF_Ext_choice_step)
+  apply (simp add: disjnt_def Int_def)
+  apply (rule cspF_decompo, force, auto)
+  apply (erule_tac x="a" in allE, auto)
+  apply (rule cspF_rw_left, rule cspF_IF)+
+  apply (rule cspF_rw_right, rule cspF_IF)+
+  apply (simp)
+  apply (erule_tac x="a" in allE, auto)
+  apply (rule cspF_rw_left, rule cspF_IF)+
+  apply (rule cspF_rw_right, rule cspF_IF)+
+  by (simp)
+
+
+lemma cspF_Ext_choice_step_disjnt_Ext_pre_choice :
+    "disjnt X Y \<Longrightarrow>
+     (? :X -> Pf) [+] (? :Y -> Qf) =F[M,M] ? x:(X \<union> Y) -> (IF (x \<in> X) THEN Pf x
+                                                           ELSE Qf x)"
+by (rule cspF_Ext_choice_step_disjnt, simp_all)
+
+
+lemma cspF_Ext_choice_step_choice:
+    "P =F[M,M] (? :X -> Pf) \<Longrightarrow>
+     Q =F[M,M] (? :Y -> Qf) \<Longrightarrow>
+     P [+] Q =F[M,M] ? x:(X \<inter> Y) -> (Pf x |~| Qf x)
+                     [+] ? x:(X - Y) -> Pf x
+                     [+] ? x:(Y - X) -> Qf x"
+  apply (rule cspF_rw_left, rule cspF_decompo, simp, simp)
+  apply (rule cspF_rw_left, rule cspF_Ext_choice_step)
+  apply (rule cspF_rw_right)
+  apply (rule cspF_rw_left, rule cspF_decompo)
+  apply (rule cspF_Ext_choice_step, rule cspF_reflex)
+  apply (rule cspF_Ext_choice_step)
+  apply (rule cspF_decompo, force)
+  apply (auto)
+  apply (rule cspF_rw_left, rule cspF_IF)
+  apply (rule cspF_rw_right, rule cspF_IF)+
+  apply (rule cspF_decompo, simp_all)
+  apply (rule cspF_rw_left, rule cspF_IF)+
+  apply (rule cspF_rw_right, rule cspF_IF)+
+  apply (simp)
+  apply (rule cspF_rw_left, rule cspF_IF)+
+  apply (rule cspF_rw_right, rule cspF_IF)+
+  apply (simp)
+  done
+
 (*********************************************************
                     Parallel expansion
  *********************************************************)
@@ -132,7 +185,7 @@ lemma cspF_Parallel_step_set2:
    ==> Ev ` (Y - X) Int (Ya Un Za) = {}"
 apply (rule equalityI)
  apply (rule subsetI)
- apply (simp add: inj_image_diff_dist)
+ apply (simp add: image_set_diff)
  apply (simp add: in_Ev_set)
  apply (elim conjE exE)
 
@@ -159,7 +212,7 @@ lemma cspF_Parallel_step_set3:
    ==> Ev ` (Z - X) Int (Ya Un Za) = {}"
 apply (rule equalityI)
  apply (rule subsetI)
- apply (simp add: inj_image_diff_dist)
+ apply (simp add: image_set_diff)
  apply (simp add: in_Ev_set)
  apply (elim conjE exE)
  apply (erule disjE)
@@ -436,6 +489,114 @@ apply (elim disjE conjE exE)
   apply (rule_tac x="<Ev a> ^^^ t" in exI)
   apply (simp add: par_tr_head)
 done
+
+
+(*** Parallel ***)
+
+lemma cspF_Parallel_step_choice:
+    "P =F[M,M] (? :Y -> Pf) \<Longrightarrow>
+     Q =F[M,M] (? :Z -> Qf) \<Longrightarrow>
+     P |[X]| Q =F[M,M] ? x:(X Int Y Int Z) -> (Pf x |[X]| Qf x)
+                       [+] ? x:(Y-X) -> (Pf x |[X]| ? x:Z -> Qf x)
+                       [+] ? x:(Z-X) -> (? x:Y -> Pf x |[X]| Qf x)"
+  apply (rule cspF_rw_left, rule cspF_decompo, simp, simp, simp)
+  apply (rule cspF_rw_left, rule cspF_Parallel_step)
+  apply (rule cspF_rw_right, rule cspF_decompo)
+  apply (rule cspF_Ext_choice_step, rule cspF_reflex)
+  apply (rule cspF_rw_right)
+  apply (rule cspF_Ext_choice_step)
+  apply (rule cspF_decompo, simp)
+  apply (auto)
+  apply (rule cspF_rw_left, rule cspF_IF)+
+  apply (rule cspF_rw_right, rule cspF_IF)+
+  apply (simp)
+  apply (rule cspF_rw_left, rule cspF_IF)+
+  apply (rule cspF_decompo, simp)
+  apply (rule cspF_decompo)
+  apply (rule cspF_rw_right, rule cspF_IF)+
+  apply (simp)
+  apply (simp)
+  apply (rule cspF_rw_left, rule cspF_IF)+
+  apply (rule cspF_rw_right, rule cspF_IF)+
+  apply (simp)
+  apply (rule cspF_rw_left, rule cspF_IF)+
+  apply (rule cspF_decompo, simp)
+  apply (rule cspF_decompo)
+  apply (rule cspF_rw_right, rule cspF_IF)+
+  apply (simp)
+  apply (simp)
+  apply (rule cspF_decompo, simp)
+  apply (rule cspF_rw_right, rule cspF_IF)+
+  apply (simp)
+  apply (simp)
+  done
+
+lemma cspF_Parallel_to_Ext_choice:
+     "(? :Y -> Pf) |[X]| ? :Z -> Qf =F[M,M] ? x:(X Int Y Int Z) -> (Pf x |[X]| Qf x)
+                                            [+] ? x:(Y-X) -> (Pf x |[X]| ? x:Z -> Qf x)
+                                            [+] ? x:(Z-X) -> (? x:Y -> Pf x |[X]| Qf x)"
+  by (simp add: cspF_Parallel_step_choice)
+
+
+lemma cspF_Parallel_step_left :
+    "P =F[M,M] ? x:X -> Pf x \<Longrightarrow> X \<inter> Y = {} \<Longrightarrow> Z \<subseteq> Y \<Longrightarrow>
+     P |[Y]| (? :Z -> Qf) =F[M,M] ? x:X -> ((Pf x) |[Y]| ? :Z -> Qf)"
+  apply (rule cspF_rw_left, rule cspF_decompo, simp, simp, rule cspF_reflex)
+  apply (rule cspF_rw_left, rule cspF_Parallel_step)
+  apply (rule cspF_decompo, force, simp add: Int_commute disjoint_iff)
+  apply (simp add: contra_subsetD)
+  apply (rule cspF_rw_left, rule cspF_IF)+
+  by (rule cspF_decompo, simp_all)
+
+lemma cspF_Parallel_step_disjoint_range_left :
+    "disjoint_range h f \<Longrightarrow> disjoint_range h g \<Longrightarrow>
+     (? x:{| h |}\<^sub>c -> Pf x) |[{| f, g |}\<^sub>c]| (? y:{| g |}\<^sub>c -> Qf y) =F[M,M]
+     (? x:{| h |}\<^sub>c -> ((Pf x) |[{| f, g |}\<^sub>c]| ? y:{| g |}\<^sub>c -> Qf y))"
+  apply (rule cspF_rw_left, rule cspF_Parallel_step)
+  apply (auto simp add: disjoint_range_simps)
+  apply (rule cspF_decompo, force)
+  apply (auto simp add: disjoint_range_simps)
+  apply (rule cspF_rw_left, rule cspF_IF)+
+  by (simp)
+
+
+lemma cspF_Parallel_step_disjoint_range_right :
+    "disjoint_range h f \<Longrightarrow> disjoint_range h g \<Longrightarrow>
+     (? x:{| g |}\<^sub>c -> Pf x) |[{| f, g |}\<^sub>c]| (? y:{| h |}\<^sub>c -> Qf y) =F[M,M]
+     (? y:{| h |}\<^sub>c -> ((? x:{| g |}\<^sub>c -> Pf x) |[{| f, g |}\<^sub>c]| Qf y))"
+  apply (rule cspF_rw_left, rule cspF_Parallel_step)
+  apply (auto simp add: disjoint_range_simps)
+  apply (rule cspF_decompo, force)
+  apply (auto simp add: disjoint_range_simps)
+  apply (rule cspF_rw_left, rule cspF_IF)+
+  by (simp)
+
+
+(*** Interleave ***)
+
+lemma cspF_Interleave_step: 
+  "(? :Y -> Pf) ||| (? :Z -> Qf) =F[M,M]
+      ? x:(Y Un Z)
+         -> IF (x : Y & x : Z) THEN ((Pf x ||| ? x:Z -> Qf x) |~| (? x:Y -> Pf x ||| Qf x))
+            ELSE IF (x : Y) THEN (Pf x ||| ? x:Z -> Qf x)
+                 ELSE (? x:Y -> Pf x ||| Qf x)"
+  apply (rule cspF_rw_left, rule cspF_Parallel_step, simp)
+  apply (rule cspF_decompo, simp)
+  by (rule cspF_rw_left, rule cspF_IF, simp)
+
+lemma cspF_Interleave_step_choice :
+  "P =F[M,M] (? :Y -> Pf) \<Longrightarrow>
+     Q =F[M,M] (? :Z -> Qf) \<Longrightarrow>
+     P ||| Q =F[M,M] ? x:Y -> (Pf x ||| ? x:Z -> Qf x)
+                     [+] ? x:Z -> (? x:Y -> Pf x ||| Qf x)"
+  apply (rule cspF_rw_left, rule cspF_Parallel_step_choice, simp_all)
+  apply (rule cspF_rw_left, rule cspF_Ext_choice_assoc_sym)
+  apply (rule cspF_rw_left, rule cspF_decompo)
+    apply (rule cspF_STOP_step[THEN cspF_sym])
+    apply (rule cspF_reflex)
+  apply (rule cspF_rw_left, rule cspF_unit)
+  by (simp)
+
 
 (*********************************************************
                       Hide expansion
