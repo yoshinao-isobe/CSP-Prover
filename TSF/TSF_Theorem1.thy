@@ -1,7 +1,8 @@
 theory TSF_Theorem1
-imports TSF_Lemma2
-        TSF_Network
+imports TSF_Lemma1
         TSF_law
+        TSF_Lemma2
+        TSF_Network
 begin
 
 
