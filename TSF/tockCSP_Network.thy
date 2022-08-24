@@ -4,12 +4,7 @@ begin
 
 
 
-subsection \<open> TimeStopFree Network \<close>
-
-
-(*definition TockNet :: "('i,'p,'e) Network \<Rightarrow> ('i,'p,'e::tockCSP) Network"
-where
-  "TockNet V == (fst V, \<lambda>i. case (snd V i) of (p, a) \<Rightarrow> (p, a \<union> {tock}))"*)
+subsection \<open> NonTockBusyNetwork \<close>
 
 
 abbreviation isTockNetObj :: "('x * 'e::tockCSP set) \<Rightarrow> bool"
@@ -24,7 +19,7 @@ where
 
 
 
-subsection \<open> States: isTimeStopStateOf and isNonTockDeadlockStateOf \<close>
+subsubsection \<open> States: isTimeStopStateOf and isNonTockDeadlockStateOf \<close>
 
 
 definition isTimeStopStateOf :: "('i,'e) net_state => ('i,'e::tockCSP) NetworkF => bool"
@@ -49,7 +44,7 @@ where
 
 
 
-subsection \<open> NonTockBusyNetwork \<close>
+subsubsection \<open> NonTockBusyNetwork Definition \<close>
 
 
 definition NonTockBusyNetwork  :: "('i,'e::tockCSP) NetworkF => bool"
@@ -59,36 +54,10 @@ where
 
 
 
-(*definition
-  isNonTockDeadlockStateOf :: 
-   "('i,'e) net_state => ('i,'e::tockCSP) NetworkF => bool"
-                           ("(0_ isNonTockDeadlockStateOf _)" [55,55] 55)
-  where
-  isNonTockDeadlockStateOf_def : 
-   "sigma isNonTockDeadlockStateOf VF == 
-                sigma isStateOf VF & 
-                Union {((snd sigma) i) |i. i : fst VF}
-                = Ev ` (ALP VF) - {Tock}"
-  
-definition  
-  NonTockBusyNetwork  :: "('i,'e::tockCSP) NetworkF => bool"
-  where
-  NonTockBusyNetwork_def :
-    "NonTockBusyNetwork VF == 
-     ALL i: fst VF. (ALL sigma. ~(sigma isNonTockDeadlockStateOf ({i}, snd VF)))"
-*)
-
-
-
 subsection \<open> Laws \<close>
 
 
-(*lemma isTockNet_TockNet :
-   "isTockNet (TockNet V)"
-  apply (simp add: TockNet_def)
-  apply (case_tac V, clarsimp)
-  apply (case_tac "b i", clarsimp)
-  done*)
+subsubsection \<open> PXf <--> FXf \<close>
 
 
 lemma isTockNetObj_FXf_if_isTockNetObj_PXf :
@@ -104,23 +73,42 @@ lemma isTockNet_FXf_if_isTockNet_PXf :
     "(I,FXf) isFailureOf (I,PXf) \<Longrightarrow> isTockNet (I,PXf) \<Longrightarrow> isTockNet (I,FXf)"
   by (simp add: isFailureOf_def)
 
-
 lemma isTockNet_PXf_if_isTockNet_FXf :
     "(I,FXf) isFailureOf (I,PXf) \<Longrightarrow> isTockNet (I,FXf) \<Longrightarrow> isTockNet (I,PXf)"
   by (simp add: isFailureOf_def)
 
 
+lemma ALP_PXf_iff_ALP_FXf_if_isFailureOf :
+    "(I,FXf) isFailureOf (I,PXf) \<Longrightarrow> ALP (I,PXf) = ALP (I,FXf)"
+   by (simp add: isFailureOf_def ALP_def)
+
+lemma ALP_FXf_iff_ALP_PXf_if_isFailureOf :
+    "(I,FXf) isFailureOf (I,PXf) \<Longrightarrow> ALP (I,FXf) = ALP (I,PXf)"
+   by (simp add: isFailureOf_def ALP_def)
+
+
+
+subsubsection \<open> Tock, NonTockEv and ALP \<close>
+
 
 lemma NonTockEv_ALP_eq_EvsetTick_if_isTockNet :
     "isTockNet (I, PXf) \<Longrightarrow> I \<noteq> {} \<Longrightarrow>
     NonTockEv \<union> Ev ` ALP (I, PXf) = EvsetTick"
-  apply (simp add: NonTockEv_simp EvsetTick_def)
+  apply (rule NonTockEv_Un_eq_EvsetTick_if)
   by (simp add: ALP_def image_def, auto)
 
 
-lemma ALP_PXf_iff_ALP_FXf_if_isFailureOf :
-    "(I,FXf) isFailureOf (I,PXf) \<Longrightarrow> ALP (I,PXf) = ALP (I,FXf)"
-   by (simp add: isFailureOf_def ALP_def)
+lemma NonTockEv_Un_absorb :
+    "Tock \<notin> X \<Longrightarrow> NonTockEv \<union> X = NonTockEv"
+  by (auto simp only: NonTockEv_simp EvsetTick_def)
+
+
+lemma NonTockEv_neq_ALP :
+    "isTockNet (I, PXf) \<Longrightarrow> I \<noteq> {} \<Longrightarrow>
+    NonTockEv \<noteq> Ev ` ALP (I, PXf)"
+  apply (simp add: NonTockEv_simp EvsetTick_def)
+  by (simp add: ALP_def image_def, auto)
+
 
 
 lemma Tock_in_Ev_ALP_if_isTockNet :
@@ -138,23 +126,5 @@ lemma Tock_in_Ev_ALP_if_isTockNet_V :
   by (auto simp add: image_def)
 
 
-(*lemma PAR_TockNet_simp :
-    "PAR TockNet V = [||]i:(fst V) .. (case (snd V i) of (p, a) \<Rightarrow> (p, a \<union> {tock}))"
-  by (simp add: TockNet_def PAR_def)*)
-
-
-(*lemma ALP_TockNet_simp :
-    "fst V \<noteq> {} \<Longrightarrow>
-     ALP (TockNet V) = ALP V \<union> {tock}"
-  apply (simp add: TockNet_def ALP_def)
-  apply (case_tac V, simp)
-  apply (simp only: ex_in_conv[THEN sym], elim exE)
-  apply (safe)
-  apply (case_tac "b i", simp, force)
-  apply (rule_tac x=x in bexI)
-  apply (case_tac "b x", simp, simp)
-  apply (rule_tac x=i in bexI)
-  apply (case_tac "b i", simp_all)
-  done*)
 
 end
