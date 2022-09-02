@@ -10,21 +10,21 @@ subsection \<open> Theorem 1 \<close>
 
 theorem Theorem1_Jesus_Sampaio_2022:
     "[| isTockNet (I,PXf); I ~= {} ; finite I ; (I,FXf) isFailureOf (I,PXf) ;
-        tock_triple_conjoint (I,FXf) ; BusyNetwork (I,FXf);
-        EX f::('i => 'a::tockCSP failure => ('pi::order)).
+        tock_triple_conjoint (I,FXf) ; NonTockBusyNetwork (I,FXf) ;
+        ALL i:I. ~ Ev ` snd (FXf i) <= {Tock} ;
+        EX f::('i => 'a::tockCSP failure => ('pi::order)) .
           ALL t Yf. (t,Yf) isStateOf (I,FXf) -->
-          (ALL i j. (I,FXf) >> i --tock[(t,Yf), (VocabularyOf (I,FXf)) - {tock}]-->o j
+          (ALL i j. (I,FXf) >> i --tock[(t,Yf), (VocabularyOf (I,FXf))]-->o j
                     --> f j (t rest-tr (snd (FXf j)), Yf j)
                       < f i (t rest-tr (snd (FXf i)), Yf i)) |]
      ==> TimeStopFreeNetwork (I,PXf)"
   apply (subst TimeStopFreeNetwork_iff_DeadlockFree_PAR_Nontock, simp, simp)
 
   apply (simp only: DeadlockFree_def)
-  apply (subst unfolded_DeadlockFree_PAR_Hiding_notDeadlockState)
+  apply (subst unfolded_DeadlockFree_PAR_Hiding_notNonTockDeadlockState)
   apply (simp, simp, simp, simp)
   apply (simp add: isNonTockDeadlockStateOf_def, rule, rule, rule)
 
-  apply (frule isStateOf_if_isDeadlockStateOf)
   apply (elim exE)
   apply (drule_tac x=a in spec)
   apply (drule_tac x=b in spec)
@@ -34,7 +34,7 @@ theorem Theorem1_Jesus_Sampaio_2022:
   apply (rotate_tac -1)
   apply (erule contrapos_np, simp)
 
-  apply (frule Lemma2_Jesus_Sampaio_2022, simp, simp)
+  apply (frule Lemma2_Jesus_Sampaio_2022, simp, simp, simp)
   apply (simp add: isNonTockDeadlockStateOf_def)
 
   (* 1 - order subgoal *)
@@ -70,12 +70,12 @@ lemma Lemma3_Jesus_Sampaio_2022:
         ALL i:I. ALL j:I. i ~= j -->
         (ALL t Yf.
          (t,Yf) isStateOf ({i,j},FXf) &
-         ({i,j},FXf) >> i --tock[(t,Yf), (VocabularyOf (I,FXf)) - {tock}]-->o j
+         ({i,j},FXf) >> i --tock[(t,Yf), (VocabularyOf (I,FXf))]-->o j
                    --> f j (t rest-tr (snd (FXf j)), Yf j)
                      < f i (t rest-tr (snd (FXf i)), Yf i)) |]
      ==> EX f::('i => 'a::tockCSP failure => ('pi::order)).
          ALL t Yf. (t,Yf) isStateOf (I,FXf) -->
-        (ALL i j. (I,FXf) >> i --tock[(t,Yf), (VocabularyOf (I,FXf)) - {tock}]-->o j
+        (ALL i j. (I,FXf) >> i --tock[(t,Yf), (VocabularyOf (I,FXf))]-->o j
                   --> f j (t rest-tr (snd (FXf j)), Yf j)
                     < f i (t rest-tr (snd (FXf i)), Yf i))"
   apply (elim exE)
@@ -122,11 +122,12 @@ subsection \<open> Rule 1 \<close>
 
 lemma Rule1_Jesus_Sampaio_2022:
     "[| isTockNet (I,PXf); I ~= {} ; finite I ; (I,FXf) isFailureOf (I,PXf) ;
-        tock_triple_conjoint (I,FXf) ; BusyNetwork (I,FXf) ; 
-        EX f::('i => 'a::tockCSP failure => ('pi::order)).
+        tock_triple_conjoint (I,FXf) ; NonTockBusyNetwork (I,FXf) ;
+        ALL i:I. \<not> Ev ` snd (FXf i) \<subseteq> {Tock} ; 
+        EX f::('i => 'a::tockCSP failure => ('pi::order)) .
         ALL i:I. ALL j:I. i ~= j -->
         (ALL t Yf.
-         ({i,j},FXf) >> i --tock[(t,Yf), (VocabularyOf (I,FXf)) - {tock}]-->o j
+         ({i,j},FXf) >> i --tock[(t,Yf), (VocabularyOf (I,FXf))]-->o j
                    --> f j (t rest-tr (snd (FXf j)), Yf j)
                      < f i (t rest-tr (snd (FXf i)), Yf i)) |]
      ==> TimeStopFreeNetwork (I,PXf)"
@@ -141,11 +142,12 @@ lemma Rule1_Jesus_Sampaio_2022:
 
 lemma Rule1_Jesus_Sampaio_2022_I:
     "[| isTockNet V; I ~= {} ; finite I ; (I,FXf) isFailureOf V ;
-        tock_triple_conjoint (I,FXf) ; BusyNetwork (I,FXf) ;
+        tock_triple_conjoint (I,FXf) ; NonTockBusyNetwork (I,FXf) ;
+        ALL i:I. \<not> Ev ` snd (FXf i) \<subseteq> {Tock} ;
         EX f::('i => 'a::tockCSP failure => ('pi::order)).
         ALL i:I. ALL j:I. i ~= j -->
         (ALL t Yf.
-         ({i,j},FXf) >> i --tock[(t,Yf), (VocabularyOf (I,FXf)) - {tock}]-->o j
+         ({i,j},FXf) >> i --tock[(t,Yf), (VocabularyOf (I,FXf))]-->o j
                    --> f j (t rest-tr (snd (FXf j)), Yf j)
                      < f i (t rest-tr (snd (FXf i)), Yf i)) |]
      ==> TimeStopFreeNetwork V"
@@ -154,7 +156,7 @@ lemma Rule1_Jesus_Sampaio_2022_I:
   apply (rotate_tac -1, erule exE)
   apply (subgoal_tac "Ia = I")
   apply (simp)
-  apply (subst Rule1_Jesus_Sampaio_2022, simp_all)  
+  apply (subst Rule1_Jesus_Sampaio_2022, simp_all)
   apply (simp add: isFailureOf_def)
   done
 
@@ -163,18 +165,19 @@ lemma Rule1_Jesus_Sampaio_2022_I:
 theorem Rule1_Jesus_Sampaio_2022_simp:
     "[| VF = {(F i, X i) | i:I}Fnet ; V = {(P i, X i) | i:I}net ;
         VF isFailureOf V ; I ~= {} ; finite I ; isTockNet VF;
-        tock_triple_conjoint VF ; BusyNetwork VF ;
+        tock_triple_conjoint VF ; NonTockBusyNetwork VF ;
+        ALL i:I. ~ Ev ` snd (snd VF i) <= {Tock} ;
         EX f::('i => 'a::tockCSP failure => ('pi::order)).
         ALL i:I. ALL j:I. i ~= j -->
         (ALL t Y.
          {(F i, X i) | i:{i,j}}Fnet >> 
-                 i --tock[(t,Y), (VocabularyOf VF) - {tock}]-->o j
+                 i --tock[(t,Y), (VocabularyOf VF)]-->o j
                    --> f j (t rest-tr (X j), Y j)
                      < f i (t rest-tr (X i), Y i)) |]
      ==> TimeStopFreeNetwork V"
   apply (simp)
   apply (rule Rule1_Jesus_Sampaio_2022_I)
-  apply (simp_all)
+  apply (simp_all, simp)
   apply (elim conjE exE)
   apply (rule_tac x="f" in exI)
   apply (auto)

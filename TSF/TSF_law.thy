@@ -1,5 +1,5 @@
 theory TSF_law
-imports TSF_TOCKSTick
+imports TSF_Lemma1
 begin
 
 
