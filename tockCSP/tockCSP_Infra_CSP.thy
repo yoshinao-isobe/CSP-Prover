@@ -344,6 +344,25 @@ lemma hide_tr_non_x_sett :
     apply (drule sym, simp)
   done
 
+
+
+lemma sett_hide_tr_non_x :
+    "sett (t --tr (- {x})) <= {Tick,Ev x}"
+  apply (induct t arbitrary: x rule: induct_trace)
+    apply (rule)
+    apply (case_tac "xa", simp_all)
+    apply (case_tac "a = x", simp_all)
+  done
+
+
+lemma sett_hide_tr_non_x_noTick :
+    "noTick t \<Longrightarrow> sett (t --tr (- {x})) <= {Ev x}"
+  apply (induct t arbitrary: x rule: induct_trace)
+    apply (rule)
+    apply (case_tac "xa", simp_all)
+    apply (case_tac "a = x", simp_all)
+  done
+
 (*
 lemma hide_tr_id:
     "sett u \<subseteq> insert Tick (Ev ` Y) & X Int Y = {} \<Longrightarrow>

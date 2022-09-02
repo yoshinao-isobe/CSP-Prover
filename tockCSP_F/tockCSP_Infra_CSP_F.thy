@@ -69,4 +69,14 @@ lemma FIX_failures :
 
 
 
+lemma in_failures_Inductive_parallel_map :
+    "finite I ==> x ~= [] ==>
+     (s, X) :f failures ([||] map PXf x) MF = 
+     (sett s <= insert Tick (Ev ` (UN a:set x . snd (PXf a))) &
+      (EX PXYs. map fst PXYs = map PXf x &
+              X Int insert Tick (Ev ` (UN a:set x. snd (PXf a))) =
+                  Union {Y Int insert Tick (Ev ` X) |X Y. EX P. ((P, X), Y) : set PXYs} &
+              (ALL P X Y. ((P, X), Y) : set PXYs \<longrightarrow> (s rest-tr X, Y) :f failures P MF)))"
+  by (subst in_failures_par, simp_all)
+
 end
