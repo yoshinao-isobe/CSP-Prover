@@ -10,7 +10,7 @@ definition
                   ("(0[_]-TimeStopFree _)" [0,55] 55)
   where
   TimeStopFree_def :
-    "[X]-TimeStopFree P == [X \<union> {Tick,Tock}]-DeadlockFree (P -- Nontock)"
+    "[X]-TimeStopFree P == [X Un {Tick,Tock}]-DeadlockFree (P -- Nontock)"
 (*
     P -- Nontock   means the PROCESS controlling TIME PASSING
                    OBS: TIME PASSING produces Tock events AND allows Tick
