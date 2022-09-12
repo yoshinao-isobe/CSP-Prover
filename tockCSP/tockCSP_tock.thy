@@ -256,6 +256,10 @@ lemma NonTockEv_Un_Evset_eq_EvsetTick [simp]:
     "NonTockEv \<union> Evset = EvsetTick"
   by (rule NonTockEv_Un_eq_EvsetTick_if, simp)
 
+lemma NonTockEv_Un_absorb :
+    "Tock \<notin> X ==> NonTockEv Un X = NonTockEv"
+  by (auto simp only: NonTockEv_simp EvsetTick_def)
+
 lemma insert_Tock_NonTockEv [simp]:
     "insert Tock NonTockEv = EvsetTick"
   apply (simp only: NonTockEv_simp EvsetTick_def)

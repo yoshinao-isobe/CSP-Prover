@@ -31,8 +31,8 @@ lemma Tick_DeadlockFree_if_DeadlockFree :
 
 
 lemma isStateOf_if_isDeadlockStateOf :
-    "(t, Yf) isDeadlockStateOf (I,FXf) \<Longrightarrow>
-    (t, Yf) isStateOf (I, FXf)"
+    "sigma isDeadlockStateOf VF \<Longrightarrow>
+     sigma isStateOf VF"
   by (simp add: isDeadlockStateOf_def)
 
 

@@ -59,6 +59,11 @@ lemma Evset_Un_image [simp]:
   by (auto simp add: Evset_def)
 
 
+lemma Evset_Int_image [simp]:
+    "Evset \<inter> Ev ` X = Ev ` X"
+  by (auto simp add: Evset_def)
+
+
 lemma not_subset_Evset :
     "\<not> X \<subseteq> Evset \<Longrightarrow> Tick : X"
   by (simp add: subset_eq Evset_def)
