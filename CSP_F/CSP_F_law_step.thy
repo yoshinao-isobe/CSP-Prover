@@ -550,10 +550,10 @@ lemma cspF_Parallel_step_left :
 
 lemma cspF_Parallel_step_disjoint_range_left :
     "disjoint_range h f \<Longrightarrow> disjoint_range h g \<Longrightarrow>
-     (? x:{| h |}\<^sub>c -> Pf x) |[{| f, g |}\<^sub>c]| (? y:{| g |}\<^sub>c -> Qf y) =F[M,M]
-     (? x:{| h |}\<^sub>c -> ((Pf x) |[{| f, g |}\<^sub>c]| ? y:{| g |}\<^sub>c -> Qf y))"
+     (? x:{| h |}s -> Pf x) |[{| f, g |}s]| (? y:{| g |}s -> Qf y) =F[M,M]
+     (? x:{| h |}s -> ((Pf x) |[{| f, g |}s]| ? y:{| g |}s -> Qf y))"
   apply (rule cspF_rw_left, rule cspF_Parallel_step)
-  apply (auto simp add: disjoint_range_simps)
+  apply (auto simp add: disjoint_range_simps, simp add: chanset_def)
   apply (rule cspF_decompo, force)
   apply (auto simp add: disjoint_range_simps)
   apply (rule cspF_rw_left, rule cspF_IF)+
@@ -562,10 +562,10 @@ lemma cspF_Parallel_step_disjoint_range_left :
 
 lemma cspF_Parallel_step_disjoint_range_right :
     "disjoint_range h f \<Longrightarrow> disjoint_range h g \<Longrightarrow>
-     (? x:{| g |}\<^sub>c -> Pf x) |[{| f, g |}\<^sub>c]| (? y:{| h |}\<^sub>c -> Qf y) =F[M,M]
-     (? y:{| h |}\<^sub>c -> ((? x:{| g |}\<^sub>c -> Pf x) |[{| f, g |}\<^sub>c]| Qf y))"
+     (? x:{| g |}s -> Pf x) |[{| f, g |}s]| (? y:{| h |}s -> Qf y) =F[M,M]
+     (? y:{| h |}s -> ((? x:{| g |}s -> Pf x) |[{| f, g |}s]| Qf y))"
   apply (rule cspF_rw_left, rule cspF_Parallel_step)
-  apply (auto simp add: disjoint_range_simps)
+  apply (auto simp add: disjoint_range_simps, simp add: chanset_def)
   apply (rule cspF_decompo, force)
   apply (auto simp add: disjoint_range_simps)
   apply (rule cspF_rw_left, rule cspF_IF)+

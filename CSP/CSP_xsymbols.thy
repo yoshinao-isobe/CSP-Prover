@@ -137,6 +137,8 @@ syntax (output)
                  => ('p,'a) proc"  ("(1_ /[> _)" [73,74] 73)
   "_TimeoutdefX" :: "('p,'a) proc => ('p,'a) proc 
                  => ('p,'a) proc"  ("(1_ /[>def _)" [73,74] 73)
+  "_InterruptX":: "('p,'a) proc => 'a => ('p,'a) proc 
+                 => ('p,'a) proc"  ("(1_ /'/>_ _)" [68,150,69] 68)
   "_HidingX"    :: "('p,'a) proc => 'a set => ('p,'a) proc"  
                                         ("(1_ /-- _)" [84,85] 84)
   "_RenamingX"  :: "('p,'a) proc => ('a * 'a) set => ('p,'a) proc"  
@@ -149,6 +151,8 @@ syntax (xsymbols)
                  => ('p,'a) proc"  ("(1_ /\<rhd> _)" [73,74] 73)
   "_TimeoutdefX":: "('p,'a) proc => ('p,'a) proc 
                  => ('p,'a) proc"  ("(1_ /\<unrhd> _)" [73,74] 73)
+  "_InterruptX":: "('p,'a) proc => 'a => ('p,'a) proc 
+                 => ('p,'a) proc"  ("(1_ /\<triangle>_ _)" [68,150,69] 68)
   "_HidingX"    :: "('p,'a) proc => 'a set => ('p,'a) proc"  
                                    ("(1_ /\<midarrow> _)" [84,85] 84)
   "_RenamingX"  :: "('p,'a) proc => ('a * 'a) set => ('p,'a) proc"  
@@ -159,10 +163,11 @@ syntax (xsymbols)
 translations
 (*"P \<rhd> Q"            == "(P |~| STOP) [+] Q"*)
   "P \<rhd> Q"            == "P [> Q"
-  "P \<unrhd> Q"          == "P [>def Q"
-  "P \<midarrow> X"       == "P -- X"
-  "P \<lbrakk>r\<rbrakk>" == "P [[r]]"
-  "P \<lfloor> n"            == "P |. n"
+  "P \<unrhd> Q"            == "P [>def Q"
+  "P \<triangle>i Q"           == "P />i Q"
+  "P \<midarrow> X"            == "P -- X"
+  "P \<lbrakk>r\<rbrakk>"             == "P [[r]]"
+  "P \<lfloor> n"             == "P |. n"
 
 
 end

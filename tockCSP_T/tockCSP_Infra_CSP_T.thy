@@ -1,11 +1,22 @@
+           (*-------------------------------------------*
+            |        CSP-Prover on Isabelle2021         |
+            |                 2022 / 2023               |
+            |                                           |
+            |          Lemmas and Theorems from         |
+            |    Jesus and Sampaio's SBMF 2022 paper    |
+            |                     and                   |
+            |    Jesus and Sampaio's SCP 2023 paper     |
+            |                                           |
+            | Joabe Jesus (eComp POLI UPE and CIn UFPE) |
+            *-------------------------------------------*)
+
 theory tockCSP_Infra_CSP_T
 imports tockCSP.tockCSP_Infra
-        CSP_T
+        CSP_T.CSP_T_semantics
 begin
 
 
-subsection \<open> CSP_T \<close>
-
+subsection \<open> tockCSP_Infra_CSP_T - TODO: move to CSP_T \<close>
 
 lemma SKIP_domT: "{t. (t = <> | t = <Tick>) } : domT"
   apply (simp add: domT_def HC_T1_def)
@@ -19,15 +30,6 @@ lemma SKIP_domT: "{t. (t = <> | t = <Tick>) } : domT"
   apply (erule disjE, simp)    (* <> *)
   
   by (simp_all)
-
-
-lemma FIX_traces :
-    "(Pf::('pn,'e) pnfun) = PNfun \<Longrightarrow>
-     FPmode = CMSmode \<longrightarrow> guardedfun Pf \<Longrightarrow>
-     traces ($(p::'pn)) MT = traces ((FIX Pf) p) MT"
-  apply (insert cspT_FIX[of Pf p])
-  apply (simp add: cspT_semantics)
-  by (case_tac FPmode, simp_all)
 
 
 

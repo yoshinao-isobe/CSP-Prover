@@ -5,6 +5,7 @@
             |                                           |
             |        CSP-Prover on Isabelle2021         |
             |                 August 2021  (modified)   |
+            |                  2022 / 2023 (modified)   |
             |                                           |
             |        Yoshinao Isobe (AIST JAPAN)        |
             | Joabe Jesus (eComp POLI UPE and CIn UFPE) |
@@ -13,6 +14,7 @@
 theory DFP_DFtick
 imports DFP_Deadlock
 begin
+
 
 (*****************************************************************
 
@@ -28,18 +30,17 @@ declare csp_prefix_ss_def[simp]
 
 (* typedecl Event    any event *)
 
+
+section \<open> DFtick specification \<close>
+
 datatype DFtickName = DFtick
 
-(*** Spc ***)
 
 primrec
   DFtickfun ::  "(DFtickName, 'event) pnfun"
 where
   "DFtickfun (DFtick) = (! x ->  $(DFtick)) |~| SKIP "
-(*
-defs (overloaded)
-Set_DFtickfun_def [simp]: "PNfun == DFtickfun"
-*)
+
 
 overloading Set_DFtickfun == 
   "PNfun :: (DFtickName, 'event) pnfun"
@@ -49,62 +50,12 @@ end
   
 declare Set_DFtickfun_def [simp]
 
-(*---------------------------------------------------*
- |                  n-replicted spec                 |
- *---------------------------------------------------*)
 
-datatype RDFtickName = RDFtick
-
-(*** Spc ***)
-
-primrec
-  NatDFtick :: 
-     "nat => (RDFtickName, 'event) proc
-          => (RDFtickName, 'event) proc"
-where
-    "NatDFtick 0 P = P"
-  | "NatDFtick (Suc n) P = ((! x -> NatDFtick n P) |~| SKIP) |~| P"
-
-
-primrec
-  RDFtickfun :: 
-    "RDFtickName
-         => (RDFtickName, 'event) proc"
-where
-  "RDFtickfun (RDFtick)
-     = (! x -> (!nat n .. NatDFtick n ($(RDFtick))) |~| SKIP)"
-(*
-defs (overloaded)
-Set_RDFtickfun_def [simp]: "PNfun == RDFtickfun"
-*)
-
-overloading Set_RDFtickfun == 
-  "PNfun :: (RDFtickName, 'event) pnfun"
-begin
-  definition "PNfun :: (RDFtickName, 'event) pnfun == RDFtickfun"
-end
-  
-declare Set_RDFtickfun_def [simp]
-
-
-(*********************************************************
-              DFtick lemma
- *********************************************************)
 
 lemma guardedfun_DFtick[simp]:
       "guardedfun DFtickfun"
 by (simp add: guardedfun_def, rule allI, induct_tac p, simp_all)
 
-lemma guardedfun_RDFtick[simp]:
-      "guardedfun RDFtickfun"
-apply (simp add: guardedfun_def)
-apply (rule allI)
-apply (induct_tac p)
-apply (simp)
-apply (rule allI)
-apply (induct_tac n)
-apply (simp_all)
-done
 
 
 
@@ -287,21 +238,61 @@ apply (simp add: DeadlockFree_DFtick)
 apply (simp add: DFtick_DeadlockFree)
 done
 
-(*================================================================*
- |                                                                |
- |                   n-replicted DF specification                 |
- |                                                                |
- *================================================================*)
 
-(*******************************************************************
-        relating function between DFtickName and Rep...
- *******************************************************************)
+
+
+
+
+section \<open> n-replicted spec \<close>
+
+
+datatype RDFtickName = RDFtick
+
+(*** Spc ***)
+
+primrec NatDFtick :: 
+     "nat => (RDFtickName, 'event) proc => (RDFtickName, 'event) proc"
+where
+    "NatDFtick 0 P = P"
+  | "NatDFtick (Suc n) P = ((! x -> NatDFtick n P) |~| SKIP) |~| P"
+
+
+primrec RDFtickfun :: 
+    "RDFtickName => (RDFtickName, 'event) proc"
+where
+  "RDFtickfun (RDFtick)
+     = (! x -> (!nat n .. NatDFtick n ($(RDFtick))) |~| SKIP)"
+
+
+overloading Set_RDFtickfun == 
+  "PNfun :: (RDFtickName, 'event) pnfun"
+begin
+  definition "PNfun :: (RDFtickName, 'event) pnfun == RDFtickfun"
+end
+  
+declare Set_RDFtickfun_def [simp]
+
+
+
+lemma guardedfun_RDFtick[simp]:
+      "guardedfun RDFtickfun"
+apply (simp add: guardedfun_def)
+apply (rule allI)
+apply (induct_tac p)
+apply (simp)
+apply (rule allI)
+apply (induct_tac n)
+apply (simp_all)
+done
+
+
+
+subsection \<open> relating function between DFtickName and Rep... \<close>
 
 (*** ref1 ***)
 
-primrec
-  RepDF_to_DF :: "RDFtickName => 
-                 (DFtickName, 'event) proc"
+primrec RepDF_to_DF ::
+     "RDFtickName => (DFtickName, 'event) proc"
 where
   "RepDF_to_DF (RDFtick) = ($DFtick)"
 
@@ -343,11 +334,11 @@ apply (simp add: RDFtick_DFtick_ref1_induct_lm)
 apply (simp)
 done
 
+
 (*** ref2 ***)
 
-primrec
-  DF_to_RepDF :: "DFtickName => 
-                 (RDFtickName, 'event) proc"
+primrec DF_to_RepDF ::
+     "DFtickName => (RDFtickName, 'event) proc"
 where
   "DF_to_RepDF (DFtick) = ($RDFtick)"
 
@@ -377,7 +368,9 @@ apply (simp)
 apply (simp)
 done
 
-(**************************** =F****************************)
+
+
+subsection \<open> RDFtick =F DFtick \<close>
 
 lemma RDFtick_DFtick:
   "$RDFtick =F ($DFtick :: (DFtickName, 'event) proc)"
@@ -386,11 +379,8 @@ apply (simp add: RDFtick_DFtick_ref1)
 apply (simp add: RDFtick_DFtick_ref2)
 done
 
-(* ---------------------------------------------------*
- |                                                    |
- |  syntactical approach 2 <--> semantical approach   |
- |                                                    |
- * ---------------------------------------------------*)
+
+subsection \<open> syntactical approach 2 <--> semantical approach \<close>
 
 theorem DeadlockFree_RDFtick_ref:
   "P isDeadlockFree = (($RDFtick :: (RDFtickName, 'event) proc) <=F P)"

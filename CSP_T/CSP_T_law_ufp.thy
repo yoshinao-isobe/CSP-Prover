@@ -149,7 +149,7 @@ by (simp add: ALL_cspT_unwind_cms)
 
 (*-------------------------------------------------------*
  |                                                       |
- |    fixed point inducntion (CSP-Prover intro rule)     |
+ |    fixed point induction (CSP-Prover intro rule)      |
  |                                                       |
  *-------------------------------------------------------*)
 

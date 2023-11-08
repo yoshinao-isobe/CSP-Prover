@@ -16,19 +16,6 @@ theory CSP_F_law_fix
 imports CSP_F_law_fp CSP_T.CSP_T_law_fix
 begin
 
-(*  The following simplification rules are deleted in this theory file *)
-(*  because they unexpectly rewrite UnionT and InterT.                 *)
-(*                  Union (B ` A) = (UN x:A. B x)                      *)
-(*                  Inter (B ` A) = (INT x:A. B x)                     *)
-
-(*
-declare Union_image_eq [simp del]
-declare Inter_image_eq [simp del]
-*)
-(* no simp rules in Isabelle 2017 
-declare Sup_image_eq [simp del]
-declare Inf_image_eq [simp del]
-*)
 
 (*-----------*
  |    Bot    |
@@ -348,13 +335,17 @@ apply (rule order_antisym)
  apply (simp)
 done
 
-(****************** to add them again ******************)
-(*
-declare Union_image_eq [simp]
-declare Inter_image_eq [simp]
-*)
-(*
-declare Sup_image_eq [simp]
-declare Inf_image_eq [simp]
-*)
+
+(*-----------------------------------------------------*
+ |                   CSP-Prover v6                     |
+ *-----------------------------------------------------*)
+
+
+lemma FIX_failures :
+    "(Pf::('pn,'e) pnfun) = PNfun \<Longrightarrow>
+     guardedfun Pf \<Longrightarrow>
+     failures ($(p::'pn)) MF = failures ((FIX Pf) p) MF"
+  apply (insert cspF_FIX[of Pf p])
+  by (simp add: cspF_semantics)
+
 end

@@ -688,6 +688,173 @@ lemma contraction_alpha_failures_IF:
 by (simp add: contraction_alpha_def map_alpha_failures_IF)
 
 (*--------------------------------*
+ |           Interrupt            |
+ *--------------------------------*)
+
+(*** rest_domT (subset) ***)
+
+lemma Interrupt_rest_setF_sub:
+   "[| traces P1 (fstF o M1) .|. n <= traces P2 (fstF o M2) .|. n ;
+       traces Q1 (fstF o M1) .|. n <= traces Q2 (fstF o M2) .|. n ;
+       failures P1 M1 .|. n <= failures P2 M2 .|. n ;
+       failures Q1 M1 .|. n <= failures Q2 M2 .|. n  |]
+    ==> failures (P1 /> Q1) M1 .|. n <= failures (P2 /> Q2) M2 .|. n"
+apply (simp add: subdomT_iff subsetF_iff)
+apply (intro allI impI)
+apply (simp add: in_rest_domT)
+apply (simp add: in_rest_setF)
+apply (simp add: in_failures)
+apply (elim conjE exE disjE)
+
+ apply (rule disjI1)
+ apply (simp)
+
+ apply (rule disjI1)
+ apply (rotate_tac 2)
+ apply (drule_tac x="s" in spec)
+ apply (drule_tac x="X" in spec)
+ apply (drule mp, simp, fast)
+ apply (simp)
+
+ apply (rule disjI2, rule disjI1)
+ apply (simp)
+
+ apply (rule disjI2, rule disjI2, rule disjI1)
+ apply (drule_tac x="s" in spec)
+ apply (drule mp, simp)
+ apply (fast)
+
+ apply (rule disjI2, rule disjI2, rule disjI2)
+ apply (drule_tac x="sa" in spec)
+ apply (drule mp, simp)
+ apply (rule_tac x="sa" in exI, simp)
+ apply (rule_tac x="t" in exI, simp)
+
+ apply (rule disjI2, rule disjI1)
+ apply (drule_tac x="s ^^^ <Tick>" in spec)
+ apply (drule mp, simp)
+ apply (simp)
+
+ apply (rule disjI2, rule disjI2, rule disjI1)
+ apply (rule_tac x="sa" in exI, simp)
+
+ apply (rule disjI2, rule disjI2, rule disjI2)
+ apply (rule_tac x="sa" in exI)
+ apply (drule_tac x="sa" in spec)
+ apply (rule_tac x="t" in exI, simp)
+ apply (rotate_tac 2)
+ apply (drule_tac x="t" in spec)
+ apply (drule_tac x="X" in spec)
+ apply (drule sym, simp)
+ apply (simp add: appt_decompo)
+   apply (elim disjE exE)
+   apply (drule mp, simp)
+   apply (simp)
+   apply (elim conjE)
+     apply (case_tac "sa = <>", simp)
+       apply (drule mp, fast)
+       apply (simp)
+       apply (drule mp, rule gr_zeroI, simp add: lengtht_zero)
+       apply (simp)
+   apply (simp)
+   apply (elim conjE disjE)
+     apply (simp)
+     apply (simp)
+     apply (case_tac "s' = <>", simp)                
+     apply (drule mp, rule_tac x="<>" in exI, simp)
+     apply (simp)
+     apply (drule mp, rule gr_zeroI, simp add: lengtht_zero)
+     apply (simp)
+done
+
+(*** rest_setF (equal) ***)
+
+lemma Interrupt_rest_setF:
+   "[| traces P1 (fstF o M1) .|. n = traces P2 (fstF o M2) .|. n ;
+       traces Q1 (fstF o M1) .|. n = traces Q2 (fstF o M2) .|. n ;
+       failures P1 M1 .|. n = failures P2 M2 .|. n ;
+       failures Q1 M1 .|. n = failures Q2 M2 .|. n  |]
+    ==> failures (P1 /> Q1) M1 .|. n = failures (P2 /> Q2) M2 .|. n"
+apply (rule order_antisym)
+by (simp_all add: Interrupt_rest_setF_sub)
+
+(*** distF lemma ***)
+
+lemma Interrupt_distF:
+"[| PQTs = {(traces P1 (fstF o M1), traces P2 (fstF o M2)), 
+            (traces Q1 (fstF o M1), traces Q2 (fstF o M2))} ;
+    PQFs = {(failures P1 M1, failures P2 M2), (failures Q1 M1, failures Q2 M2)} |]
+ ==> (EX PQ. PQ:PQTs & 
+             distance(failures (P1 /> Q1) M1, failures (P2 /> Q2) M2)
+          <= distance((fst PQ), (snd PQ))) |
+     (EX PQ. PQ:PQFs & 
+             distance(failures (P1 /> Q1) M1, failures (P2 /> Q2) M2)
+          <= distance((fst PQ), (snd PQ)))"
+apply (simp only: to_distance_rs)
+apply (rule rest_to_dist_pair_two)
+apply (simp_all)
+by (auto intro: Interrupt_rest_setF)
+
+(*** map_alpha F lemma ***)
+
+lemma map_alpha_failures_Interrupt_lm:
+  "[| distance (traces P1 (fstF o M1), traces P2 (fstF o M2))
+       <= alpha * distance (x1, x2) ;
+      distance (traces Q1 (fstF o M1), traces Q2 (fstF o M2))
+       <= alpha * distance (x1, x2) ;
+      distance (failures P1 M1, failures P2 M2) <= alpha * distance (x1, x2) ;
+      distance (failures Q1 M1, failures Q2 M2) <= alpha * distance (x1, x2) |]
+    ==> distance (failures (P1 /> Q1) M1, failures (P2 /> Q2) M2)
+     <= alpha * distance (x1, x2)"
+apply (insert Interrupt_distF
+       [of "{(traces P1 (fstF o M1), traces P2 (fstF o M2)), 
+             (traces Q1 (fstF o M1), traces Q2 (fstF o M2))}"
+             P1 M1 P2 M2 Q1 Q2
+           "{(failures P1 M1, failures P2 M2), (failures Q1 M1, failures Q2 M2)}"])
+by (auto)
+
+(*** map_alpha ***)
+
+lemma map_alpha_failures_Interrupt:
+ "[| map_alpha (%M. traces P (fstF o M)) alpha ; 
+     map_alpha (%M. traces Q (fstF o M)) alpha ;
+     map_alpha (failures P) alpha ;
+     map_alpha (failures Q) alpha |]
+  ==> map_alpha (failures (P /> Q)) alpha"
+apply (simp add: map_alpha_def)
+apply (intro allI)
+apply (erule conjE)
+apply (drule_tac x="x" in spec)
+apply (drule_tac x="x" in spec)
+apply (drule_tac x="x" in spec)
+apply (drule_tac x="x" in spec)
+apply (drule_tac x="y" in spec)
+apply (drule_tac x="y" in spec)
+apply (drule_tac x="y" in spec)
+apply (drule_tac x="y" in spec)
+by (simp add: map_alpha_failures_Interrupt_lm)
+
+(*** non_expanding ***)
+
+lemma non_expanding_failures_Interrupt:
+ "[| non_expanding (%M. traces P (fstF o M)) ;
+     non_expanding (%M. traces Q (fstF o M)) ;
+     non_expanding (failures P) ; non_expanding (failures Q) |]
+  ==> non_expanding (failures (P /> Q))"
+by (simp add: non_expanding_def map_alpha_failures_Interrupt)
+
+(*** contraction ***)
+
+lemma contraction_alpha_failures_Interrupt:
+ "[| contraction_alpha (%M. traces P (fstF o M)) alpha ;
+     contraction_alpha (%M. traces Q (fstF o M)) alpha ;
+     contraction_alpha (failures P) alpha ; 
+     contraction_alpha (failures Q) alpha|]
+  ==> contraction_alpha (failures (P /> Q)) alpha"
+by (simp add: contraction_alpha_def map_alpha_failures_Interrupt)
+
+
+(*--------------------------------*
  |           Parallel             |
  *--------------------------------*)
 
@@ -1245,6 +1412,7 @@ apply (simp add: non_expanding_failures_Ext_choice non_expanding_traces_fstF)
 apply (simp add: non_expanding_failures_Int_choice)
 apply (simp add: non_expanding_failures_Rep_int_choice)
 apply (simp add: non_expanding_failures_IF)
+apply (simp add: non_expanding_failures_Interrupt non_expanding_traces_fstF)
 apply (simp add: non_expanding_failures_Parallel)
 
 (* hiding --> const *)
@@ -1317,6 +1485,8 @@ apply (simp add: contraction_alpha_failures_Int_choice)
 apply (simp add: contraction_alpha_failures_Rep_int_choice)
 apply (simp add: contraction_alpha_failures_Rep_int_choice)
 apply (simp add: contraction_alpha_failures_IF)
+apply (simp add: contraction_alpha_failures_Interrupt
+                 contraction_alpha_traces_fstF)
 apply (simp add: contraction_alpha_failures_Parallel)
 
 (* hiding --> const *)

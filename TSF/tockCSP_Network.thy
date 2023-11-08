@@ -1,75 +1,127 @@
+           (*-------------------------------------------*
+            |        CSP-Prover on Isabelle2021         |
+            |                 2022 / 2023               |
+            |                                           |
+            |          Lemmas and Theorems from         |
+            |    Jesus and Sampaio's SBMF 2022 paper    |
+            |                     and                   |
+            |    Jesus and Sampaio's SCP 2023 paper     |
+            |                                           |
+            | Joabe Jesus (eComp POLI UPE and CIn UFPE) |
+            *-------------------------------------------*)
+
 theory tockCSP_Network
-imports tockCSP_DFP_Main
-        TSF_law
+imports tockCSP_DFP.tockCSP_DFP_Main
 begin
 
 
 
-subsection \<open> TockNetwork \<close>
+section \<open> Timed Atom, Tock Net and Timed Process Network \<close>
 
 
-abbreviation isTockNetObj :: "('x * 'e::tockCSP set) => bool"
+abbreviation isTimedAtom :: "('x * 'e::tockCSP set) => bool"
 where
-  "isTockNetObj X == (tock : (snd X))"
+  "isTimedAtom X == (tock : (snd X))"
 
 
-abbreviation isTockNet :: "('i set * ('i => ('b * 'e::tockCSP set))) => bool"
+(*definition isTockNet :: "('i set * ('i => ('b * 'e::tockCSP set))) => bool"
 where
-  "isTockNet V == (ALL i: fst V. isTockNetObj ((snd V) i))"
+  "isTockNet V == (EX i: fst V. isTimedAtom ((snd V) i))"*)
 
 
-
-subsection \<open> Refusal Predicates \<close>
-
-abbreviation netRefusals :: "('i) set => ('i \<Rightarrow> 'e event set) => ('e::tockCSP) event set"
-                           ("(0netRefusals _ _)" [55,55] 55)
+definition isTPN :: "('i set * ('i => ('b * 'e::tockCSP set))) => bool"
 where
-    "netRefusals I Yf == Union {(Yf i) |i. i : I}"
+  "isTPN V == (ALL i: fst V. isTimedAtom ((snd V) i))"
 
 
-abbreviation refusalsOf :: "('i,'e) net_state => ('i,'e) NetworkF => ('e::tockCSP) event set"
-                           ("(0_ refusalsOf _)" [55,55] 55)
+
+
+section \<open> Refusals Predicates \<close>
+
+definition refusalSet :: "('i,'x,'e) Net => ('i \<Rightarrow> 'e event set) => ('e::tockCSP) event set"
+                           ("(0refusalSet _<_>)" [55,0] 55)    
 where
-    "sigma refusalsOf VF == netRefusals (fst VF) (snd sigma)"
+    "refusalSet V<Yf> == \<Union> {(Yf i) |i. i : fst V}"
+
+
+(*abbreviation refusalsIn :: "('i,'x,'e) Net => ('i \<Rightarrow> 'e event set) => ('e::tockCSP) event set"
+                           ("(0_-refusalsIn'(_'))" [55,0] 55)
+where "V-refusalsIn(Yf) == refusalSet V<Yf>"*)
+
+
+
+abbreviation interfaceRefusalsIn ::
+    "('i,'x,'e) Net => ('i \<Rightarrow> 'e event set) => ('e::tockCSP) event set"
+                           ("(0_-interfaceRefusalsIn<_>)" [55,0] 55)
+where
+    "V-interfaceRefusalsIn<Yf> == refusalSet V< (\<lambda>i. Yf i \<inter> Ev ` snd ((snd V) i)) >"
+
+
+abbreviation nonTermInterfaceRefusalsIn ::
+    "('i,'x,'e) Net => ('i \<Rightarrow> 'e event set) => ('e::tockCSP) event set"
+                           ("(0_-nonTermInterfaceRefusalsIn<_>)" [55,55] 55)
+where
+    "V-nonTermInterfaceRefusalsIn<Yf> == refusalSet V< (\<lambda>i. Yf i \<inter> insert Tick (Ev ` snd ((snd V) i))) >"
+
+
+
+
+
+lemma ALP_simp [simp]: "(\<Union>i\<in>I. snd (PXf i)) = ALP (I,PXf)"
+  by (simp add: image_def ALP_def, blast)
+(*
+lemma EvALP_Union [simp]: "Ev ` (\<Union>a\<in>I. snd (PXf a)) = EvALP (I,PXf)"
+  by (simp)
+*)
 
 
 definition refusesTock ("(0_ refusesTock _)" [55,55] 55)
 where
-    "sigma refusesTock VF == Tock : sigma refusalsOf VF"
+    "sigma refusesTock V == Tock : refusalSet V<snd sigma>"
 
 
-definition refusesNonTock ("(0_ refusesNonTock _)" [55,55] 55)
+definition refusesTick ("(0_ refusesTick _)" [55,55] 55)
 where
-    "sigma refusesNonTock VF == ~ sigma refusalsOf VF <= {Tock}"
+    "sigma refusesTick V == Tick : refusalSet V<snd sigma>"
 
 
-definition refusesSomeNonTock ("(0_ refusesSomeNonTock _)" [55,55] 55)
+
+abbreviation "NonTockEvALP V == (EvALP V) - {Tock}"
+
+
+definition refusesAllNonTockEv ("(0_ refusesAllNonTockEv _)" [55,55] 55)
 where
-    "sigma refusesSomeNonTock VF == sigma refusalsOf VF <= (Ev ` (ALP VF) - {Tock})"
+    "sigma refusesAllNonTockEv V == NonTockEvALP V <= refusalSet V<snd sigma>"
 
 
-definition refusesAllNonTock ("(0_ refusesAllNonTock _)" [55,55] 55)
+(*definition refusesSomeNonTockEv ("(0_ refusesSomeNonTockEv _)" [55,55] 55)
 where
-    "sigma refusesAllNonTock VF == sigma refusalsOf VF = (Ev ` (ALP VF) - {Tock})"
+    "sigma refusesSomeNonTockEv V == refusalSet V<snd sigma> <= NonTockEvALP V"*)
 
 
-
-
-
-
-subsection \<open> States: TimeStopState and NonTockDeadlockState \<close>
-
-
-definition isTimeStopStateOf :: "('i,'e) net_state => ('i,'e::tockCSP) NetworkF => bool"
-                           ("(0_ isTimeStopStateOf _)" [55,55] 55)
+definition refusesOnlyNonTockEv ("(0_ refusesOnlyNonTockEv _)" [55,55] 55)
 where
-   "sigma isTimeStopStateOf VF == sigma isStateOf VF &
-                                  sigma refusesTock VF"
+    "sigma refusesOnlyNonTockEv V == refusalSet V<snd sigma> = NonTockEvALP V"
+
+
+
+
+
+
+section \<open> States: TimeStopState and NonTockDeadlockState \<close>
+
+
+definition isUrgentStateOf :: "('i,'e) net_state => ('i,'e::tockCSP) NetworkF => bool"
+                           ("(0_ isUrgentStateOf _)" [55,55] 55)
+where
+   "sigma isUrgentStateOf VF == sigma isStateOf VF &
+                                sigma refusesTock VF"
+
 (*
-  SOMEONE REFUSES Tock    ==>     Tock : Union {((snd sigma) i) |i. i : fst VF}
-  EVERYONE REFUSES Tock   ==>     Tock : Inter ...
+  SOMEONE REFUSES Tock: sigma refusesTock VF == Tock : Union {((snd sigma) i) |i. i : fst VF}
+  THUS, SOMEONE WANTS TO CONTROL TIME PASSING
 
-  WHETHER SOMEONE REFUSES Tock (sigma refusesTock VF), IT WANTS TO CONTROL THE PASSAGE OF TIME
+  EVERYONE REFUSES Tock   ==>     Tock : Inter ...
 *)
 
 
@@ -78,195 +130,899 @@ definition isNonTockDeadlockStateOf :: "('i,'e) net_state => ('i,'e::tockCSP) Ne
                            ("(0_ isNonTockDeadlockStateOf _)" [55,55] 55)
 where 
    "sigma isNonTockDeadlockStateOf VF == sigma isStateOf VF &
-                                         sigma refusesAllNonTock VF"
+                                         sigma refusesAllNonTockEv VF"
 
 
-subsection \<open> NonTockBusyNetwork Definition \<close>
+
+definition isTimeStopStateOf :: "('i,'e) net_state => ('i,'e::tockCSP) NetworkF => bool"
+                           ("(0_ isTimeStopStateOf _)" [55,55] 55)
+where
+   "sigma isTimeStopStateOf VF == sigma isStateOf VF &
+                                  (sigma refusesAllNonTockEv VF &
+                                   sigma refusesTock VF)"
+
+
+
+
+section \<open> Busyness Definitions \<close>
 
 
 definition NonTockBusyNetwork  :: "('i,'e::tockCSP) NetworkF => bool"
 where
     "NonTockBusyNetwork VF ==
-                  ALL i: fst VF. (ALL sigma. ~(sigma isNonTockDeadlockStateOf ({i}, snd VF)))"
+         ALL i: fst VF. (ALL sigma. ~(sigma isNonTockDeadlockStateOf ({i}, snd VF)))"
+
+
+
+definition TockBusyNetwork  :: "('i,'e::tockCSP) NetworkF => bool"
+where
+    "TockBusyNetwork VF ==
+         ALL i: fst VF. (ALL sigma. ~(sigma isUrgentStateOf ({i}, snd VF)))"
 
 
 
 
-subsection \<open> Lemmas \<close>
+section \<open> Lemmas \<close>
+
+subsection \<open> isFailureOf \<close>
+
+(*lemma isFailureOf_same_syncSet : 
+     "(I, FXf) isFailureOf (I, PXf) ==>
+      (\<Union>a\<in>I. snd (PXf a)) = {a. \<exists>i\<in>I. a \<in> snd (FXf i)}"
+  apply (frule isFailureOf_same_alpha)
+  by (blast)
+
+lemma isFailureOf_same_syncSet2 : 
+     "(I, FXf) isFailureOf (I, PXf) ==>
+      {a. \<exists>i\<in>I. a: snd (PXf i)} = {a. \<exists>i\<in>I. a \<in> snd (FXf i)}"
+  apply (frule isFailureOf_same_alpha)
+  by (blast)
+
+lemma isFailureOf_same_Ev_alpha:
+   "(I, FXf) isFailureOf (I, PXf)
+    ==> ALL i:I. Ev ` snd (PXf i) = Ev ` snd (FXf i)"          
+by (simp add: isFailureOf_def)
+
+
+lemma isFailureOf_same_Ev_syncSet : 
+     "(I, FXf) isFailureOf (I, PXf) ==>
+      Ev ` (\<Union>a\<in>I. snd (PXf a)) = Ev ` {a. \<exists>i\<in>I. a \<in> snd (FXf i)}"
+  apply (frule isFailureOf_same_alpha)
+  by (blast)
+
+
+lemma isFailureOf_same_insert_Tick_Ev_syncSet : 
+     "(I, FXf) isFailureOf (I, PXf) ==>
+      insert Tick (Ev ` (\<Union>a\<in>I. snd (PXf a))) = insert Tick (Ev ` {a. \<exists>i\<in>I. a \<in> snd (FXf i)})"
+  apply (frule isFailureOf_same_alpha)
+  by (blast)*)
 
 
 
-subsubsection \<open> PXf <--> FXf \<close>
+subsection \<open> Tick NOT in NETWORK \<close>
 
 
-lemma isTockNetObj_FXf_if_isTockNetObj_PXf :
-    "(I,FXf) isFailureOf (I,PXf) ==> ALL i:I. isTockNetObj (PXf i) ==> ALL i:I. isTockNetObj (FXf i)"
-  by (simp add: isFailureOf_def)
-
-lemma isTockNetObj_PXf_if_isTockNetObj_FXf :
-    "(I,FXf) isFailureOf (I,PXf) ==> ALL i:I. isTockNetObj (FXf i) ==> ALL i:I. isTockNetObj (PXf i)"
-  by (simp add: isFailureOf_def)
+lemma Tick_notin_sett_if_isStateOf :
+    "sigma isStateOf VF ==>
+     Tick ~: sett (fst sigma)"
+  apply (simp add: isStateOf_def)
+  by (blast)
 
 
-lemma isTockNet_FXf_if_isTockNet_PXf :
-    "isTockNet (I,PXf) ==> (I,FXf) isFailureOf (I,PXf) ==> isTockNet (I,FXf)"
-  by (simp add: isFailureOf_def)
-
-lemma isTockNet_PXf_if_isTockNet_FXf :
-    "isTockNet (I,FXf) ==> (I,FXf) isFailureOf (I,PXf) ==> isTockNet (I,PXf)"
-  by (simp add: isFailureOf_def)
+lemma Tick_notin_refusals_if_isStateOf :
+    "sigma isStateOf VF ==>
+     ALL i: fst VF . Tick ~: snd sigma i"
+  apply (simp add: isStateOf_def)
+  by (blast)
 
 
-lemma ALP_PXf_iff_ALP_FXf_if_isFailureOf :
+lemma Collect_refusals_Int_insert_Tick :
+    "ALL i:I. Tick ~: Yf i ==>
+     { Yf i Int insert Tick (Ev ` snd (PXf i)) |i. i : I } =
+     { Yf i Int (Ev ` snd (PXf i)) |i. i : I }"
+  by (fast)
+
+
+lemma Collect_refusals_Int_absorb :
+    "ALL i:I. Tick ~: Yf i ==>
+     ALL i:I. Yf i <= Ev ` snd (FXf i) ==>
+     { Yf i Int (Ev ` snd (FXf i)) |i. i : I } =
+     { Yf i |i. i : I }"
+  by (fast)
+
+
+lemma Union_Collect_insert_Tick_refusals_iff :
+    "I ~= {} ==>
+     Union { insert Tick (Yf i) |i. i : I } =
+     insert Tick (Union { Yf i |i. i : I })"
+  apply (simp add: Union_eq)
+  apply (rule)
+    apply (blast)
+    apply (blast)
+  done
+
+
+
+subsection \<open> refusalSet \<close>
+
+lemma refusalSet_cong :
+    "ALL i : I1 . EX i2 : I2 . Yf1 i = Yf2 i2 ==> 
+     ALL i2 : I2 . EX i : I1 . Yf1 i = Yf2 i2 ==> 
+     refusalSet(I1,Xf1)<Yf1> = refusalSet(I2,Xf2)<Yf2>"
+  apply (simp add: refusalSet_def Union_eq)
+  apply (rule Collect_cong)
+  apply (rule ex_cong1)
+  apply (rule conj_cong, simp_all)
+  apply (rule, elim exE, fast)
+  apply (elim exE, fast)
+  done
+
+
+lemma in_refusalSet :
+    "i : I ==>
+     e : Yf i ==>
+     e : refusalSet(I,Xf)<Yf>"
+  apply (simp add: refusalSet_def)
+  by (fast)
+
+
+
+subsection \<open> refusalSet subset \<close>
+
+
+lemma Tock_notin_refusalSet_subset :
+    "J <= I ==>
+     a ~: refusalSet(I,Xf)<Yf> ==>
+     a ~: refusalSet(J,Xf)<Yf>"
+  by (auto simp add: refusalSet_def)
+
+
+
+subsection \<open> NonTockBusyNetwork \<close>
+
+(*-----------------------------------*
+ |  How to check NonTockBusyNetworkF |
+ *-----------------------------------*)
+
+lemma check_NonTockBusyNetwork:
+   "[| ALL i:I. ALL s Y. (s, Y) : fst (FXf i) --> ~ Ev ` (snd (FXf i)) - {Tock} <= Y |]
+    ==> NonTockBusyNetwork (I,FXf)"
+  apply (simp add: NonTockBusyNetwork_def)
+  apply (intro allI ballI)
+  apply (rename_tac s Yf)
+  apply (drule_tac x="i" in bspec, simp)
+  apply (drule_tac x="s rest-tr (snd (FXf i))" in spec)
+  apply (drule_tac x="Yf i" in spec)
+
+  apply (simp add: isNonTockDeadlockStateOf_def)
+  apply (simp add: refusesAllNonTockEv_def ALP_def)
+  apply (simp add: isStateOf_def refusalSet_def)
+  done
+
+
+
+
+subsection \<open> isTPN \<close>
+
+lemma isTPN_subset :
+    "isTPN (I,FXf) ==> S <= I ==> isTPN (S,FXf)"
+  by (simp add: isTPN_def, fast)
+
+
+subsection \<open> isTPN and ALP: PXf <--> FXf \<close>
+
+
+lemma isFailureOf_same_TPN :
+    "(I,FXf) isFailureOf (I,PXf) ==> isTPN (I,PXf) = isTPN (I,FXf)"
+  by (simp add: isFailureOf_def isTPN_def)
+
+lemma isFailureOf_same_ALP :
     "(I,FXf) isFailureOf (I,PXf) ==> ALP (I,PXf) = ALP (I,FXf)"
    by (simp add: isFailureOf_def ALP_def)
 
-lemma ALP_FXf_iff_ALP_PXf_if_isFailureOf :
-    "(I,FXf) isFailureOf (I,PXf) ==> ALP (I,FXf) = ALP (I,PXf)"
-   by (simp add: isFailureOf_def ALP_def)
 
 
+subsection \<open> isTPN syncSets \<close>
 
-subsubsection \<open> isTockNet syncSets \<close>
 
-
-lemma not_empty_synchronisations_if_isTockNet :
-    "[| isTockNet (I,FXf) |]
+lemma not_empty_synchronisation_sets_if_isTPN :
+    "[| isTPN (I,FXf) |]
      ==> ALL i:I. Ev ` snd (FXf i) ~= {}"
-  apply (rule)
-  by (drule_tac x=i in bspec, simp, simp, fast)
+  apply (rule, simp add: isTPN_def)
+  by (drule_tac x=i in bspec, simp, fast)
 
 
 lemma not_empty_syncSet :
-    "[| isTockNet (I,FXf) ; i : I |] ==> Ev ` snd (FXf i) ~= {}"
-  apply (drule not_empty_synchronisations_if_isTockNet)
+    "[| isTPN (I,FXf) ; i : I |] ==> Ev ` snd (FXf i) ~= {}"
+  apply (drule not_empty_synchronisation_sets_if_isTPN)
   apply (drule_tac x=i in bspec, simp)
   by (simp)
 
 
 
-subsubsection \<open> Tock, NonTockEv, EvsetTick and ALP \<close>
+
+subsection \<open> Tock, NonTockEv, EvsetTick and ALP \<close>
 
 
-lemma NonTockEv_ALP_eq_EvsetTick_if_isTockNet :
-    "isTockNet (I, PXf) ==> I ~= {} ==>
-    NonTockEv Un Ev ` ALP (I, PXf) = EvsetTick"
+lemma NonTockEv_ALP_eq_EvsetTick_if_isTPN :
+    "isTPN (I, PXf) ==> I ~= {} ==>
+    NonTockEv Un EvALP (I, PXf) = EvsetTick"
   apply (rule NonTockEv_Un_eq_EvsetTick_if)
-  by (simp add: ALP_def image_def, auto)
-
-
-lemma NonTockEv_Un_absorb :
-    "Tock \<notin> X ==> NonTockEv Un X = NonTockEv"
-  by (auto simp only: NonTockEv_simp EvsetTick_def)
+  by (simp add: ALP_def image_def isTPN_def, auto)
 
 
 lemma NonTockEv_neq_ALP :
-    "isTockNet (I, PXf) ==> I ~= {} ==>
-    NonTockEv ~= Ev ` ALP (I, PXf)"
+    "isTPN (I, PXf) ==> I ~= {} ==>
+    NonTockEv ~= EvALP (I, PXf)"
   apply (simp add: NonTockEv_simp EvsetTick_def)
   by (simp add: ALP_def image_def, auto)
 
 
 
-lemma Tock_in_Ev_ALP_if_isTockNet :
-    "I ~= {} ==> isTockNet (I, PXf) ==>
-    Tock : Ev ` ALP (I, PXf)"
-  apply (simp add: ALP_def image_def)
+lemma Tock_in_Ev_ALP_if_isTPN :
+    "isTPN VF ==> fst VF ~= {} ==>
+    Tock : EvALP VF"
+  apply (simp add: ALP_def image_def isTPN_def)
   by (force)
 
 
-lemma Tock_in_Ev_ALP_if_isTockNet_V :
+lemma Tock_in_Ev_ALP_if_isTPN_V :
     "fst V ~= {} ==>
-     isTockNet V ==> Ev ` (ALP V) = Ev ` (ALP V) Un {Tock}"
-  apply (simp add: ALP_def)
+     isTPN V ==> EvALP V = EvALP V Un {Tock}"
+  apply (simp add: ALP_def isTPN_def)
   apply (rule insert_absorb[THEN sym])
   by (auto simp add: image_def)
 
 
 
-lemma sett_subset_Ev_ALP :
+
+subsection \<open> Trace and sett \<close>
+
+(*lemma sett_subset_noTick :
+    "Tick ~: sett sa ==>
+     (sett sa <= insert Tick X) = (sett sa <= X)"
+  by (simp add: subset_insert)
+*)
+
+lemma sett_subset_EvALP_if_isStateOf :
+    "(s,Yf) isStateOf (I,PXf) ==>
+     sett s <= EvALP (I, PXf)"
+  by (simp add: isStateOf_def)
+
+lemma sett_subset_EvALP :
     "(I,FXf) isFailureOf (I,PXf) ==>
      I ~= {} ==> Tick ~: sett sa ==>
      sett sa <= insert Tick (Ev ` (UN a:I. snd (PXf a))) ==>
-     sett sa <= Ev ` ALP (I, FXf)"
-  apply (simp add: ALP_FXf_iff_ALP_PXf_if_isFailureOf)
+     sett sa <= EvALP (I, FXf)"
+  apply (simp add: isFailureOf_same_ALP)
   apply (simp add: ALP_def)
   apply (simp add: subset_iff, force)
   done
 
 
+subsection \<open> tock refusals \<close>
 
-subsubsection \<open> Refusals Predicates - Tock in and notin \<close>
 
+lemma Tock_in_Ev_syncSet_if_isTPN :
+    "isTPN (I,FXf) ==> I ~= {} ==>
+     Tock \<in> Ev ` {a. \<exists>i\<in>I. a \<in> snd (FXf i)}"
+  apply (simp add: isTPN_def)
+  apply (blast)
+  done
 
-lemma ex_Tock_in_refusals_if:
-    "isTockNet (I,PXf) ==>
-     I ~= {} ==>
-     insert Tick (Ev ` (UN a:I. snd (PXf a))) = Union {Yf i Int insert Tick (Ev ` snd (PXf i)) |i. i : I} ==>
-     EX i : I . Tock : Yf i"
-  apply (simp add: image_def Int_def)
-  apply (insert ex_in_conv[of I], simp, elim exE)
-  apply (drule_tac x=x in bspec, simp, fast)
+lemma Tock_in_insert_Tick_Ev_syncSet_if_isTPN :
+    "isTPN (I,FXf) ==> I ~= {} ==>
+     Tock \<in> insert Tick (Ev ` {a. \<exists>i\<in>I. a \<in> snd (FXf i)})"
+  apply (simp add: isTPN_def)
+  apply (blast)
   done
 
 
-lemma refusesTock_iff_ex_Tock_refusal :
-    "(sigma refusesTock VF) = (EX i: fst VF. EX x: snd sigma i. x = Tock)"
-   by (auto simp add: refusesTock_def)
+lemma exists_nonTerminatingAtom_refusing_Tock :
+    "isTPN (I, PXf) ==> I ~= {} ==>
+     (I, FXf) isFailureOf (I, PXf) ==>
+     EvALP (I, PXf) = (I, PXf)-nonTermInterfaceRefusalsIn<Yf> ==>
+     EX i:I. Tock : Yf i"
+  apply (simp only: set_eq_iff)
+  apply (drule_tac x=Tock in spec)
+  apply (simp add: refusalSet_def ALP_def)
+  apply (frule Tock_in_Ev_syncSet_if_isTPN, simp, simp)
+  apply (elim exE bexE conjE, force)
+  done
 
-lemma refusesNonTock_iff_ex_nonTock_refusal :
-    "(sigma refusesNonTock VF) = (EX i: fst VF. EX x: snd sigma i. x ~= Tock)"
-   by (auto simp add: refusesNonTock_def)
+
+lemma exists_terminatingAtom_refusing_Tock :
+    "isTPN (I, PXf) ==> I ~= {} ==>
+     (I, FXf) isFailureOf (I, PXf) ==>
+     EvALP (I, PXf) = (I, PXf)-interfaceRefusalsIn<Yf> ==>
+     EX i:I. Tock : Yf i"
+  apply (simp only: set_eq_iff)
+  apply (frule isFailureOf_same_alpha)
+  apply (simp only: isFailureOf_same_TPN)
+  apply (frule Tock_in_Ev_syncSet_if_isTPN, simp)
+    apply (simp add: refusalSet_def ALP_def)
+  apply (elim exE conjE)
+  apply (rule_tac x=i in bexI, simp_all)
+  done
+
+
+lemma refusesTock_if :
+    "\<exists>i\<in>I. {Tock} \<subseteq> Zf i \<Longrightarrow> (sa, Zf) refusesTock (I, FXf)"
+  apply (simp add: refusesTock_def refusalSet_def)
+  apply (fast)
+done
+
+
+lemma refusesAllNonTockEv_if :
+    "EvALP ({ i | i:PXf ` I }Fnet) = \<Union> {Yf i \<inter> insert Tick (Ev ` snd (PXf i)) |i. i \<in> I} \<Longrightarrow>
+     \<forall>i\<in>I. (sa rest-tr snd (FXf i), Zf i) \<in> fst (FXf i) \<and> Yf i \<inter> Ev ` snd (FXf i) \<subseteq> Zf i \<Longrightarrow>
+     \<forall>i\<in>I. snd (PXf i) = snd (FXf i) \<Longrightarrow>
+     (sa, Zf) refusesAllNonTockEv (I, FXf)"
+  apply (simp add: refusesAllNonTockEv_def)
+  apply (simp add: ALP_def refusalSet_def)
+  apply (simp add: Diff_subset_conv)
+  apply (simp add: subset_eq)
+  apply (intro allI impI, elim exE conjE, simp)
+  apply (intro ballI)
+  apply (rule disjI2)
+  apply (rule_tac x="Zf i" in exI)
+  apply (blast)
+done
 
 
 
-lemma Tock_notin_refusals_if_refusesAllNonTock :
-    "(t, Yf) refusesAllNonTock (I, FXf) ==>
+subsection \<open> non-Tock refusals \<close>
+
+lemma in_ALP_Diff_Tock :
+    "refusalSet(I,FXf)<Yf> = EvALP(I,FXf) - {Tock} ==>
+     a : snd (FXf i) ==> a ~= tock ==> i : I ==>
+     Ev a : EvALP(I,FXf) - {Tock}"
+  by (simp add: ALP_def, blast)
+
+
+lemma ex_in_ALP_Diff_Tock :
+    "I ~= {} ==>
+     ALL i:I. ~ Ev ` snd (FXf i) <= {Tock} ==>
+    EX x. x : EvALP (I, FXf) - {Tock}"
+  apply (insert ex_in_conv[of I], simp, elim exE)
+  by (auto simp add: ALP_def)
+
+(*lemma ALP_Diff_Tock :
+    "(t,Yf) isStateOf (I,FXf) ==>
+     \<forall>i\<in>I. Yf i \<subseteq> Ev ` snd (FXf i) - {Tock} ==>
+     refusalSet I Yf = EvALP (I, FXf) - {Tock}"
+  apply (simp add: ALP_def Diff_eq)
+  apply (rule, rule, fast, rule)
+  apply (elim IntE imageE, simp, elim bexE)
+  apply (rule_tac x="Yf i" in exI, rule, fast)
+  apply (frule refusals_are_subsets_if_isStateOf)*)
+
+
+lemma not_alpha_subset_Tock_if_not_refusals_subset_Tock :
+    "(t, Yf) isStateOf (I, FXf) ==>
+     i : I ==>
+     ~ Yf i <= {Tock} ==>
+     ~ Ev ` snd (FXf i) <= {Tock}"
+  apply (simp add: isStateOf_def, elim exE conjE)
+  apply (drule_tac x=i in bspec, simp, elim conjE)
+  by (blast)
+
+
+
+subsection \<open> Refusal Predicates relations to Synchronisation Sets \<close>
+
+
+lemma refusalsOf_are_subsets_if_isStateOf_1 :
+    "sigma isStateOf VF ==>
+     refusalSet VF<snd sigma> <= (EvALP VF)"
+  apply (frule refusals_are_subsets_if_isStateOf)
+  apply (simp add: refusalSet_def ALP_def, fast)
+  done
+
+
+lemma refusalsOf_are_subsets_if_isStateOf_2 :
+    "(t, Yf) isStateOf VF ==>
+     refusalSet VF<Yf> <= (EvALP VF)"
+  apply (frule refusals_are_subsets_if_isStateOf)
+  apply (simp add: refusalSet_def ALP_def, fast)
+  done
+
+lemmas refusalsOf_are_subsets_if_isStateOf =
+       refusalsOf_are_subsets_if_isStateOf_1
+       refusalsOf_are_subsets_if_isStateOf_2
+
+
+lemma refusals_are_subsetsNonTock_if_not_refusesTock :
+    "(t, Yf) isStateOf (I, FXf) ==>
+     ~ (t, Yf) refusesTock (I, FXf) ==>
+     ALL i:I. Yf i <= Ev ` snd (FXf i) - {Tock}"
+  apply (simp add: Diff_eq)
+  apply (subst ball_conj_distrib, rule)
+  apply (drule refusals_are_subsets_if_isStateOf, simp)
+  apply (simp only: refusesTock_def refusalSet_def)
+  apply (rule)
+  apply (simp add: Union_eq, fast)
+  done
+
+
+lemma Tock_notin_refusals_if_refusesOnlyNonTockEv :
+    "(t, Yf) refusesOnlyNonTockEv (I, FXf) ==>
      ALL i:I. Tock ~: Yf i"
-  apply (simp add: refusesAllNonTock_def)
+  apply (simp add: refusesOnlyNonTockEv_def refusalSet_def)
   apply (simp add: Diff_eq ALP_def Union_eq, rule)
   by (blast)
 
-lemma Tock_notin_refusals_if_not_refusesTock :
-    "~ sigma refusesTock VF ==>
-    Tock ~: sigma refusalsOf VF"
-  by (simp add: refusesTock_def)
 
-
-lemma not_refusesTock_if_refusesAllNonTock :
-    "sigma refusesAllNonTock VF ==> ~ sigma refusesTock VF"
-   by (auto simp add: refusesAllNonTock_def refusesTock_def)
-
-
-lemma refusesSomeNonTock_if_refusesAllNonTock:
-    "Ev ` ALP VF - {Tock} ~= {} ==>
-     sigma refusesAllNonTock VF ==> sigma refusesSomeNonTock VF"
-  apply (simp add: refusesSomeNonTock_def)
-  apply (simp add: refusesAllNonTock_def)
+lemma refusals_are_subsetsNonTock_if_refusesOnlyNonTock :
+    "(t, Yf) isStateOf (I, FXf) ==>
+     (t, Yf) refusesOnlyNonTockEv (I, FXf) ==>
+     ALL i:I. Yf i <= Ev ` snd (FXf i) - {Tock}"
+  apply (simp add: Diff_eq)
+  apply (subst ball_conj_distrib, rule)
+  apply (frule refusals_are_subsets_if_isStateOf, simp)
+  apply (rule Tock_notin_refusals_if_refusesOnlyNonTockEv, simp)
   done
 
-lemma refusesNonTock_if_refusesAllNonTock:
-    "~ ALP VF <= {tock} ==>
-     sigma refusesAllNonTock VF ==> sigma refusesNonTock VF"
-  apply (simp add: refusesAllNonTock_def)
-  apply (simp add: refusesNonTock_def, rule)
-  apply (simp add: subset_singleton_iff)
+
+
+subsubsection \<open> State + Refusals Predicates \<close>
+
+
+(*lemma refusesSomeNonTock_if_refusesAllNonTockEv:
+    "sigma isStateOf VF ==> ~ sigma refusesTock VF ==>
+     sigma refusesAllNonTockEv VF ==> sigma refusesSomeNonTock VF"
+  apply (drule refusalsOf_are_subsets_if_isStateOf)
+  apply (simp add: refusesSomeNonTock_def)
+  apply (simp add: refusesAllNonTockEv_def)
+  apply (simp only: refusesTock_def)
+  apply (simp add: subset_singleton_iff Diff_eq)
+  done*)
+
+lemma refusesOnlyNonTockEv_if_not_refusesTock_and_refusesAllNonTockEv :
+    "sigma isStateOf VF ==>
+     ~ sigma refusesTock VF ==> sigma refusesAllNonTockEv VF ==>
+     sigma refusesOnlyNonTockEv VF"
+  apply (case_tac sigma, simp)
+  apply (drule refusalsOf_are_subsets_if_isStateOf)
+  apply (simp add: refusesOnlyNonTockEv_def)
+  apply (simp only: refusesTock_def)
+  apply (simp only: refusalSet_def refusesAllNonTockEv_def)
+  apply (rule)
+  apply (simp (no_asm_simp) add: Diff_eq, rule)
+  apply (simp)
+  apply (simp)
+  done
+
+
+lemma not_refusesTock_if_refusesOnlyNonTockEv :
+    "sigma refusesOnlyNonTockEv VF ==>
+     ~ sigma refusesTock VF"
+   by (auto simp add: refusesOnlyNonTockEv_def refusesTock_def)
+
+
+lemma refusesAllNonTockEv_if_refusesOnlyNonTockEv :
+    "sigma refusesOnlyNonTockEv VF ==>
+     sigma refusesAllNonTockEv VF"
+   by (auto simp add: refusesOnlyNonTockEv_def refusesAllNonTockEv_def)
+
+
+lemma refusesOnlyNonTockEv_iff_not_refusesTock_and_refusesAllNonTockEv :
+    "sigma isStateOf VF ==>
+     sigma refusesOnlyNonTockEv VF =
+     (~ sigma refusesTock VF & sigma refusesAllNonTockEv VF)"
+  apply (rule iffI)
+  apply (simp add: not_refusesTock_if_refusesOnlyNonTockEv)
+  apply (simp add: refusesAllNonTockEv_if_refusesOnlyNonTockEv)
+  apply (clarify)
+  apply (simp add: refusesOnlyNonTockEv_if_not_refusesTock_and_refusesAllNonTockEv)
+  done
+
+
+subsubsection \<open> Sub-Refusal Predicates \<close>
+
+
+lemma refusesTock_each_element :
+   "[| (t, Yf) refusesTock (I, FXf) |] ==>
+    EX i:I. (t rest-tr snd (FXf i), Yf) refusesTock ({i}, FXf)"
+  apply (simp add: refusesTock_def refusalSet_def)
+  apply (elim conjE exE, fast)
+  done
+
+
+lemma not_refusesTock_each_element :
+   "[| ~ (t, Yf) refusesTock (I, FXf) |] ==>
+    ALL i:I. ~ (t rest-tr snd (FXf i), Yf) refusesTock ({i}, FXf)"
+  apply (simp add: refusesTock_def refusalSet_def, rule)
   apply (fast)
   done
 
 
-lemma refusesTock_and_not_hasNonTockRefusal :
-    "(sigma refusesTock VF & ~ sigma refusesNonTock VF) = (sigma refusalsOf VF = {Tock})"
-  apply (simp only: refusesTock_def refusesNonTock_def)
+
+
+subsubsection \<open> Tock notin refusals refusesOnlyNonTockEv \<close>
+
+
+lemma neq_Tock_if_in_refusals_refusesOnlyNonTockEv :
+    "(t, Yf) refusesOnlyNonTockEv (I, FXf) ==>
+    x \<in> refusalSet(I,FXf)<Yf> ==> x \<noteq> Tock"
+  apply (simp add: refusalSet_def)
+  apply (frule Tock_notin_refusals_if_refusesOnlyNonTockEv)
+  by (force)
+
+
+lemma neq_tock_if_in_refusals_refusesOnlyNonTockEv :
+    "(t, Yf) refusesOnlyNonTockEv (I, FXf) ==>
+    Ev x : Yf i ==> i : I ==> x ~= tock"
+  apply (frule Tock_notin_refusals_if_refusesOnlyNonTockEv)
+  by (force)
+
+
+lemma neq_Tock_if_in_refusal_refusesOnlyNonTockEv :
+    "(t, Yf) refusesOnlyNonTockEv (I, FXf) ==>
+    x : Yf i ==> i : I ==> x ~= Tock"
+  apply (frule Tock_notin_refusals_if_refusesOnlyNonTockEv)
+  by (force)
+
+
+
+
+
+subsection \<open> TimeStopState and NonTockDeadlockState \<close>
+
+
+lemma isStateOf_if_isUrgentStateOf :
+    "sigma isUrgentStateOf VF ==> sigma isStateOf VF"
+  by (simp add: isUrgentStateOf_def)
+
+lemma isStateOf_if_isTimeStopStateOf :
+    "sigma isTimeStopStateOf VF ==> sigma isStateOf VF"
+  by (simp add: isTimeStopStateOf_def)
+
+lemma isUrgentStateOf_if_isTimeStopStateOf :
+    "sigma isTimeStopStateOf VF ==> sigma isUrgentStateOf VF"
+  by (simp add: isTimeStopStateOf_def isUrgentStateOf_def)
+
+lemma isStateOf_if_isNonTockDeadlockStateOf :
+    "sigma isNonTockDeadlockStateOf VF ==> sigma isStateOf VF"
+  by (simp add: isNonTockDeadlockStateOf_def)
+
+
+
+lemma isTimeStopStateOf_if_isDeadlockStateOf :
+    "isTPN VF ==> fst VF ~= {} ==>
+     sigma isDeadlockStateOf VF ==> sigma isTimeStopStateOf VF"
+  apply (simp add: isDeadlockStateOf_def isTimeStopStateOf_def)
+  apply (elim conjE)
+  apply (frule refusalsOf_are_subsets_if_isStateOf)
+  apply (simp add: refusesTock_def)
+  apply (simp add: refusesAllNonTockEv_def)
+  apply (simp add: refusalSet_def)
+
+  apply (insert ex_in_conv[of "fst VF"], simp, elim exE)
+  apply (simp add: Tock_in_Ev_ALP_if_isTPN)
+  done
+
+lemma not_isDeadlockStateOf_if_not_isTimeStopStateOf :
+    "isTPN VF ==> fst VF ~= {} ==>
+     ~ sigma isTimeStopStateOf VF ==> ~ sigma isDeadlockStateOf VF"
+  apply (rotate_tac -1, erule contrapos_nn)
+  by (rule isTimeStopStateOf_if_isDeadlockStateOf)
+
+
+
+lemma isNonTockDeadlockStateOf_if_isDeadlockStateOf :
+    "sigma isDeadlockStateOf VF ==> sigma isNonTockDeadlockStateOf VF"
+  apply (simp add: isDeadlockStateOf_def isNonTockDeadlockStateOf_def)
+  apply (elim conjE)
+  apply (frule refusalsOf_are_subsets_if_isStateOf)
+  apply (simp add: refusalSet_def refusesAllNonTockEv_def)
+  done
+
+lemma not_isDeadlockStateOf_if_not_isNonTockDeadlockStateOf :
+    "isTPN VF ==> fst VF ~= {} ==>
+     ~ sigma isNonTockDeadlockStateOf VF ==> ~ sigma isDeadlockStateOf VF"
+  apply (rotate_tac -1, erule contrapos_nn)
+  by (rule isNonTockDeadlockStateOf_if_isDeadlockStateOf)
+
+
+
+lemma isTimeStopStateOf_iff_isNonTockDeadlockStateOf_and_isUrgentStateOf :
+    "sigma isTimeStopStateOf V = (sigma isNonTockDeadlockStateOf V & sigma isUrgentStateOf V)"
+  apply (simp add: isTimeStopStateOf_def)
+  apply (simp add: isNonTockDeadlockStateOf_def)
+  apply (simp add: isUrgentStateOf_def)
+  apply (force)
+done
+
+
+lemma DeadlockState_iff_UrgentState_and_NonTockDeadlockState :
+    "isTPN (I,FXf) ==> I ~= {} ==>
+     sigma isStateOf (I,FXf) ==>
+     ((sigma isNonTockDeadlockStateOf (I,FXf)) & (sigma isUrgentStateOf (I,FXf))) =
+     (sigma isDeadlockStateOf (I,FXf))"
+  apply (frule refusalsOf_are_subsets_if_isStateOf)
+  apply (simp add: isDeadlockStateOf_def)
+  apply (simp add: isUrgentStateOf_def isNonTockDeadlockStateOf_def)
   apply (rule)
-    apply (fast)
+  apply (rule, simp add: refusalSet_def)
+    apply (simp add: refusesTock_def refusalSet_def refusesAllNonTockEv_def, blast)
+  apply (simp add: refusalSet_def refusesTock_def refusesAllNonTockEv_def)
+    apply (simp add: Tock_in_Ev_ALP_if_isTPN)
+  done
+
+
+lemma DeadlockState_iff_TimeStopState :
+    "isTPN (I,FXf) ==> I ~= {} ==>
+     sigma isStateOf (I,FXf) ==>
+     (sigma isDeadlockStateOf (I,FXf)) = (sigma isTimeStopStateOf (I,FXf))"
+  apply (frule refusalsOf_are_subsets_if_isStateOf)
+  apply (simp add: isDeadlockStateOf_def)
+  apply (simp add: isTimeStopStateOf_def)
+  apply (rule)
+  apply (rule, simp add: refusalSet_def)
+    apply (simp add: refusesAllNonTockEv_def refusalSet_def)
+    apply (simp add: refusesTock_def refusalSet_def)
+      apply (simp add: Tock_in_Ev_ALP_if_isTPN)
+  apply (simp add: refusesAllNonTockEv_def)
+    apply (simp add: refusesTock_def refusalSet_def)
+    apply (simp add: ALP_def, blast)
+  done
+
+
+(*subsubsection \<open> States: TimeStopState and NonTockDeadlockState \<close>
+
+
+lemma not_isTimeStopStateOf_if_isNonTockDeadlockStateOf :
+    "sigma isNonTockDeadlockStateOf VF ==>
+    ~ (sigma isTimeStopStateOf VF)"
+  apply (simp add: isNonTockDeadlockStateOf_def isTimeStopStateOf_def, elim conjE)
+  by (rule not_refusesTock_if_refusesAllNonTockEv)
+
+
+lemma not_isNonTockDeadlockStateOf_if_isTimeStopStateOf :
+    "sigma isTimeStopStateOf VF ==>
+    ~ (sigma isNonTockDeadlockStateOf VF)"
+  apply (erule contrapos_pn)
+  by (simp add: not_isTimeStopStateOf_if_isNonTockDeadlockStateOf)
+
+
+
+lemma not_isTimeStopStateOf_iff_isNonTockDeadlockStateOf :
+    "sigma isStateOf VF ==>
+     (sigma isNonTockDeadlockStateOf VF) = (~ sigma isTimeStopStateOf VF & sigma refusesAllNonTockEv VF)"
+  apply (rule)
+
+  apply (frule not_isTimeStopStateOf_if_isNonTockDeadlockStateOf, simp)
+  apply (simp add: isNonTockDeadlockStateOf_def isTimeStopStateOf_def)
+  apply (simp add: isNonTockDeadlockStateOf_def isTimeStopStateOf_def)
+  done*)
+
+
+
+subsubsection \<open> Sub-States (States for each element) \<close>
+
+
+lemma EX_urgent_atom :
+   "[| (t, Yf) isUrgentStateOf (I, FXf) |] ==>
+    EX i: I. (t rest-tr snd (FXf i), Yf) isUrgentStateOf ({i}, FXf)"
+  apply (simp add: isUrgentStateOf_def)
+
+  apply (elim conjE)
+    apply (simp add: isStateOf_each_element)
+    apply (simp add: refusesTock_each_element)
+  done
+
+
+lemma EX_non_urgent_atom_if :
+   "[| (t, Yf) isStateOf (I, FXf) ; I ~= {} ;
+       ~ (t, Yf) isUrgentStateOf (I, FXf) |] ==>
+    EX i: I. ~ (t rest-tr snd (FXf i), Yf) isUrgentStateOf ({i}, FXf)"
+  apply (simp only: isUrgentStateOf_def refusesTock_def de_Morgan_conj)
+  apply (erule disjE, simp)
+  apply (simp add: refusesTock_each_element refusalSet_def)
+  apply (simp add: isStateOf_each_element)
+  apply (fast)
+  done
+
+lemma isUrgentStateOf_if :
+   "[| I ~= {} ; (t, Yf) isStateOf (I, FXf) ;
+       EX i: I. ALL a b. (a, b) isUrgentStateOf ({i}, FXf) |] ==>
+    (t, Yf) isUrgentStateOf (I, FXf)"
+  apply (simp only: isUrgentStateOf_def refusesTock_def)
+  apply (simp only: de_Morgan_conj disj_not1 snd_conv)
+
+  apply (elim bexE)
+  apply (drule_tac x="t rest-tr (snd (FXf i))" in spec)
+  apply (drule_tac x=Yf in spec, elim conjE)
+
+  apply (simp add: refusalSet_def)
+  apply (fast)
+  done
+
+lemma not_refusesTock_if :
+   "[| I ~= {} ;
+       ALL i: I. ~ (t rest-tr (snd (FXf i)), Yf) refusesTock ({i}, FXf) |] ==>
+    ~ (t, Yf) refusesTock (I, FXf)"
+  apply (simp only: refusesTock_def)
+  apply (simp only: de_Morgan_conj disj_not1 snd_conv)
+
+  apply (rule)
+
+  apply (simp add: refusalSet_def, elim exE conjE)
+  apply (fast)
+  done
+
+lemma not_isUrgentStateOf_if :
+   "[| I ~= {} ;
+       ALL i: I. ALL a b. ~ (a, b) isUrgentStateOf ({i}, FXf) |] ==>
+    ~ (t, Yf) isUrgentStateOf (I, FXf)"
+  apply (simp only: isUrgentStateOf_def refusesTock_def)
+  apply (simp only: de_Morgan_conj disj_not1 snd_conv)
+
+  apply (intro allI impI)
+
+  apply (rule)
+
+  apply (simp add: refusalSet_def, elim exE conjE)
+  apply (frule isStateOf_each_element, simp)
+  apply (fast)
+  done
+
+
+
+subsubsection \<open> TimeStopState/NonTockDeadlockState + Refusals Predicates \<close>
+
+
+lemma refusals_are_subsets_if_isTimeStopStateOf :
+    "(t,Yf) isTimeStopStateOf (I,FXf) ==>
+     ALL i:I. Yf i <= (Ev ` (snd (FXf i)))"
+  apply (simp add: isTimeStopStateOf_def, elim conjE)
+  by (frule refusals_are_subsets_if_isStateOf, simp)
+
+
+lemma refusals_are_subsets_if_isNonTockDeadlockStateOf :
+    "(t,Yf) isNonTockDeadlockStateOf (I,FXf) ==>
+     ALL i:I. Yf i <= (Ev ` (snd (FXf i)))"
+  apply (simp add: isNonTockDeadlockStateOf_def, elim conjE)
+  by (frule refusals_are_subsets_if_isStateOf, simp)
+
+
+(*lemma refusals_are_subsetsNonTock_if_not_isTimeStopStateOf :
+    "(t,Yf) isStateOf (I,FXf) ==>
+     ~ (t,Yf) isTimeStopStateOf (I,FXf) ==>
+     ALL i:I. Yf i <= (Ev ` (snd (FXf i))) - {Tock}"
+  apply (simp add: isTimeStopStateOf_def)
+  by (simp add: refusals_are_subsetsNonTock_if_not_refusesTock)*)
+
+
+
+subsubsection \<open> Tock notin refusals TimeStopState/NonTockDeadlockState \<close>
+
+
+lemma Tock_notin_refusalsOf_if_not_isTimeStopStateOf :
+    "sigma isStateOf VF ==> sigma refusesAllNonTockEv VF ==>
+     ~ (sigma isTimeStopStateOf VF) ==>
+     Tock ~: refusalSet(VF)<snd sigma>"
+  apply (simp only: isTimeStopStateOf_def)
+  by (simp add: refusesTock_def)
+
+
+lemma refusals_neq_ALP_diff_Tock_if_not_isNonTockDeadlockStateOf :
+    "(t, Yf) isStateOf (I, FXf) ==>
+     i : I ==> ~ Yf i <= {Tock} ==>
+     ~ (t rest-tr snd (FXf i), Yf) isNonTockDeadlockStateOf ({i}, FXf) ==>
+     Yf i ~= Ev ` snd (FXf i) - {Tock}"
+  apply (simp add: isNonTockDeadlockStateOf_def)
+
+  apply (frule isStateOf_each_element, simp)
+  apply (simp add: refusesAllNonTockEv_def refusalSet_def)
+  apply (simp add: isStateOf_def)
+  apply (simp add: ALP_def)
+  done
+
+
+subsubsection \<open> Tock in refusals TimeStopState/NonTockDeadlockState \<close>
+
+
+lemma Tock_in_refusalsOf_if_isTimeStopStateOf :
+    "sigma isTimeStopStateOf VF ==>
+     Tock : refusalSet(VF)<snd sigma>"
+  apply (simp add: isTimeStopStateOf_def)
+  by (simp add: refusesTock_def)
+
+
+lemma ex_Tock_in_refusals_if_isTimeStopStateOf :
+    "(t, Yf) isTimeStopStateOf (I, FXf) ==>
+     EX i : I. Tock : Yf i"
+  apply (frule Tock_in_refusalsOf_if_isTimeStopStateOf)
+  apply (simp add: refusalSet_def)
+  by (force)
+
+
+
+(* i is not refusing event a (~= Tock) from its synchronisation set *)
+lemma refusals_neq_ALP_diff_Tock_if_isNonTockDeadlockStateOf :
+    "(t, Yf) isStateOf (I, FXf) ==>
+     i : I ==> isTPN (I, FXf) ==>
+     (t rest-tr snd (FXf i), Yf) isNonTockDeadlockStateOf ({i}, FXf) ==>
+     ~ (t rest-tr snd (FXf i), Yf) refusesTock ({i}, FXf) ==>
+     Yf i ~= Ev ` snd (FXf i) & Tock ~: Yf i"
+  apply (simp add: isNonTockDeadlockStateOf_def)
+  apply (drule isStateOf_each_element, simp, simp)
+  apply (frule refusesOnlyNonTockEv_if_not_refusesTock_and_refusesAllNonTockEv, simp, simp) 
+  apply (simp add: refusesOnlyNonTockEv_def)
+  apply (frule isTPN_subset[of _ _ "{i}"], simp)
+  apply (drule Tock_in_Ev_ALP_if_isTPN[of "({i},FXf)"], simp)
+  by (simp add: refusalSet_def ALP_def, fast)
+
+
+
+(*lemma ex_non_refused_nonTock_event_if_not_isTimeStopStateOf :
+   "(t, Yf) isStateOf (I, FXf) ==> ~ (t, Yf) isTimeStopStateOf (I, FXf) ==>
+    i \<in> I ==> 
+    Yf i ~= Ev ` snd (FXf i) - {Tock} ==>
+    EX a : Ev ` snd (FXf i). a ~: Yf i & a ~= Tock"
+  apply (frule refusals_are_subsets_if_isStateOf)
+  apply (frule not_isTimeStopStateOf_each_element, simp, fast)
+  apply (simp add: isTimeStopStateOf_def)
+  apply (simp add: isTimeStopStateOf_def)
+  apply (simp add: refusesTock_def refusalSet_def)
+  by (fast)*)
+
+
+
+subsection \<open> refusalSet in TimeStopState/NonTockDeadlockState \<close>
+
+
+(*lemma Union_refusals_eq_ALP_diff_Tock_if_isNonTockDeadlockStateOf :
+    "(t, Yf) isNonTockDeadlockStateOf (I, FXf) ==>
+     ~ (t, Yf) isTimeStopStateOf (I, FXf) ==>
+     refusalSet(I,FXf)<Yf> = EvALP (I,FXf) - {Tock}"
+  apply (frule isStateOf_if_isNonTockDeadlockStateOf)
+  apply (frule refusals_are_subsetsNonTock_if_not_isTimeStopStateOf)
     apply (simp)
+    apply (simp add: isNonTockDeadlockStateOf_def)
+    apply (simp add: refusesAllNonTockEv_def) 
+  apply (frule refusals_are_subsets_if_isStateOf)
+    apply (simp add: refusalSet_def ALP_def)
+  by (blast)*)
+
+
+lemma ALP_Diff_Tock_subset_Union_refusals_if_isNonTockDeadlockStateOf :
+    "(t, Yf) isNonTockDeadlockStateOf (I, FXf) ==>
+     EvALP (I,FXf) - {Tock} <= refusalSet(I,FXf)<Yf>"
+  apply (frule isStateOf_if_isNonTockDeadlockStateOf)
+    apply (simp add: isNonTockDeadlockStateOf_def)
+    apply (simp add: refusesAllNonTockEv_def)
+  done
+
+
+lemma in_refusals_if_isNonTockDeadlockStateOf :
+    "(t, Yf) isNonTockDeadlockStateOf (I, FXf) ==>
+     i : I ==> j : I ==> i ~= j ==>
+     x : Ev ` snd (FXf i) Int Ev ` snd (FXf j) - {Tock} ==>
+     x : refusalSet(I,FXf)<Yf>"
+  apply (elim DiffE IntE imageE)
+
+  apply (frule isStateOf_if_isNonTockDeadlockStateOf)
+  apply (drule refusalsOf_are_subsets_if_isStateOf)
+
+  apply (simp)
+  apply (simp only: isNonTockDeadlockStateOf_def)
+  apply (simp add: refusesAllNonTockEv_def)
+
+  apply (elim conjE)
+  apply (simp add: ALP_def)
+  apply (elim subsetE)
+  apply (drule_tac x="Ev xa" in bspec)
+  apply (drule_tac x="Ev xa" in bspec, simp, fast, simp)
+  apply (simp add: image_iff)
   done
 
 
 
 
-subsubsection \<open> Refusals PXf --> FXf \<close>
+subsection \<open> Refusals PXf --> FXf \<close>
 
 lemma ex_refusals_superset_fst_FXf_if_failures_PXf:
     "I ~= {} ==> finite I ==> (I, FXf) isFailureOf (I, PXf) ==>
@@ -291,381 +1047,21 @@ lemma ex_refusals_superset_fst_FXf_if_failures_PXf:
 
 
 
-subsubsection \<open> State Refusals \<close>
 
+subsection \<open> Busyness \<close>
 
-lemma refusals_are_subsets_if_refusesTock :
-    "(t, Yf) isStateOf (I, FXf) ==>
-    (t, Yf) refusesTock (I, FXf) ==>
-     ALL i:I. Yf i <= (Ev ` (snd (FXf i)))"
-  apply (frule refusals_are_subsets_if_isStateOf, simp)
-  done
+(*lemma NonTockBusyNetwork_if_BusyNetwork :
+    ""*)
 
 
-lemma refusals_are_subsetsNonTock_if_not_refusesTock :
-    "(t, Yf) isStateOf (I, FXf) ==>
-     ~ (t, Yf) refusesTock (I, FXf) ==>
-     ALL i:I. Yf i <= Ev ` snd (FXf i) - {Tock}"
-  apply (simp add: Diff_eq)
-  apply (subst ball_conj_distrib, rule)
-  apply (frule refusals_are_subsets_if_isStateOf, simp)
-  apply (frule Tock_notin_refusals_if_not_refusesTock)
-  apply (rule)
-  apply (simp add: Union_eq, fast)
-  done
-
-
-lemma refusals_are_subsetsNonTock_if_refusesAllNonTock :
-    "(t, Yf) isStateOf (I, FXf) ==>
-     (t, Yf) refusesAllNonTock (I, FXf) ==>
-     ALL i:I. Yf i <= Ev ` snd (FXf i) - {Tock}"
-  apply (simp add: Diff_eq)
-  apply (subst ball_conj_distrib, rule)
-  apply (frule refusals_are_subsets_if_isStateOf, simp)
-  apply (rule Tock_notin_refusals_if_refusesAllNonTock, simp)
-  done
-
-
-lemma refusals_are_subsets_if_isTimeStopStateOf :
-    "(t,Yf) isTimeStopStateOf (I,FXf) ==>
-     ALL i:I. Yf i <= (Ev ` (snd (FXf i)))"
-  apply (simp add: isTimeStopStateOf_def, elim conjE)
-  by (simp add: refusals_are_subsets_if_refusesTock)
-
-
-lemma refusals_are_subsetsNonTock_if_isNonTockDeadlockStateOf :
-    "(t,Yf) isNonTockDeadlockStateOf (I,FXf) ==>
-     ALL i:I. Yf i <= (Ev ` (snd (FXf i))) - {Tock}"
-  apply (simp add: isNonTockDeadlockStateOf_def, elim conjE)
-  by (simp add: refusals_are_subsetsNonTock_if_refusesAllNonTock)
-
-
-lemma in_refusals_if_isNonTockDeadlockStateOf :
-    "(t, Yf) isNonTockDeadlockStateOf (I, FXf) ==>
-     i : I ==> j : I ==> i ~= j ==>
-     x : Ev ` snd (FXf i) Int Ev ` snd (FXf j) - {Tock} ==>
-     x : netRefusals I Yf"
-  apply (simp only: isNonTockDeadlockStateOf_def)
-  apply (simp add: refusesAllNonTock_def)
-
-  apply (simp only: isStateOf_def, elim conjE)
-  apply (simp add: image_iff)
-  apply (simp (no_asm) add: ALP_def)
-
-  apply (fast)
-  done
-
-
-
-subsubsection \<open> Tock in refusals TimeStopState \<close>
-
-
-lemma Tock_notin_refusalsOf_if_not_isTimeStopStateOf :
-    "sigma isStateOf VF ==>
-     ~ (sigma isTimeStopStateOf VF) ==>
-     Tock ~: sigma refusalsOf VF"
-  apply (simp only: isTimeStopStateOf_def)
-  by (rule Tock_notin_refusals_if_not_refusesTock, simp)
-
-
-lemma Tock_in_refusalsOf_if_isTimeStopStateOf :
-    "sigma isTimeStopStateOf VF ==>
-     Tock : sigma refusalsOf VF"
-  apply (simp add: isTimeStopStateOf_def)
-  by (simp add: refusesTock_def)
-
-
-lemma ex_Tock_in_refusals_if_isTimeStopStateOf :
-    "(t, Yf) isTimeStopStateOf (I, FXf) ==>
-     EX i : I. Tock : Yf i"
-  apply (frule Tock_in_refusalsOf_if_isTimeStopStateOf)
-  by (force)
-
-
-lemma isTimeStopStateOf_iff_ex_Tock_in_refusals :
-    "(t, Yf) isStateOf (I, FXf) ==>
-     (t, Yf) isTimeStopStateOf (I, FXf) = (EX i : I. Tock : Yf i)"
-  apply (simp add: isTimeStopStateOf_def)
-  apply (simp add: refusesTock_def)
-  by (force)
-
-
-
-subsubsection \<open> Tock in refusals NonTockDeadlockState \<close>
-
-
-lemma Tock_notin_refusals_if_isNonTockDeadlockStateOf :
-    "sigma isNonTockDeadlockStateOf VF ==>
-     Tock ~: sigma refusalsOf VF"
-  apply (rule Tock_notin_refusals_if_not_refusesTock)
-  apply (rule not_refusesTock_if_refusesAllNonTock)
-  by (simp add: isNonTockDeadlockStateOf_def)
-
-
-lemma neq_Tock_if_in_refusals_isNonTockDeadlockStateOf :
-    "(t, Yf) isNonTockDeadlockStateOf (I, FXf) ==>
-    x : netRefusals I Yf ==> x ~= Tock"
-  apply (frule Tock_notin_refusals_if_isNonTockDeadlockStateOf)
-  by (force)
-
-
-lemma neq_tock_if_in_refusals_isNonTockDeadlockStateOf :
-    "(t, Yf) isNonTockDeadlockStateOf (I, FXf) ==>
-    Ev x : Yf i ==> i : I ==> x ~= tock"
-  apply (frule Tock_notin_refusals_if_isNonTockDeadlockStateOf)
-  by (force)
-
-
-lemma neq_Tock_if_in_refusal_isNonTockDeadlockStateOf :
-    "(t, Yf) isNonTockDeadlockStateOf (I, FXf) ==>
-    x : Yf i ==> i : I ==> x ~= Tock"
-  apply (frule Tock_notin_refusals_if_isNonTockDeadlockStateOf)
-  by (force)
-
-
-
-subsubsection \<open> States: TimeStopState and NonTockDeadlockState \<close>
-
-
-lemma isStateOf_if_isTimeStopStateOf :
-    "sigma isTimeStopStateOf VF ==> sigma isStateOf VF"
-  by (simp add: isTimeStopStateOf_def)
-
-lemma isStateOf_if_isNonTockDeadlockStateOf :
-    "sigma isNonTockDeadlockStateOf VF ==> sigma isStateOf VF"
-  by (simp add: isNonTockDeadlockStateOf_def)
-
-
-
-lemma isTimeStopStateOf_if_isDeadlockStateOf :
-    "fst VF ~= {} ==> isTockNet VF ==>
-     sigma isDeadlockStateOf VF ==> sigma isTimeStopStateOf VF"
-  apply (simp add: isDeadlockStateOf_def isTimeStopStateOf_def)
-  apply (elim conjE)
-  apply (insert ex_in_conv[of "fst VF"], simp, elim exE)
-  apply (simp add: image_def Int_def ALP_def)
-  apply (simp add: refusesTock_def)
-  apply (fast)
-  done
-
-
-
-lemma not_isTimeStopStateOf_if_isNonTockDeadlockStateOf :
-    "sigma isNonTockDeadlockStateOf VF ==>
-    ~ (sigma isTimeStopStateOf VF)"
-  apply (simp add: isNonTockDeadlockStateOf_def isTimeStopStateOf_def, elim conjE)
-  by (rule not_refusesTock_if_refusesAllNonTock)
-
-
-lemma not_isNonTockDeadlockStateOf_if_isTimeStopStateOf :
-    "sigma isTimeStopStateOf VF ==>
-    ~ (sigma isNonTockDeadlockStateOf VF)"
-  apply (erule contrapos_pn)
-  by (simp add: not_isTimeStopStateOf_if_isNonTockDeadlockStateOf)
-
-
-
-lemma not_isTimeStopStateOf_iff_isNonTockDeadlockStateOf :
-    "sigma isStateOf VF ==>
-     (sigma isNonTockDeadlockStateOf VF) = (~ sigma isTimeStopStateOf VF & sigma refusesAllNonTock VF)"
-  apply (rule)
-
-  apply (frule not_isTimeStopStateOf_if_isNonTockDeadlockStateOf, simp)
-  apply (simp add: isNonTockDeadlockStateOf_def isTimeStopStateOf_def)
-  apply (simp add: isNonTockDeadlockStateOf_def isTimeStopStateOf_def)
-  done
-
-
-subsubsection \<open> Sub-States (States for each element) \<close>
-
-
-lemma refusesTock_each_element :
-   "[| (t, Yf) refusesTock (I, FXf) |] ==>
-    EX i:I. (t rest-tr snd (FXf i), Yf) refusesTock ({i}, FXf)"
-  apply (simp add: refusesTock_def)
-  apply (elim conjE exE, fast)
-  done
-
-
-lemma isTimeStopStateOf_each_element :
-   "[| (t, Yf) isTimeStopStateOf (I, FXf) |] ==>
-    EX i: I. (t rest-tr snd (FXf i), Yf) isTimeStopStateOf ({i}, FXf)"
-  apply (simp add: isTimeStopStateOf_def)
-
-  apply (elim conjE)
-    apply (simp add: isStateOf_each_element)
-    apply (simp add: refusesTock_each_element)
-  done
-
-
-lemma not_isTimeStopStateOf_each_element :
-   "[| (t, Yf) isStateOf (I, FXf) ; I ~= {} ;
-       ~ (t, Yf) isTimeStopStateOf (I, FXf) |] ==>
-    EX i: I. ~ (t rest-tr snd (FXf i), Yf) isTimeStopStateOf ({i}, FXf)"
-  apply (simp only: isTimeStopStateOf_def refusesTock_def de_Morgan_conj)
-  apply (erule disjE, simp)
-  apply (simp add: refusesTock_each_element)
-  apply (simp add: isStateOf_each_element)
-  apply (fast)
-  done
-
-
-lemma refusesNonTock_each_element :
-   "[| (t, Yf) refusesNonTock (I, FXf) |] ==>
-    EX i:I. (t rest-tr snd (FXf i), Yf) refusesNonTock ({i}, FXf)"
-  apply (simp add: refusesNonTock_def)
-  apply (simp add: subset_singleton_iff)
-  apply (elim conjE exE, fast)
-  done
-
-
-
-
-
-subsubsection \<open> NonTockBusyNetwork \<close>
-
-(*-----------------------------------*
- |  How to check NonTockBusyNetworkF |
- *-----------------------------------*)
-
-lemma check_NonTockBusyNetwork:
-   "[| ALL i:I. ALL s Y. (s, Y) : fst (FXf i) --> Y ~= Ev ` (snd (FXf i)) - {Tock} |]
-    ==> NonTockBusyNetwork (I,FXf)"
-  apply (simp add: NonTockBusyNetwork_def)
-  apply (intro allI ballI)
-  apply (rename_tac s Yf)
-  apply (drule_tac x="i" in bspec, simp)
-  
-  apply (simp add: isNonTockDeadlockStateOf_def refusesAllNonTock_def)
-  apply (intro conjI allI impI)
-  apply (simp add: isStateOf_def)
-  apply (drule_tac x="s rest-tr (snd (FXf i))" in spec)
-  apply (drule_tac x="Yf i" in spec)
-  apply (simp)
-  apply (simp add: ALP_def)
-  done
-
-
-
-
-
-
-subsubsection \<open> requests \<close>
-
-
-lemma refusals_neq_ALP_diff_Tock_if_not_isNonTockDeadlockStateOf :
-    "(t, Yf) isStateOf (I, FXf) ==> i : I ==> ~ Yf i <= {Tock} ==>
-     ~ (t rest-tr snd (FXf i), Yf) isNonTockDeadlockStateOf ({i}, FXf) ==>
-     Yf i ~= Ev ` snd (FXf i) - {Tock}"
-  apply (simp add: isNonTockDeadlockStateOf_def)
-  apply (frule isStateOf_each_element, simp, simp)
-
-  apply (simp add: refusesAllNonTock_def refusesNonTock_def)
-  by (simp add: ALP_def)
-
-
-lemma Union_refusals_ALP_if_isNonTockDeadlockStateOf :
-    "sigma isNonTockDeadlockStateOf (I, FXf) \<Longrightarrow>
-    Union {snd sigma i |i. i : I} = Ev ` ALP (I,FXf) - {Tock}"
-  by (simp add: isNonTockDeadlockStateOf_def refusesAllNonTock_def ALP_def)
-
-
-(* i is not refusing event a (~= Tock) from its synchronisation set *)
-lemma refusals_neq_ALP_diff_Tock_if_isNonTockDeadlockStateOf :
-    "(t, Yf) isStateOf (I, FXf) ==>
-     i : I ==> isTockNet (I, FXf) ==>
-     (t rest-tr snd (FXf i), Yf) isNonTockDeadlockStateOf ({i}, FXf) ==>
-     Yf i ~= Ev ` snd (FXf i) & Tock ~: Yf i"
-  apply (simp add: isNonTockDeadlockStateOf_def refusesAllNonTock_def)
-  apply (drule isStateOf_each_element, simp, simp)
-  by (simp add: ALP_def, fast)
-
-
-
-lemma ex_non_refused_nonTock_event_if_not_isTimeStopStateOf :
-   "(t, Yf) isStateOf (I, FXf) ==> ~ (t, Yf) isTimeStopStateOf (I, FXf) ==>
-    i \<in> I ==> 
-    Yf i ~= Ev ` snd (FXf i) - {Tock} ==>
-    EX a : Ev ` snd (FXf i). a ~: Yf i & a ~= Tock"
-  apply (frule refusals_are_subsets_if_isStateOf)
-  apply (frule not_isTimeStopStateOf_each_element, simp, fast)
-  apply (simp add: isTimeStopStateOf_def)
-  apply (simp add: isTimeStopStateOf_def refusesTock_def)
-  by (fast)
-
-
-lemma ex_non_refused_nonTock_event_if_isNonTockDeadlockStateOf :
-   "(t, Yf) isNonTockDeadlockStateOf (I, FXf) ==>
-    i \<in> I ==> 
-     Yf i ~= Ev ` snd (FXf i) - {Tock} ==>
-    EX a : Ev ` snd (FXf i). a ~: Yf i & a ~= Tock"
-  apply (frule isStateOf_if_isNonTockDeadlockStateOf)
-  apply (drule not_isTimeStopStateOf_if_isNonTockDeadlockStateOf)
-  by (frule ex_non_refused_nonTock_event_if_not_isTimeStopStateOf, simp_all)
-
-
-
-lemma ex_target_for_Request_nonTock_refusals :
-    "isTockNet (I,FXf) ==>
-     (t, Yf) isNonTockDeadlockStateOf (I, FXf) ==>
-     Union {Yf i |i. i : I} = Ev ` {a. EX i:I. a : snd (FXf i)} - {Tock} ==>
-     i : I ==>
-     Yf i ~= Ev ` snd (FXf i) - {Tock} ==>
-     EX j. (I, FXf) >> i --[(t, Yf)]--> j"
-  apply (simp only: isRequestOf_def)
-
-  apply (frule isStateOf_if_isNonTockDeadlockStateOf)
-  apply (frule refusals_are_subsets_if_isStateOf)
-
-  (* i is not refusing event a from its synchronisation set *)
-  apply (frule ex_non_refused_nonTock_event_if_isNonTockDeadlockStateOf[of t Yf I FXf i])
-  apply (simp_all, elim bexE)
-
-  apply (subgoal_tac "Ev a : Ev ` {a. EX i:I. a : snd (FXf i)} - {Tock}")
-                                                  (* ... sub 1 *)
-  apply (rotate_tac 1)
-  apply (drule sym)
-  apply (simp)
-  apply (elim conjE exE)
-  apply (simp)
-  apply (rule_tac x="ia" in exI)
-  apply (case_tac "i = ia", simp)
-  apply (simp)
-  apply (drule_tac x="ia" in bspec, simp)
-  apply (blast)
-
-  (* sub 1 *)
-  apply (blast)
-  done
-
-
-lemma ex_Request_if_isNonTockDeadlockStateOf_NonTockBusyNetwork :
-    "(t, Yf) isNonTockDeadlockStateOf (I, FXf) ==> NonTockBusyNetwork (I, FXf) ==> 
-     isTockNet (I, FXf) ==>
-     i : I ==> ~ Yf i <= {Tock} ==>
-     EX j. (I, FXf) >> i --[(t, Yf)]--> j"
-  apply (frule isStateOf_if_isNonTockDeadlockStateOf)
-
-  apply (rule ex_target_for_Request_nonTock_refusals, simp_all)
-
-  (* refusing ALL events *)
-  apply (frule Union_refusals_ALP_if_isNonTockDeadlockStateOf, simp add: ALP_def)
-
-  (* NonTock busy --> i is time-stop-free *)
-  apply (simp only: NonTockBusyNetwork_def)
-
-  (* State of i *)
-  apply (drule_tac x="i" in bspec, simp)
-  apply (drule_tac x="i" in bspec, simp)
-  apply (drule_tac x="(t rest-tr (snd (FXf i)), Yf)" in spec)
-
-  apply (simp add: isNonTockDeadlockStateOf_def refusesAllNonTock_def)
-  apply (simp add: refusesNonTock_def ALP_def)
-  apply (drule mp, simp add: isStateOf_each_element)
-  apply (simp)
-  done
-
-
+(*lemma TockBusyNetwork_if_BusyNetwork :
+    "BusyNetwork VF ==>
+     TockBusyNetwork VF"
+  apply (simp add: BusyNetwork_def)
+  apply (simp add: TockBusyNetwork_def)
+  apply (intro ballI allI)
+  apply (simp add: isTimeStopStateOf_if_isDeadlockStateOf)
+  apply (rule contrapos_nn)*)
 
 
 end

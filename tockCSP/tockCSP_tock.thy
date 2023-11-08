@@ -1,3 +1,15 @@
+           (*-------------------------------------------*
+            |        CSP-Prover on Isabelle2021         |
+            |                 2022 / 2023               |
+            |                                           |
+            |          Lemmas and Theorems from         |
+            |    Jesus and Sampaio's SBMF 2022 paper    |
+            |                     and                   |
+            |    Jesus and Sampaio's SCP 2023 paper     |
+            |                                           |
+            | Joabe Jesus (eComp POLI UPE and CIn UFPE) |
+            *-------------------------------------------*)
+
 theory tockCSP_tock
 imports tockCSP_Infra
 begin
@@ -17,12 +29,19 @@ begin
 abbreviation Nontock :: "'a set"
 where "Nontock == - { tock }"
 
+(*abbreviation atock :: "'a set"
+where "atock == { tock }"*)
+
 
 subsubsection \<open> tockCSP lemmas \<close>
 
 lemma in_Nontock_iff :
     "x \<in> Nontock \<longleftrightarrow> x \<noteq> tock"
   by (simp)
+
+
+lemma tock_notin_Nontock [simp]: "tock \<notin> Nontock"
+by (simp)
 
 
 lemma tockCSP_UNIV [simp]:
@@ -41,6 +60,15 @@ lemma not_UNIV_subset_tock [simp]:
   apply (auto simp add: subset_eq)
   by (rule ex_neq_tock)
 
+
+lemma Nontock_Int_r : "tock \<notin> S \<Longrightarrow> S \<inter> Nontock = S"
+by (auto)
+
+lemma Nontock_Int_l : "tock \<notin> S \<Longrightarrow> Nontock \<inter> S  = S"
+by (auto)
+
+lemmas Nontock_Int = Nontock_Int_l
+                     Nontock_Int_r
 
 
 
@@ -100,10 +128,16 @@ lemma insert_Tick_Tock :
     "insert Tick (insert Tock Y) = Y \<union> {Tick,Tock}"
   by (auto)
 
-lemma noTick_if_sett_Tock :
+lemma noTick_if_sett_subset_Tock :
     "sett s \<subseteq> {Tock} \<Longrightarrow> noTick s"
   by (auto simp add: noTick_def)
 
+lemma noTick_if_sett_eq_Tock :
+    "sett s = {Tock} \<Longrightarrow> noTick s"
+  by (auto simp add: noTick_def)
+
+lemmas noTick_if_sett_Tock = noTick_if_sett_subset_Tock
+                             noTick_if_sett_eq_Tock
 
 
 lemma sett_subset_TickTock_if:
@@ -264,6 +298,10 @@ lemma insert_Tock_NonTockEv [simp]:
     "insert Tock NonTockEv = EvsetTick"
   apply (simp only: NonTockEv_simp EvsetTick_def)
   by (simp add: insert_UNIV)
+
+lemma insert_Tock_NonTockEv_Un :
+    "insert Tock (NonTockEv \<union> X) = EvsetTick"
+  by (auto)
 
 lemma insert_Tick_NonTockEv_absorb [simp]:
     "insert Tick NonTockEv = NonTockEv"

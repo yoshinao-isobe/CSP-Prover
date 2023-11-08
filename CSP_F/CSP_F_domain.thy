@@ -402,6 +402,7 @@ apply (simp add: Int_choice_F3)
 apply (simp add: Int_choice_T3_F4)
 done
 
+
 (*--------------------------------*
  |        Rep_int_choice          |
  *--------------------------------*)
@@ -545,6 +546,155 @@ apply (simp (no_asm) add: domF_iff)
 apply (simp add: IF_T2)
 apply (simp add: IF_F3)
 apply (simp add: IF_T3_F4)
+done
+
+
+(*--------------------------------*
+ |           Interrupt            |
+ *--------------------------------*)
+
+(* T2 *)
+
+lemma Interrupt_T2 :
+  "[| (traces(P) (fstF o M), failures(P) M) : domF ;
+      (traces(Q) (fstF o M), failures(Q) M) : domF |]
+     ==> HC_T2 (traces(P /> Q) (fstF o M), failures(P /> Q) M)"
+apply (simp add: HC_T2_def in_failures in_traces)
+
+apply (intro allI impI conjI)
+(*1*)
+(*elim conjE, *)
+apply (intro disjI1, simp add: domF_T2)
+(*2*)
+apply (elim conjE, intro disjI1, simp add: memT_prefix_closed)
+(*3*)
+apply (elim exE conjE, intro disjI1, simp)
+(*4*)
+apply (elim exE conjE, intro disjI2)
+apply (rule_tac x="sa" in exI)
+apply (rule_tac x="t" in exI, simp add: domF_T2)
+done
+
+(* F3 *)
+
+lemma Interrupt_F3 :
+  "[| (traces(P) (fstF o M), failures(P) M) : domF ;
+      (traces(Q) (fstF o M), failures(Q) M) : domF |]
+     ==> HC_F3 (traces(P /> Q) (fstF o M), failures(P /> Q) M)"
+apply (simp add: HC_F3_def in_traces in_failures)
+
+apply (intro allI impI)
+apply (elim conjE disjE)
+(*1*)
+apply (rule disjI1)
+apply (simp add: domF_F3)
+(*apply (frule_tac s=s and X=X and Y=Y in domF_F3, simp, simp)
+apply (intro allI impI, simp, simp)
+apply (intro allI impI)
+apply (drule_tac x=i in spec, simp)*)
+(*2*)
+apply (rule disjI2, rule disjI1)
+apply (simp)
+apply (simp add: imp_conv_disj)
+apply (drule_tac x=Tick in spec)
+apply (erule disjE, simp, simp)
+(*3*)
+apply (rule disjI2, rule disjI2, rule disjI1)
+apply (elim exE conjE, simp)
+(*4*)
+apply (intro disjI2 (*rule disjI2, rule disjI2, rule disjI2*))
+apply (elim exE conjE)
+apply (rule_tac x="sa" in exI)
+apply (rule_tac x="t" in exI, simp)
+apply (rule domF_F3, simp_all)
+apply (intro allI impI)
+apply (drule_tac x=a in spec)
+apply (drule mp, simp, elim conjE)
+apply (drule_tac x="sa" in spec)
+apply (drule_tac x="t ^^^ <a>" in spec, elim disjE)
+apply (simp)
+apply (simp add: appt_assoc)
+apply (simp)
+apply (simp)
+apply (fast)
+done
+
+(* T3_F4 *)
+
+lemma Tick_trace_appt :
+  "<Tick> = ua ^^^ u \<Longrightarrow> noTick ua \<Longrightarrow> ua = <> & u = <Tick>"
+  by (force)
+
+lemma Interrupt_T3_F4 : 
+  "[| (traces(P) (fstF o M), failures(P) M) : domF ;
+      (traces(Q) (fstF o M), failures(Q) M) : domF |]
+     ==> HC_T3_F4 (traces(P /> Q) (fstF o M), failures(P /> Q) M)"
+apply (simp add: HC_T3_F4_def in_traces in_failures)
+
+apply (intro allI impI conjI)
+(* F4 part *)
+apply (elim conjE disjE)
+  (* 1. P terminates *)
+  apply (rule disjI1, simp add: domF_F4)
+  (* 2. Q terminates *)
+  apply (elim exE conjE)
+  apply (rule disjI2, rule disjI2, rule disjI2)
+  apply (simp add: appt_decompo, elim disjE exE)
+    (*2.1*)
+    apply (elim conjE)
+    apply (drule sym, simp)
+    apply (elim disjE conjE)
+      (*2.1.1*)
+      apply (rule_tac x="sa" in exI)
+      apply (simp add: domF_F4)
+      (*2.1.2*)
+      apply (rule_tac x="sa" in exI)
+      apply (rule_tac x="<>" in exI, simp)
+      apply (simp add: domF_F4)
+    (*2.2*)
+    apply (elim conjE)
+    apply (rule_tac x="sa" in exI, simp)
+    apply (rule_tac x="ua" in exI, simp)
+    apply (simp add: domF_F4)
+(* T3 part *)
+apply (elim conjE disjE)
+  (* 1. P terminates *)
+  apply (rule disjI1, simp add: domF_T3)
+  (* 2. Q terminates *)
+  apply (elim exE conjE)
+  apply (rule disjI2, rule disjI2)
+  apply (simp add: appt_decompo, elim disjE exE)
+    (*2.1*)
+    apply (elim conjE)
+    apply (drule sym, simp)
+    apply (rule_tac x="sa" in exI, simp)
+    apply (elim disjE conjE)
+      (*2.1.1*)
+      apply (simp)
+      (*2.1.2*)
+      apply (simp)
+      apply (rule_tac x="<> ^^^ <Tick>" in exI)
+      apply (intro conjI, simp)
+      apply (rule domF_T3, simp)
+      apply (simp only: appt_nil_left, simp)
+    (*2.2*)
+    apply (elim conjE)
+    apply (drule sym, simp)
+    apply (rule_tac x="sa" in exI, simp)
+    apply (rule_tac x="ua ^^^ <Tick>" in exI)
+    apply (intro conjI)
+    apply (simp add: appt_assoc)
+    apply (simp add: domF_T3)
+done
+
+lemma Interrupt_domF : 
+  "[| (traces(P) (fstF o M), failures(P) M) : domF ; 
+      (traces(Q) (fstF o M), failures(Q) M) : domF |]
+     ==> (traces(P /> Q) (fstF o M), failures(P /> Q) M) : domF"
+apply (simp (no_asm) add: domF_iff)
+apply (simp add: Interrupt_T2)
+apply (simp add: Interrupt_F3)
+apply (simp add: Interrupt_T3_F4)
 done
 
 (*--------------------------------*
@@ -1228,6 +1378,7 @@ apply (simp add: Ext_choice_domF)
 apply (simp add: Int_choice_domF)
 apply (simp add: Rep_int_choice_domF)
 apply (simp add: IF_domF)
+apply (simp add: Interrupt_domF)
 apply (simp add: Parallel_domF)
 apply (simp add: Hiding_domF)
 apply (simp add: Renaming_domF)
@@ -1661,6 +1812,9 @@ lemma failures_subst:
   "failures(P<<f) M = failures P (%q. [[f q]]Ff M)"
 apply (induct_tac P)
 apply (simp_all add: semF_def semFf_def traces_iff failures_iff)+
+apply (simp add: fstF_proc_domF_fun)
+apply (simp add: traces_subst)
+
 apply (simp add: fstF_proc_domF_fun)
 apply (simp add: traces_subst)
 

@@ -1,47 +1,37 @@
+           (*-------------------------------------------*
+            |        CSP-Prover on Isabelle2021         |
+            |                 2022 / 2023               |
+            |                                           |
+            |          Lemmas and Theorems from         |
+            |    Jesus and Sampaio's SBMF 2022 paper    |
+            |                     and                   |
+            |    Jesus and Sampaio's SCP 2023 paper     |
+            |                                           |
+            | Joabe Jesus (eComp POLI UPE and CIn UFPE) |
+            *-------------------------------------------*)
+
 theory TSF_Theorem2
-imports TSF_Theorem1
+imports TSF_law
+        TSF_Network
+        tockCSP_DFP.tockCSP_DFP_Main
 begin
 
 
-lemma Theorem2_Jesus_Sampaio_2022_only_if :
-    "( [X]-DeadlockFree P ) ==>
-     ( ([X]-TimeStopFree P) & ([X - {Tock}]-DeadlockFree (P -- {tock})) )"
+section \<open> Lifting Deadlock-free Analysis to tock-CSP \<close>
 
-  apply (simp add: TimeStopFree_def)
-  apply (simp add: DeadlockFree_def)
-  apply (simp add: in_failures hide_tr_sym)
-  apply (simp only: all_conj_distrib[THEN sym])
-  apply (simp only: imp_conv_disj)
-  apply (simp only: disj_conj_distribL[THEN sym])
-  apply (simp only: all_conj_distrib[THEN sym])
-
-    apply (rule)
-    apply (subst disj_imp, rule)
-    apply (rule)
-    apply (simp add: disj_imp)
-    apply (rule)
-    apply (rule)
-    apply (drule_tac x=sa in spec)
-    apply (simp add: Tick_notin_hide_tr_trans1)
-    apply (rule non_memF_F2[of _ X], simp, force)
-    apply (rule)
-    apply (drule_tac x=sa in spec)
-    apply (simp add: Tick_notin_hide_tr_trans1)
-    apply (rule non_memF_F2[of _ X], simp, force)
-  done
+text \<open> For Theorem 2 in Jesus and Sampaio's SBMF 2022 paper
+       see Theorem2_Jesus_Sampaio_2022.
+       For Theorem 2 in Jesus and Sampaio's SCP 2023 paper
+       see Theorem2_Jesus_Sampaio_2023 that depends on \<^theory>\<open>DFP.DFP_Hiding\<close> \<close>
 
 
 
-lemma subset_NonTickTockEv_and_subset_Tock :
-    "sett s \<subseteq> NonTickTockEv \<Longrightarrow>
-       sett s \<subseteq> {Tock} \<Longrightarrow> s = <>"
-  apply (simp add: subset_iff)
-  by (simp add: sett_empty_iff)
+subsection \<open> Jesus Sampaio's SBMF 2022 paper: TSF & DF -- {tock} --> DF \<close>
 
-
-lemma Theorem2_Jesus_Sampaio_2022_if :
-    "( ([X]-TimeStopFree P) & ([X - {Tock}]-DeadlockFree (P -- {tock})) )
-     \<Longrightarrow> ( [X]-DeadlockFree P )"
+theorem DeadlockFree_if_TimeStopFree_DeadlockFree_hiding_tock :
+    "S \<subseteq> {Tick} \<Longrightarrow> Tock \<in> X \<Longrightarrow>
+     ( ([S]-TimeStopFree P) & ([X]-DeadlockFree (P -- {tock})) )
+     ==> ( [X]-DeadlockFree P )"
   apply (elim conjE)
   apply (simp only: TimeStopFree_def)
   apply (simp only: DeadlockFree_def)
@@ -59,32 +49,56 @@ lemma Theorem2_Jesus_Sampaio_2022_if :
   apply (drule_tac x=s in spec, simp)
   apply (drule_tac x=s in spec, simp)
 
-  (* The pending goal requires the divergences to
-     be included in the failures.*)
-  (* NOTE: trying to use proc_F3 will discharge assumptions
-           (s, insert Tock X) ~:f failures P MF \<Longrightarrow>
-           (s, EvsetTick) ~:f failures P MF \<Longrightarrow>
-           but maintain assumption
-           (s, X) :f failures P MF \<Longrightarrow>
-           so, when P diverges, refusals X can grows to insert Tock X
-               then to UNIV (EvsetTick) *)
-  (* CSP-Prover does not provides FD model, so we are implementing
-     FD to provide a full mechanisation. *)
-
-  (* case 1: Tock refused when P diverges *)
-  apply (rotate_tac -1, erule contrapos_nn)
-
-  (* case 2: - X refused when P diverges *)
-  apply (rotate_tac -2, erule contrapos_np)
-  sorry
+  by (simp add: insert_absorb)
 
 
-theorem Theorem2_Jesus_Sampaio_2022 :
-    "( [X]-DeadlockFree P ) =
-     ( ([X]-TimeStopFree P) & ([X - {Tock}]-DeadlockFree (P -- {tock})) )"
-  apply (rule)
-    apply (simp only: Theorem2_Jesus_Sampaio_2022_only_if)
-    apply (simp only: Theorem2_Jesus_Sampaio_2022_if)
+lemmas Theorem2_Jesus_Sampaio_2022 = DeadlockFree_if_TimeStopFree_DeadlockFree_hiding_tock
+
+
+
+subsection \<open> Jesus Sampaio's SCP 2023 paper: TSF <--> DF \<close>
+
+
+lemma DeadlockFree_TimeStopFree_only_if :
+    "( [X]-DeadlockFree P ) ==> ( [X]-TimeStopFree P )"
+  apply (simp only: TimeStopFree_def)
+  apply (rule DeadlockFree_Hiding)
+  apply (rule DeadlockFree_subset[of _ _ "{Tock}"], simp)
   done
+
+
+lemma DeadlockFree_TimeStopFree_if :
+    "X = EvsetTick \<Longrightarrow>
+     ( ([X]-TimeStopFree P) ) ==> ( [X]-DeadlockFree P )"
+  apply (simp only: TimeStopFree_def)
+  apply (subst Theorem1_Jesus_Sampaio_2023[of Nontock])
+  apply (simp add: EvsetTick_def)
+  apply (simp add: EvsetTick_def insert_absorb)
+  apply (simp add: EvsetTick_def insert_absorb)
+  done
+
+
+theorem TimeStopFree_DeadlockFree_iff :
+    "X = EvsetTick \<Longrightarrow>
+     ( [X]-DeadlockFree P ) = ( ([X]-TimeStopFree P) )"
+  apply (rule)
+    apply (simp add: DeadlockFree_TimeStopFree_only_if)
+    apply (simp add: DeadlockFree_TimeStopFree_if)
+  done
+
+lemmas Theorem2_Jesus_Sampaio_2023 = TimeStopFree_DeadlockFree_iff
+
+
+corollary Corollary2_Jesus_Sampaio_2023 :
+    "(  P isDeadlockFree ) = ( P isTimeStopFree )"
+  apply (subst Theorem2_Jesus_Sampaio_2023)
+  apply (simp add: EvsetTick_def)
+  apply (simp add: TimeStopFree_def)
+  apply (simp add: DeadlockFree_def)
+  apply (simp add: EvsetTick_def insert_absorb)
+  apply (simp add: in_failures EvsetTick_def)
+  done
+
+
 
 end

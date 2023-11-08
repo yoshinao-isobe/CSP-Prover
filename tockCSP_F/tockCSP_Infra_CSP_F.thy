@@ -1,16 +1,22 @@
+           (*-------------------------------------------*
+            |        CSP-Prover on Isabelle2021         |
+            |                 2022 / 2023               |
+            |                                           |
+            |          Lemmas and Theorems from         |
+            |    Jesus and Sampaio's SBMF 2022 paper    |
+            |                     and                   |
+            |    Jesus and Sampaio's SCP 2023 paper     |
+            |                                           |
+            | Joabe Jesus (eComp POLI UPE and CIn UFPE) |
+            *-------------------------------------------*)
+
 theory tockCSP_Infra_CSP_F
 imports tockCSP_T.tockCSP_Infra_CSP_T
         CSP_F
 begin
 
 
-subsection \<open> CSP_F \<close>
-
-
-lemma non_memF_F2:
-    "[| (s,Y) ~:f F ; Y <= X |] ==> (s,X) ~:f F"
-  apply (erule contrapos_nn)
-  by (simp add: memF_F2)
+subsection \<open> tockCSP_Infra_CSP_F - TODO: move to CSP_F \<close>
 
 
 lemma S_UnF_T :
@@ -19,13 +25,6 @@ by (simp add: UnionF_def CollectF_def Un_def memF_def)
 
 
 
-lemma fstF_MF_iff_MT:
-   "[| (Pf::'p=>('p,'a) proc) = PNfun; 
-         FPmode = CPOmode
-       | FPmode = CMSmode & guardedfun Pf
-       | FPmode = MIXmode |]
-    ==> fstF (MF p) = (MT::'p => 'a domT) p"
-  by (simp only: fstF_MF_MT[THEN sym], simp)
 
 lemma fstF_MF_iff_traces :
     "(Pf::('p,'e) pnfun) = PNfun \<Longrightarrow>
@@ -57,15 +56,6 @@ lemma failures_Hiding_Hiding :
   apply (elim exE conjE)
   apply (rule_tac x=sa in exI, simp add: hide_tr_of_hide_tr_subset1)
   done
-
-
-lemma FIX_failures :
-    "(Pf::('pn,'e) pnfun) = PNfun \<Longrightarrow>
-     FPmode = CMSmode \<longrightarrow> guardedfun Pf \<Longrightarrow>
-     failures ($(p::'pn)) MF = failures ((FIX Pf) p) MF"
-  apply (insert cspF_FIX[of Pf p])
-  apply (simp add: cspF_semantics)
-  by (case_tac FPmode, simp_all)
 
 
 

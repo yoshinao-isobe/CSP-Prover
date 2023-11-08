@@ -170,10 +170,8 @@ apply (simp_all)
  apply (simp)
  apply (rotate_tac -2)
  apply (erule contrapos_np)
- apply (force)
-
- apply (rule_tac x="J" in exI)
- apply (fast)
+ apply (clarsimp)
+ apply (drule_tac x="J" in spec, fast)
 done
 
 lemma nonempty_finite_set_exists_max_fun:
@@ -222,10 +220,8 @@ apply (simp_all)
  apply (simp)
  apply (rotate_tac -2)
  apply (erule contrapos_np)
- apply (force)
-
- apply (rule_tac x="J" in exI)
- apply (fast)
+ apply (clarsimp)
+ apply (drule_tac x="J" in spec, fast)
 done
 
 lemma nonempty_finite_set_exists_min_fun:

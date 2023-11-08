@@ -148,12 +148,13 @@ by (simp add: directed_def)
 lemma continuous_failures_Ext_choice:
  "[| continuous (failures P) ; continuous (failures Q) |]
   ==> continuous (failures (P [+] Q))"
-apply (subgoal_tac "mono (failures P) & mono (failures Q)")
-apply (subgoal_tac "continuous (%M. traces P (fstF o M)) &
-                    continuous (%M. traces Q (fstF o M))")
+apply (frule_tac f="failures P" in continuous_mono)
+apply (frule_tac f="failures Q" in continuous_mono)
+apply (insert continuous_traces_fstF[of P])
+apply (insert continuous_traces_fstF[of Q])
 apply (simp add: continuous_iff)
 apply (intro allI impI)
-apply (elim conjE)
+
 apply (drule_tac x="X" in spec, simp)
 apply (drule_tac x="X" in spec, simp)
 apply (drule_tac x="X" in spec, simp)
@@ -199,9 +200,6 @@ apply (rule order_antisym)
 
 apply (simp add: directed_def)
 apply (rule LUB_unique, simp_all)+
-
-apply (simp add: continuous_traces_fstF)
-apply (simp add: continuous_mono)
 done
 
 (*--------------------------------*
@@ -301,6 +299,97 @@ apply (case_tac "b")
 
  apply (rule_tac x="xa" in exI, simp)
  apply (simp add: failures_iff)
+done
+
+(*--------------------------------*
+ |           Interrupt            |
+ *--------------------------------*)
+
+lemma continuous_failures_Interrupt:
+ "[| continuous (failures P) ; continuous (failures Q) |]
+  ==> continuous (failures (P /> Q))"
+
+apply (insert continuous_traces_fstF[of P])
+apply (insert continuous_traces_fstF[of Q])
+
+apply (frule_tac f="failures P" in continuous_mono)
+apply (frule_tac f="failures Q" in continuous_mono)
+
+
+apply (simp add: continuous_iff)
+apply (intro allI impI)
+
+apply (case_tac "X = {}", simp add: directed_def)
+
+apply (drule_tac x="X" in spec, simp)
+apply (drule_tac x="X" in spec, simp)
+apply (drule_tac x="X" in spec, simp)
+apply (drule_tac x="X" in spec, simp)
+apply (elim conjE exE)
+
+apply (drule_tac x=xa and y=x in LUB_unique, simp)
+apply (drule_tac x=xb and y=x in LUB_unique, simp)
+apply (drule_tac x=xc and y=x in LUB_unique, simp)
+apply (rule_tac x="x" in exI, simp)
+
+apply (simp add: isLUB_UnionF)
+apply (simp add: isLUB_UnionT)
+apply (rule order_antisym)
+
+(* <= *)
+ apply (rule)
+ apply (simp add: in_failures)
+ apply (elim conjE bexE disjE)
+
+ (* 1 *)
+  apply (rule_tac x="xd" in bexI)
+  apply (rule disjI1)
+  apply (simp, simp)
+ (* 2 *)
+  apply (rule_tac x="xd" in bexI)
+  apply (rule disjI2, rule disjI1)
+  apply (simp, simp)
+ (* 3 *)
+  apply (elim exE conjE bexE)
+  apply (rule_tac x="xd" in bexI)
+  apply (rule disjI2, rule disjI2, rule disjI1)
+  apply (simp, simp)
+  apply (force)
+  apply (simp)
+ (* 4 *)
+  apply (elim exE conjE bexE)
+  apply (simp add: directed_def)
+  apply (drule_tac x="xd" in spec)
+  apply (drule_tac x="xe" in spec)
+  apply (simp)
+  apply (elim exE conjE)
+  apply (rule_tac x="z" in bexI)
+  apply (rule disjI2, rule disjI2, rule disjI2)
+  apply (rule_tac x="sa" in exI)
+  apply (rule_tac x="t" in exI)
+  apply (simp)
+  apply (rule conjI)
+  apply (rule_tac S="traces P (fstF \<circ> xd)" in  memT_subdomT, simp)
+  apply (insert mono_traces[of P])
+  apply (insert mono_fstF)
+  apply (simp add: mono_def)
+  apply (drule_tac x="fstF \<circ> xd" in spec)
+  apply (drule_tac x="fstF \<circ> z" in spec)
+  apply (simp add: comp_def)
+  apply (drule mp)
+  apply (rule le_funI)
+  apply (drule_tac x="xd xf" in spec)
+  apply (drule_tac x="z xf" in spec)
+  apply (erule_tac f=xd and g=z and x=xf in le_funE, simp)
+  apply (simp)
+  apply (rule memF_subsetF, simp)
+  apply (simp add: mono_def)
+  apply (simp)
+
+(* => *)
+ apply (rule)
+ apply (simp add: in_failures)
+ apply (fast)
 done
 
 (*--------------------------------*
@@ -541,6 +630,7 @@ apply (simp add: continuous_failures_Ext_choice)
 apply (simp add: continuous_failures_Int_choice)
 apply (simp add: continuous_failures_Rep_int_choice)
 apply (simp add: continuous_failures_IF)
+apply (simp add: continuous_failures_Interrupt)
 apply (simp add: continuous_failures_Parallel)
 apply (simp add: continuous_failures_Hiding)
 apply (simp add: continuous_failures_Renaming)

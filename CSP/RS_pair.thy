@@ -261,7 +261,7 @@ apply (simp add: to_distance_rs)
 
       (* ~ distance (fst xc, fst yc) <= distance (snd xc, snd yc) *)
 
-apply (simp add: max_is)
+(*apply (simp add: max_is)*)
 apply (rule order_antisym)
 apply (simp_all add: pair_distance_def_le)
 

@@ -1,26 +1,174 @@
            (*-------------------------------------------*
             |        CSP-Prover on Isabelle2021         |
             |                 August 2021               |
+            |                  2022 / 2023 (modified)   |
             |                                           |
             | Joabe Jesus (eComp POLI UPE and CIn UFPE) |
             *-------------------------------------------*)
 
 theory DFP_DFkev
-imports DFP_DFnonTick
+imports DFP_law_DF
+        DFP_law_DFtick
 begin
 
 
-subsection \<open> kev \<close>
+subsection \<open> DFkEvTick \<close>
 text \<open> The process that performs k events then SKIP \<close>
 
-datatype kevPN = kev nat
+
+datatype DFkEvTickPN = DFkEvTick nat
 
 
-fun
-  kevfun ::  "(kevPN, 'event) pnfun"
+fun DFkEvTickfun ::  "(DFkEvTickPN, 'event) pnfun"
 where
-  "kevfun (kev 0) = SKIP"
-| "kevfun (kev k) = ! x -> $kev (k-1)"
+  "DFkEvTickfun (DFkEvTick 0) = SKIP"
+| "DFkEvTickfun (DFkEvTick k) = ! x -> $DFkEvTick (k-1)"
+
+
+overloading Set_DFkEvTickfun == 
+  "CSP_syntax.PNfun :: (DFkEvTickPN, 'event) pnfun"
+begin
+  definition "CSP_syntax.PNfun :: (DFkEvTickPN, 'event) pnfun == DFkEvTickfun"
+end
+
+declare Set_DFkEvTickfun_def [simp]
+
+
+lemma guarded_DFkEvTickfun [simp]: "guarded (DFkEvTickfun p)"
+  apply (induct_tac p)
+  apply (case_tac xa, simp_all)
+  done
+
+
+lemma guardedfun_DFkEvTickfun [simp]: "guardedfun DFkEvTickfun"
+  by (simp add: guardedfun_def)
+
+
+
+subsubsection \<open> dfp_DFkEvTick \<close>
+
+fun DF_induct_Hypotheses :: "DFkEvTickPN \<Rightarrow> (DFtickName, 'e) proc"
+where
+    "DF_induct_Hypotheses (DFkEvTick k) = $DFtick"
+
+
+lemma Lemma_DFkEvTickPN_To_DFtick :
+    "DF_induct_Hypotheses p \<sqsubseteq>F (DFkEvTickfun p) << DF_induct_Hypotheses"
+  apply (induct_tac p, simp)
+  apply (induct_tac xa)
+  apply (simp, rule dfp)
+  apply (simp, rule dfp)
+  by (rule dfp)+
+
+
+lemma dfp_DFkEvTick :
+    "$DFtick <=F $DFkEvTick k"
+  apply (rule_tac Pf="DFkEvTickfun" and f="DF_induct_Hypotheses" in cspF_fp_induct_ref_right)
+  apply (simp, case_tac FPmode, simp_all)
+  by (rule Lemma_DFkEvTickPN_To_DFtick)
+
+
+lemma DFkEvTick_is_DeadlockFree:
+    "(($DFkEvTick k) :: (DFkEvTickPN, 'e) proc) isDeadlockFree"
+  by (simp only: DeadlockFree_DFtick_ref, rule dfp_DFkEvTick)
+
+
+
+
+subsection \<open> DFkEv \<close>
+text \<open> The process that performs k events then RECURS \<close>
+
+datatype DFkEvPN = DFkEv nat nat
+
+
+fun DFkEvfun ::  "(DFkEvPN, 'event) pnfun"
+where
+  "DFkEvfun (DFkEv 0 _) = DIV"
+| "DFkEvfun (DFkEv k 0) = DIV"
+| "DFkEvfun (DFkEv k i) = (if (i > k)
+                           then DIV
+                           else ! x -> $DFkEv k (if (i - 1 = 0) then k else i-1))"
+
+
+overloading Set_DFkEvfun == 
+  "CSP_syntax.PNfun :: (DFkEvPN, 'event) pnfun"
+begin
+  definition "CSP_syntax.PNfun :: (DFkEvPN, 'event) pnfun == DFkEvfun"
+end
+
+declare Set_DFkEvfun_def [simp]
+
+
+lemma guarded_DFkEvfun [simp]: "guarded(DFkEvfun p)"
+  apply (induct_tac p)
+  apply (case_tac x1a, simp_all)
+    apply (case_tac x2a, simp_all)
+  done
+
+
+lemma guardedfun_DFkEvfun [simp]: "guardedfun DFkEvfun"
+  by (simp add: guardedfun_def)
+
+
+
+subsubsection \<open> dfp_DFkEv \<close>
+
+fun DF_induct_Hypotheses2 :: "DFkEvPN \<Rightarrow> (DFPN, 'e) proc"
+where
+    "DF_induct_Hypotheses2 (DFkEv k i) = DF"
+
+
+lemma Lemma_DFkEvPN_To_DFtick :
+    "DF_induct_Hypotheses2 p \<sqsubseteq>F (DFkEvfun p) << DF_induct_Hypotheses2"
+  apply (induct_tac p, simp)
+  apply (induct_tac x1a, simp)
+    apply (case_tac x2a, simp_all add: DF_def)
+      apply (rule, cspF_unwind_left)
+  done
+
+
+lemma dfnt_DFkEv :
+    "DF <=F $DFkEv k i"
+  apply (rule_tac Pf="DFkEvfun" and f="DF_induct_Hypotheses2" in cspF_fp_induct_ref_right)
+  apply (simp, case_tac FPmode, simp_all)
+  by (rule Lemma_DFkEvPN_To_DFtick)
+
+
+lemma dfp_DFkEv :
+    "$DFtick <=F $DFkEv k i"
+  by (rule cspF_trans, rule dfp_DF, rule dfnt_DFkEv)
+
+lemma DFkEv_is_DeadlockFree:
+    "(($DFkEv k i) :: (DFkEvPN, 'e) proc) isDeadlockFree"
+  by (simp only: DeadlockFree_DFtick_ref, rule dfp_DFkEv)
+
+
+
+
+
+subsection \<open> kevPN = kEvTick | kEvRec \<close>
+text \<open> The processes that performs k events then does X (SKIP (Tick) ou recur) \<close>
+
+(*datatype kevPN = kEvTick nat
+                | kEvRec nat nat*)
+type_synonym kevPN = "(DFkEvTickPN, DFkEvPN) Sum_Type.sum"
+abbreviation "kEvTick == \<lambda>x. (Inl (DFkEvTick x)::kevPN)"
+abbreviation "kEvRec == \<lambda>x i. (Inr (DFkEv x i)::kevPN)"
+
+(*fun kevfun ::  "(kevPN, 'event) pnfun"
+where
+  "kevfun(Inl x) = (DFkEvTickfun x) << (\<lambda>x. $Inl x)"
+| "kevfun(Inr x) = (DFkEvfun x) << (\<lambda>x. $Inr x)"*)
+
+fun kevfun ::  "(kevPN, 'event) pnfun"
+where
+  "kevfun (kEvTick 0) = SKIP"
+| "kevfun (kEvTick k) = ! x -> $kEvTick (k-1)"
+| "kevfun (kEvRec 0 _) = DIV"
+| "kevfun (kEvRec _ 0) = DIV"
+| "kevfun (kEvRec k i) = (if (i > k) then DIV
+                           else ! x -> $kEvRec k (if (i - 1 = 0) then k else i-1))"
+
 
 
 overloading Set_kevfun == 
@@ -35,195 +183,63 @@ declare Set_kevfun_def [simp]
 lemma guardedfun_kevfun [simp]: "guardedfun kevfun"
   apply (simp add: guardedfun_def)
   apply (rule allI, induct_tac p)
-  apply (case_tac xa, simp_all)
-  done
-
-
-
-subsubsection \<open> dfp_kev \<close>
-
-fun DF_induct_Hypotheses :: "kevPN \<Rightarrow> (DFtickName, 'e) proc"
-where
-    "DF_induct_Hypotheses (kev k) = $DFtick"
-
-
-lemma Lemma_kevPN_To_DFtick :
-    "DF_induct_Hypotheses p \<sqsubseteq>F (kevfun p) << DF_induct_Hypotheses"
-  apply (induct_tac p, simp)
-  apply (induct_tac xa)
-  apply (simp, rule dfp)
-  apply (simp, rule dfp)
-  by (rule dfp)+
-
-
-lemma dfp_kev :
-    "$DFtick <=F $kev k"
-  apply (rule_tac Pf="kevfun" and f="DF_induct_Hypotheses" in cspF_fp_induct_ref_right)
-  apply (simp, case_tac FPmode, simp_all)
-  by (rule Lemma_kevPN_To_DFtick)
-
-
-lemma kev_is_DeadlockFree:
-    "(($kev k) :: (kevPN, 'e) proc) isDeadlockFree"
-  by (simp only: DeadlockFree_DFtick_ref, rule dfp_kev)
-
-
-
-
-subsection \<open> DFkev \<close>
-text \<open> The process that performs k events then RECURS \<close>
-
-datatype DFkevPN = DFkev nat nat
-
-
-fun
-  DFkevfun ::  "(DFkevPN, 'event) pnfun"
-where
-  "DFkevfun (DFkev 0 _) = DIV"
-| "DFkevfun (DFkev k 0) = DIV"
-| "DFkevfun (DFkev k i) = (if (i > k) then DIV
-                                      else ! x -> $DFkev k (if (i - 1 = 0) then k else i-1))"
-
-
-overloading Set_DFkevfun == 
-  "CSP_syntax.PNfun :: (DFkevPN, 'event) pnfun"
-begin
-  definition "CSP_syntax.PNfun :: (DFkevPN, 'event) pnfun == DFkevfun"
-end
-
-declare Set_DFkevfun_def [simp]
-
-
-lemma guardedfun_DFkevfun [simp]: "guardedfun DFkevfun"
-  apply (simp add: guardedfun_def)
-  apply (rule allI, induct_tac p)
-  apply (case_tac x1a, simp_all)
-    apply (case_tac x2a, simp_all)
-  done
-
-
-subsubsection \<open> dfp_DFkev \<close>
-
-fun DF_induct_Hypotheses2 :: "DFkevPN \<Rightarrow> (DFnonTickPN, 'e) proc"
-where
-    "DF_induct_Hypotheses2 (DFkev k i) = $DFnonTick"
-
-
-lemma Lemma_DFkevPN_To_DFtick :
-    "DF_induct_Hypotheses2 p \<sqsubseteq>F (DFkevfun p) << DF_induct_Hypotheses2"
-  apply (induct_tac p, simp)
-  apply (induct_tac x1a, simp)
-    apply (case_tac x2a, simp_all)
-      apply (rule, cspF_unwind_left)
-  done
-
-
-lemma dfnt_DFkev :
-    "$DFnonTick <=F $DFkev k i"
-  apply (rule_tac Pf="DFkevfun" and f="DF_induct_Hypotheses2" in cspF_fp_induct_ref_right)
-  apply (simp, case_tac FPmode, simp_all)
-  by (rule Lemma_DFkevPN_To_DFtick)
-
-
-lemma dfp_DFkev :
-    "$DFtick <=F $DFkev k i"
-  apply (rule cspF_trans, rule dfp_DFnonTick)
-  by (rule dfnt_DFkev)
-
-lemma DFkev_is_DeadlockFree:
-    "(($DFkev k i) :: (DFkevPN, 'e) proc) isDeadlockFree"
-  by (simp only: DeadlockFree_DFtick_ref, rule dfp_DFkev)
-
-
-
-
-
-subsection \<open> kevXPN = kevT | kevR \<close>
-text \<open> The processes that performs k events then does X (SKIP (Tick) ou recur) \<close>
-
-datatype kevXPN = kevT nat
-                | kevR nat nat
-
-
-fun
-  kevXfun ::  "(kevXPN, 'event) pnfun"
-where
-  "kevXfun (kevT 0) = SKIP"
-| "kevXfun (kevT k) = ! x -> $kevT (k-1)"
-| "kevXfun (kevR 0 _) = DIV"
-| "kevXfun (kevR _ 0) = DIV"
-| "kevXfun (kevR k i) = (if (i > k) then DIV
-                                    else ! x -> $kevR k (if (i - 1 = 0) then k else i-1))"
-
-
-overloading Set_kevXfun == 
-  "CSP_syntax.PNfun :: (kevXPN, 'event) pnfun"
-begin
-  definition "CSP_syntax.PNfun :: (kevXPN, 'event) pnfun == kevXfun"
-end
-
-declare Set_kevXfun_def [simp]
-
-
-lemma guardedfun_kevXfun [simp]: "guardedfun kevXfun"
-  apply (simp add: guardedfun_def)
-  apply (rule allI, induct_tac p)
+  apply (case_tac a, simp_all)
   apply (case_tac x, simp_all)
-  apply (case_tac x1a, simp_all)
+  apply (case_tac b, simp_all)
+  apply (case_tac x1, simp_all)
   apply (case_tac x2, simp_all)
   done
 
 
 
-subsubsection \<open> dfp_kevT (kevT to kev) \<close>
+subsubsection \<open> dfp_kEvTick (kEvTick to DFkEvTick) \<close>
 
-fun DF_induct_Hypotheses3 :: "kevPN \<Rightarrow> (kevXPN, 'e) proc"
+fun DF_induct_Hypotheses3 :: "DFkEvTickPN \<Rightarrow> (kevPN, 'e) proc"
 where
-    "DF_induct_Hypotheses3 (kev k) = $kevT k"
+    "DF_induct_Hypotheses3 (DFkEvTick k) = $kEvTick k"
 
 
-lemma Lemma_kevPN_To_kevT :
-    "DF_induct_Hypotheses3 p =F (kevfun p) << DF_induct_Hypotheses3"
+lemma Lemma_DFkEvTickPN_To_kEvTick :
+    "DF_induct_Hypotheses3 p =F (DFkEvTickfun p) << DF_induct_Hypotheses3"
   apply (induct_tac p, simp)
   apply (induct_tac xa, simp)
     apply (cspF_unwind_left)
     apply (cspF_unwind_left)
   done
 
-
-lemma cspF_kevT_to_kev :
-    "FPmode \<noteq> CPOmode \<Longrightarrow> $kevT k =F $kev k"
-  apply (rule_tac Pf="kevfun" and f="DF_induct_Hypotheses3" in cspF_fp_induct_eq_right)
+lemma cspF_kEvTick_to_DFkEvTick :
+    "FPmode \<noteq> CPOmode \<Longrightarrow> $kEvTick k =F $DFkEvTick k"
+  apply (rule_tac Pf="DFkEvTickfun" and f="DF_induct_Hypotheses3" in cspF_fp_induct_eq_right)
   apply (simp, case_tac FPmode, simp_all)
-  by (rule Lemma_kevPN_To_kevT)
+  by (rule Lemma_DFkEvTickPN_To_kEvTick)
 
-lemma cspF_kev_to_kevT :
-    "FPmode \<noteq> CPOmode \<Longrightarrow> $kev k =F $kevT k"
-  by (rule cspF_sym, rule cspF_kevT_to_kev)
-
-
-
-lemma dfp_kevT :
-    "FPmode \<noteq> CPOmode \<Longrightarrow> $DFtick <=F $kevT k"
-  by (rule cspF_rw_right, rule cspF_kevT_to_kev, simp, rule dfp_kev)
-
-
-lemma kevT_is_DeadlockFree:
-    "FPmode \<noteq> CPOmode \<Longrightarrow> (($kevT k) :: (kevXPN, 'e) proc) isDeadlockFree"
-  by (simp only: DeadlockFree_DFtick_ref, rule dfp_kevT, simp)
+lemma cspF_kev_to_kEvTick :
+    "FPmode \<noteq> CPOmode \<Longrightarrow> $DFkEvTick k =F $kEvTick k"
+  by (rule cspF_sym, rule cspF_kEvTick_to_DFkEvTick)
 
 
 
-subsubsection \<open> dfp_kevR (kevR to DFkev) \<close>
+lemma dfp_kEvTick :
+    "FPmode \<noteq> CPOmode \<Longrightarrow> $DFtick <=F $kEvTick k"
+  by (rule cspF_rw_right, rule cspF_kEvTick_to_DFkEvTick, simp, rule dfp_DFkEvTick)
 
 
-fun DF_induct_Hypotheses4 :: "DFkevPN \<Rightarrow> (kevXPN, 'e) proc"
+lemma kEvTick_is_DeadlockFree:
+    "FPmode \<noteq> CPOmode \<Longrightarrow> (($kEvTick k) :: (kevPN, 'e) proc) isDeadlockFree"
+  by (simp only: DeadlockFree_DFtick_ref, rule dfp_kEvTick, simp)
+
+
+
+subsubsection \<open> dfp_kEvRec (kEvRec to DFkEv) \<close>
+
+
+fun DF_induct_Hypotheses4 :: "DFkEvPN \<Rightarrow> (kevPN, 'e) proc"
 where
-    "DF_induct_Hypotheses4 (DFkev k i) = $kevR k i"
+    "DF_induct_Hypotheses4 (DFkEv k i) = $kEvRec k i"
 
 
-lemma Lemma_DFkevPN_induct_right :
-    "DF_induct_Hypotheses4 p =F (DFkevfun p) << DF_induct_Hypotheses4"
+lemma Lemma_DFkEvPN_induct_right :
+    "DF_induct_Hypotheses4 p =F (DFkEvfun p) << DF_induct_Hypotheses4"
   apply (induct_tac p, simp)
   apply (induct_tac x1a, simp)
       apply (cspF_unwind_left)
@@ -235,26 +251,26 @@ lemma Lemma_DFkevPN_induct_right :
       apply (rule, cspF_unwind_left)
   done
 
-lemma cspF_kevR_to_DFkev :
-    "FPmode \<noteq> CPOmode \<Longrightarrow> $kevR k i =F $DFkev k i"
-  apply (rule_tac Pf="DFkevfun" and f="DF_induct_Hypotheses4" in cspF_fp_induct_eq_right)
+lemma cspF_kEvRec_to_DFkEv :
+    "FPmode \<noteq> CPOmode \<Longrightarrow> $kEvRec k i =F $DFkEv k i"
+  apply (rule_tac Pf="DFkEvfun" and f="DF_induct_Hypotheses4" in cspF_fp_induct_eq_right)
   apply (simp_all)
-  by (rule Lemma_DFkevPN_induct_right)         
+  by (rule Lemma_DFkEvPN_induct_right)
 
-lemma cspF_DFkev_to_kevR :
-    "FPmode \<noteq> CPOmode \<Longrightarrow> $DFkev k i =F $kevR k i"
-  by (rule cspF_sym, rule cspF_kevR_to_DFkev)
-
-
-
-lemma dfp_kevR :
-    "FPmode \<noteq> CPOmode \<Longrightarrow> $DFtick <=F $kevR k i"
-  by (rule cspF_rw_right, rule cspF_kevR_to_DFkev, simp, rule dfp_DFkev)
+lemma cspF_DFkEv_to_kEvRec :
+    "FPmode \<noteq> CPOmode \<Longrightarrow> $DFkEv k i =F $kEvRec k i"
+  by (rule cspF_sym, rule cspF_kEvRec_to_DFkEv)
 
 
-lemma kevR_is_DeadlockFree:
-    "FPmode \<noteq> CPOmode \<Longrightarrow> (($kevR k i) :: (kevXPN, 'e) proc) isDeadlockFree"
-  by (simp only: DeadlockFree_DFtick_ref, rule dfp_kevR, simp)
+
+lemma dfp_kEvRec :
+    "FPmode \<noteq> CPOmode \<Longrightarrow> $DFtick <=F $kEvRec k i"
+  by (rule cspF_rw_right, rule cspF_kEvRec_to_DFkEv, simp, rule dfp_DFkEv)
+
+
+lemma kEvRec_is_DeadlockFree:
+    "FPmode \<noteq> CPOmode \<Longrightarrow> (($kEvRec k i) :: (kevPN, 'e) proc) isDeadlockFree"
+  by (simp only: DeadlockFree_DFtick_ref, rule dfp_kEvRec, simp)
 
 
 

@@ -10,7 +10,11 @@
             |        CSP-Prover on Isabelle2017         |
             |                  April 2018  (modified)   |
             |                                           |
+            |        CSP-Prover on Isabelle2021         |
+            |                  2022 / 2023  (modified)  |
+            |                                           |
             |        Yoshinao Isobe (AIST JAPAN)        |
+            | Joabe Jesus (eComp POLI UPE and CIn UFPE) |
             *-------------------------------------------*)
 
 theory DFP_Network
@@ -53,7 +57,12 @@ declare disj_not1 [simp del]
 
 (*** network ***)
 
-type_synonym ('i,'p,'a) Network  = "('i set * ('i => (('p,'a) proc * 'a set)))"
+type_synonym ('i,'x,'a) Atom  = "'i * ('x * 'a set)"
+
+type_synonym ('i,'x,'a) Net  = "('i set * ('i => ('x * 'a set)))"
+
+
+type_synonym ('i,'p,'a) Network  = "('i,('p,'a) proc,'a) Net"
 
 definition
   PAR  :: "('i,'p,'a) Network => ('p,'a) proc" ("(1PAR _)" [77] 77)
@@ -72,7 +81,7 @@ translations
 
 (*** failure set of network ***)
 
-type_synonym ('i,'a) NetworkF = "('i set * ('i => (('a failure set) * 'a set)))"
+type_synonym ('i,'a) NetworkF = "('i,('a failure) set,'a) Net"
 
 syntax
   "@NetworkF" :: 
@@ -84,16 +93,17 @@ translations
 
 (*** Network and NetworkF ***)
 
+
 abbreviation
   Network_pro :: 
-     "('i set * ('i => ('b * 'a set))) => 'i => 'b"
+     "('i,'x,'a) Net => 'i => 'x"
                           ("netElement _<_>" [900,0] 1000)
 where
   "netElement V<i> == fst ((snd V) i)"
 
 abbreviation
   Network_alp :: 
-     "('i set * ('i => ('b * 'a set))) => 'i => 'a set"
+     "('i,'x,'a) Net => 'i => 'a set"
                           ("netAlpha _<_>" [900,0] 1000)
 where
   "netAlpha V<i>  == snd ((snd V) i)"
@@ -115,9 +125,15 @@ definition
 (*** short notations ***)
 
 definition
-  ALP  :: "('i set * ('i => ('b * 'a set))) => 'a set"
+  ALP  :: "('i,'x,'a) Net => 'a set"
   where
   ALP_def  : "ALP V == {a. EX i:(fst V). a : snd((snd V) i)}"
+                       (* \<Union>i\<in>I. snd ((snd V) i) *)
+
+
+abbreviation EvALP :: "('i,'x,'a) Net => ('a) event set"
+where
+    "EvALP V == Ev ` (ALP V)"
 
 (*** state ***)
 
@@ -130,7 +146,7 @@ definition
   where
   isStateOf_def : 
    "sigma isStateOf VF == 
-     sett(fst sigma) <= Ev ` (ALP VF) &
+     sett(fst sigma) <= Ev ` ALP VF &
     (ALL i: fst VF. (fst sigma rest-tr snd ((snd VF) i), (snd sigma) i) 
                      : fst ((snd VF) i) &
                     (snd sigma) i <= Ev ` snd ((snd VF) i))"

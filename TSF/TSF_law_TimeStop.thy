@@ -1,33 +1,89 @@
+           (*-------------------------------------------*
+            |        CSP-Prover on Isabelle2021         |
+            |                 2022 / 2023               |
+            |                                           |
+            |          Lemmas and Theorems from         |
+            |    Jesus and Sampaio's SBMF 2022 paper    |
+            |                     and                   |
+            |    Jesus and Sampaio's SCP 2023 paper     |
+            |                                           |
+            | Joabe Jesus (eComp POLI UPE and CIn UFPE) |
+            *-------------------------------------------*)
+
 theory TSF_law_TimeStop
 imports TSF_TimeStop
 begin
+
+
+lemma DeadlockFree_subset :
+    "[X]-DeadlockFree P \<Longrightarrow> [X \<union> Y]-DeadlockFree P"
+  apply (simp add: DeadlockFree_def)
+  apply (simp only: imp_conv_disj)
+    apply (rule)
+    apply (subst disj_imp, rule)
+    apply (simp add: disj_imp)
+    apply (drule_tac x=s in spec, simp)
+    apply (rule non_memF_F2[of _ X], simp, force)
+  done
+
+
+lemma TimeStopFree_subset :
+    "[X]-TimeStopFree P \<Longrightarrow> [X \<union> Y]-TimeStopFree P"
+  apply (simp only: TimeStopFree_def)
+  apply (subst Un_commute)
+  apply (subst Un_assoc)
+  apply (subst Un_commute)
+  apply (rule DeadlockFree_subset, simp)
+  done
+
+lemma TimeStopFree_minimal :
+    "[{}]-TimeStopFree P \<Longrightarrow> [X]-TimeStopFree P"
+by (frule_tac X="{}" in TimeStopFree_subset, simp)
 
 
 
 subsection \<open> checking BASIC untimed CSP Processes \<close>
 
 
-lemma not_STOP_isTimeStopFree:
-    "\<not> STOP isTimeStopFree"
-  apply (simp add: TimeStopFree_def DeadlockFree_def)
+
+lemma not_STOP_TimeStopFree_maximal :
+    "~ [X]-TimeStopFree STOP"
+  apply (simp only: TimeStopFree_def)
+  apply (simp only: DeadlockFree_def)
   apply (simp add: in_failures)
   done
 
+lemma not_STOP_isTimeStopFree:
+    "\<not> STOP isTimeStopFree"
+  by (simp add: not_STOP_TimeStopFree_maximal)
+
+
+
+lemma SKIP_TimeStopFree_maximal :
+    "Tick \<in> X \<Longrightarrow>
+     [X]-TimeStopFree SKIP"
+  apply (simp only: TimeStopFree_def)
+  apply (simp only: DeadlockFree_def)
+  apply (simp add: in_failures)
+  apply (force)
+  done
 
 lemma SKIP_isTimeStopFree:
     "SKIP isTimeStopFree"
-  apply (simp add: TimeStopFree_def DeadlockFree_def)
-  apply (simp add: in_failures)
-    apply (force)
-  done
+  by (simp add: SKIP_TimeStopFree_maximal)
 
+
+
+lemma DIV_TimeStopFree_maximal :
+    "[X]-TimeStopFree DIV"
+  apply (simp only: TimeStopFree_def)
+  apply (simp only: DeadlockFree_def)
+  apply (simp add: in_failures)
+  done
 
 lemma DIV_isTimeStopFree:
     "DIV isTimeStopFree"
-  apply (simp add: TimeStopFree_def DeadlockFree_def)
-  apply (simp add: in_failures)
-  done
-
+  by (simp add: DIV_TimeStopFree_maximal)
 
 
 
@@ -88,6 +144,8 @@ lemma TOCKSTick_isTimeStopFree:
 
   apply (force)
   done
+
+
 
 
 

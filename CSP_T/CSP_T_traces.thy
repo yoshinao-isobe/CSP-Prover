@@ -290,6 +290,75 @@ lemma in_traces_IF:
 by (simp add: traces_iff)
 
 (*--------------------------------*
+ |           Interrupt            |
+ *--------------------------------*)
+
+lemma Interrupt_domT :
+    "{ u. u :t traces P M | ( \<exists>s t. u = s ^^^ t & noTick s & s :t traces P M & t :t traces Q M) } : domT"
+apply (simp add: domT_def HC_T1_def)
+apply (rule conjI)
+
+apply (simp add: ex_disj_distrib)
+apply (intro disjI2)
+apply (rule_tac x="<>" in exI)
+apply (rule_tac x="<>" in exI, simp)
+
+(* prefix closed *)
+apply (simp add: prefix_closed_def)
+
+ apply (intro strip)
+ apply (elim disjE conjE exE)
+
+  apply (rule disjI1)
+  apply (rule memT_prefix_closed)
+  apply (simp)
+  apply (simp)
+
+  apply (simp)
+  apply (simp add: prefix_def)
+  apply (elim disjE conjE exE)
+
+  apply (simp add: appt_decompo)
+  apply (elim disjE conjE exE)
+
+   apply (rule disjI2)
+   apply (rule_tac x="sa" in exI)
+   apply (rule_tac x="ua" in exI)
+   apply (simp)
+   apply (rule memT_prefix_closed)
+   apply (simp)
+   apply (simp)
+
+   apply (force)
+
+   apply (rule disjI2)
+   apply (rule_tac x="s" in exI)
+   apply (rule_tac x="<>" in exI)
+   apply (simp)
+   apply (rule memT_prefix_closed)
+   apply (simp)
+   apply (simp)
+
+   apply (rule disjI2)
+   apply (rule_tac x="s" in exI)
+   apply (rule_tac x="<>" in exI)
+   apply (simp)
+   apply (rule memT_prefix_closed)
+   apply (simp)
+   apply (simp)
+
+  apply (force)
+done
+
+
+lemma in_traces_Interrupt: 
+  "(t :t traces(P /> Q) M)
+ = (t :t traces(P) M | (EX s u. t = s ^^^ u & noTick s & s :t traces(P) M & u :t traces(Q) M))"
+apply (simp add: traces_iff)
+by (simp add: CollectT_open_memT Interrupt_domT)
+
+
+(*--------------------------------*
  |           Parallel             |
  *--------------------------------*)
 
@@ -538,7 +607,7 @@ done
 lemmas traces_domT = Act_prefix_domT     Ext_pre_choice_domT
                      Rep_int_choice_domT Parallel_domT
                      Hiding_domT         Renaming_domT
-                     Seq_compo_domT
+                     Seq_compo_domT      Interrupt_domT
                      Inductive_interleave_domT
 
 
@@ -546,6 +615,7 @@ lemmas in_traces = in_traces_STOP  in_traces_SKIP  in_traces_DIV
                    in_traces_Act_prefix     in_traces_Ext_pre_choice
                    in_traces_Ext_choice     in_traces_Int_choice
                    in_traces_Rep_int_choice in_traces_IF
+                   in_traces_Interrupt
                    in_traces_Parallel       in_traces_Hiding
                    in_traces_Renaming       in_traces_Seq_compo
                    in_traces_Union_proc     in_traces_UNIV_Union_proc

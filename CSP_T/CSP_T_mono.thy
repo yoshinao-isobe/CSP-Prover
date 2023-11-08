@@ -128,6 +128,24 @@ apply (auto simp add: in_traces subdomT_iff)
 done
 
 (*--------------------------------*
+ |           Interrupt            |
+ *--------------------------------*)
+
+lemma mono_traces_Interrupt:
+ "[| mono (traces P) ; mono (traces Q) |]
+  ==> mono (traces (P /> Q))"
+apply (simp add: mono_def)
+apply (simp add: subdomT_iff)
+apply (simp add: in_traces)
+apply (intro allI impI)
+apply (elim conjE exE)
+apply (rule disjI2)
+apply (rule_tac x="s" in exI)
+apply (rule_tac x="u" in exI)
+apply (auto simp add: subdomT_iff)
+done
+
+(*--------------------------------*
  |           Parallel             |
  *--------------------------------*)
 
@@ -242,6 +260,7 @@ apply (simp add: mono_traces_Ext_choice)
 apply (simp add: mono_traces_Int_choice)
 apply (simp add: mono_traces_Rep_int_choice)
 apply (simp add: mono_traces_IF)
+apply (simp add: mono_traces_Interrupt)
 apply (simp add: mono_traces_Parallel)
 apply (simp add: mono_traces_Hiding)
 apply (simp add: mono_traces_Renaming)

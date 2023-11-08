@@ -22,9 +22,9 @@
             | Joabe Jesus (eComp POLI UPE and CIn UFPE) |
             *-------------------------------------------*)
 
-theory CSP_T_semantics
+theory CSP_T_semantics                     
 imports CSP.Trace_op CSP.CSP_syntax Domain_T_cms
-
+                                            
 begin
 
 (*****************************************************************
@@ -58,6 +58,9 @@ where
 
  |"traces(IF b THEN P ELSE Q) = (%M. (if b then traces(P) M else traces(Q) M))"
 
+ |"traces(P /> Q)   = (%M. {u . u :t traces(P) M | (EX s t . u = s ^^^ t & noTick s &
+                                                   s :t traces(P) M & t :t traces(Q) M ) }t)"
+
  |"traces(P |[X]| Q) = (%M. {u. EX s t. u : s |[X]|tr t & 
                                   s :t traces(P) M & t :t traces(Q) M }t)"
  |"traces(P -- X)    = (%M. {t. EX s. t = s --tr X & s :t traces(P) M }t)"
@@ -71,6 +74,8 @@ where
  |"traces($p)        = (%M. M p)"
 
 declare traces.simps [simp del]
+
+
 
 (*** for dealing with both !nat and !set ***)
 
@@ -742,6 +747,7 @@ apply (simp add: traces_iff, force)
 apply (simp add: traces_iff, force)
 apply (simp add: traces_iff, force)
 apply (simp add: traces_iff, force)
+apply (simp add: traces_iff, force)
 apply (simp add: traces_iff)
 done
 
@@ -773,5 +779,64 @@ lemma traces_subst:
 apply (induct_tac P)
 apply (simp_all add: semT_def traces_iff)
 done
+
+
+
+
+(*-----------------------------------------------------*
+ |                   CSP-Prover v6                     |
+ *-----------------------------------------------------*)
+
+
+(*-------------------------------------------*
+ |   transitivity processes in assumptions   |
+ *-------------------------------------------*)
+
+lemma cspT_tr_left_refE_MF:
+    "[| P <=T Q ; Pb <=T P ;
+        [| Pb <=T Q |] ==> R |] ==> R"
+  apply (subgoal_tac "Pb <=T Q")
+  apply (simp)
+  apply (rule cspT_trans_left)
+  apply (simp)
+  apply (simp)
+done
+
+lemma cspT_tr_left_refE:
+    "[| P <=T[Mp,Mq] Q ; Pb <=T[Mb,Mp] P ; 
+        [| Pb <=T[Mb,Mq] Q |] ==> R |] ==> R"
+  apply (subgoal_tac "Pb <=T[Mb,Mq] Q")
+  apply (simp)
+  apply (rule cspT_trans_left)
+  apply (simp)
+  apply (simp)
+done
+
+lemmas cspT_tr_leftE = cspT_tr_left_refE_MF
+                       cspT_tr_left_refE
+
+(* right *)
+
+lemma cspT_tr_right_refE_MF:
+    "[| P <=T Q ; Q <=T Pt ; [| P <=T Pt |] ==> R |] ==> R"
+  apply (subgoal_tac "P <=T Pt")
+  apply (simp)
+  apply (rule cspT_trans_right)
+  apply (simp)
+  apply (simp)
+done
+
+lemma cspT_tr_right_refE:
+    "[| P <=T[Mp,Mq] Q ; Q <=T[Mq,Mt] Pt ;
+        [| P <=T[Mp,Mt] Pt |] ==> R |] ==> R"
+  apply (subgoal_tac "P <=T[Mp,Mt] Pt")
+  apply (simp)
+  apply (rule cspT_trans_right)
+  apply (simp)
+  apply (simp)
+done
+
+lemmas cspT_tr_rightE = cspT_tr_right_refE_MF
+                        cspT_tr_right_refE
 
 end

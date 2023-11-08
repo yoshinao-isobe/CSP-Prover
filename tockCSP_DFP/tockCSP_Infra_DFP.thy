@@ -1,40 +1,19 @@
+           (*-------------------------------------------*
+            |        CSP-Prover on Isabelle2021         |
+            |                 2022 / 2023               |
+            |                                           |
+            |          Lemmas and Theorems from         |
+            |    Jesus and Sampaio's SBMF 2022 paper    |
+            |                     and                   |
+            |    Jesus and Sampaio's SCP 2023 paper     |
+            |                                           |
+            | Joabe Jesus (eComp POLI UPE and CIn UFPE) |
+            *-------------------------------------------*)
+
 theory tockCSP_Infra_DFP
 imports tockCSP_F.tockCSP_Infra_CSP_F
         DFP
 begin
-
-
-subsection \<open> DFP \<close>
-
-
-lemma DeadlockFree_Hiding :
-    "[X]-DeadlockFree P \<Longrightarrow> [X]-DeadlockFree (P -- R)"
-  apply (simp add: DeadlockFree_def)
-  apply (simp add: in_failures in_traces)
-  apply (rule allI, rule impI)
-  apply (rule allI)
-  apply (erule_tac x="sa" in allE)
-  apply (rule, simp)
-  by (erule non_memF_F2, simp)
-
-
-lemma Tick_DeadlockFree_if_DeadlockFree :
-    "[X]-DeadlockFree P \<Longrightarrow> [X \<union> {Tick}]-DeadlockFree P"
-  apply (simp add: DeadlockFree_def)
-  apply (rule, rule)
-    apply (drule_tac x=s in spec, simp)
-    apply (rotate_tac 1)
-    apply (erule contrapos_nn)
-    apply (erule memF_F2, force)
-    done
-
-
-
-lemma isStateOf_if_isDeadlockStateOf :
-    "sigma isDeadlockStateOf VF \<Longrightarrow>
-     sigma isStateOf VF"
-  by (simp add: isDeadlockStateOf_def)
-
 
 
 

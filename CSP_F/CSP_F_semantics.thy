@@ -60,6 +60,13 @@ where
 
  |"failures(IF b THEN P ELSE Q) = (%M. if b then failures(P) M else failures(Q) M)"
 
+ |"failures(P /> Q) = (%M. {f.
+       (EX s   X. f = (s,X) & f :f failures(P) M ) |
+       (EX s   X. f = (s,X) & noTick s & s ^^^ <Tick> :t traces(P) (fstF o M) & Tick ~: X ) |
+       (EX s   X. f = (s ^^^ <Tick> , X) & noTick s & s ^^^ <Tick> :t traces(P) (fstF o M) ) |
+       (EX s t X. f = (s ^^^ t,X) & s :t traces(P) (fstF o M) & noTick s & (t,X) :f failures(Q) M ) }f)"
+(*& (ALL i. <Ev i> :t traces(Q) (fstF o M) --> Ev i ~: X) *)
+
  |"failures(P |[X]| Q)  = (%M. {f. 
       EX u Y Z. f = (u, Y Un Z) & Y-((Ev`X) Un {Tick})= Z-((Ev`X) Un {Tick}) &
      (EX s t. u : s |[X]|tr t & (s,Y) :f failures(P) M & (t,Z) :f failures(Q) M) }f)"
@@ -635,6 +642,20 @@ apply (simp add: failures_iff, force)
  apply (simp)
  apply (simp)
 
+(* Interrupt *)
+ apply (intro impI)
+ apply (simp add: failures_iff)
+ apply (elim exE)
+ apply (simp)
+ apply (subgoal_tac "ALL P. noPN P --> (EX T. traces P = (%M. T))")
+ apply (frule_tac x="x1" in spec)
+ apply (drule_tac x="x2" in spec)
+ apply (simp)
+ apply (elim exE)
+ apply (simp)
+ apply (force)
+ apply (simp add: traces_noPN_Constant)
+
 apply (simp add: failures_iff, force)
 apply (simp add: failures_iff, force)
 apply (simp add: failures_iff, force)
@@ -660,5 +681,64 @@ lemma failures_noPN_Constant:
   "noPN P ==> (EX F. failures P = (%M. F))"
 apply (simp add: failures_noPN_Constant_lm)
 done
+
+
+
+
+(*-----------------------------------------------------*
+ |                   CSP-Prover v6                     |
+ *-----------------------------------------------------*)
+
+
+(*-------------------------------------------*
+ |   transitivity processes in assumptions   |
+ *-------------------------------------------*)
+
+lemma cspF_tr_left_refE_MF:
+    "[| P <=F Q ; Pb <=F P ;
+        [| Pb <=F Q |] ==> R |] ==> R"
+  apply (subgoal_tac "Pb <=F Q")
+  apply (simp)
+  apply (rule cspF_trans_left)
+  apply (simp)
+  apply (simp)
+done
+
+lemma cspF_tr_left_refE:
+    "[| P <=F[Mp,Mq] Q ; Pb <=F[Mb,Mp] P ; 
+        [| Pb <=F[Mb,Mq] Q |] ==> R |] ==> R"
+  apply (subgoal_tac "Pb <=F[Mb,Mq] Q")
+  apply (simp)
+  apply (rule cspF_trans_left)
+  apply (simp)
+  apply (simp)
+done
+
+lemmas cspF_tr_leftE = cspF_tr_left_refE_MF
+                       cspF_tr_left_refE
+
+(* right *)
+
+lemma cspF_tr_right_refE_MF:
+    "[| P <=F Q ; Q <=F Pt ; [| P <=F Pt |] ==> R |] ==> R"
+  apply (subgoal_tac "P <=F Pt")
+  apply (simp)
+  apply (rule cspF_trans_right)
+  apply (simp)
+  apply (simp)
+done
+
+lemma cspF_tr_right_refE:
+    "[| P <=F[Mp,Mq] Q ; Q <=F[Mq,Mt] Pt ;
+        [| P <=F[Mp,Mt] Pt |] ==> R |] ==> R"
+  apply (subgoal_tac "P <=F[Mp,Mt] Pt")
+  apply (simp)
+  apply (rule cspF_trans_right)
+  apply (simp)
+  apply (simp)
+done
+
+lemmas cspF_tr_rightE = cspF_tr_right_refE_MF
+                        cspF_tr_right_refE
 
 end

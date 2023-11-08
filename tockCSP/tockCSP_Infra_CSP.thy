@@ -1,9 +1,21 @@
+           (*-------------------------------------------*
+            |        CSP-Prover on Isabelle2021         |
+            |                 2022 / 2023               |
+            |                                           |
+            |          Lemmas and Theorems from         |
+            |    Jesus and Sampaio's SBMF 2022 paper    |
+            |                     and                   |
+            |    Jesus and Sampaio's SCP 2023 paper     |
+            |                                           |
+            | Joabe Jesus (eComp POLI UPE and CIn UFPE) |
+            *-------------------------------------------*)
+
 theory tockCSP_Infra_CSP
 imports tockCSP_Infra_HOL
         CSP
 begin
 
-
+(* TODO: tockCSP_Infra_CSP - move to CSP *)
 
 subsection \<open> EvsetTick, Evset and Tick \<close>
 
@@ -187,6 +199,13 @@ lemma sett_Tick_iff : "sett s = {Tick} \<longleftrightarrow> s = <Tick>"
   apply (insert sett_subset_Tick[of s])
   apply (simp add: subset_eq)
   by (force)
+
+
+lemma sett_one_iff : "sett s = {Ev e} \<longleftrightarrow> (\<exists> sa. sett sa \<subseteq> {Ev e} \<and> s = <Ev e> ^^^ sa)"
+  apply (induct s rule: induct_trace)
+  apply (simp_all)
+  apply (rule, elim conjE, simp)
+by (simp add: subset_eq)
 
 
 
@@ -389,6 +408,116 @@ lemma hide_tr_idem_iff :
     "u --tr X = u \<longleftrightarrow> sett u \<subseteq> - (Ev ` X)"
   apply (simp only: hide_tr_to_hidex)
   by (rule hidex_idem_iff)
+
+
+
+
+lemma notin_hide_tr_appt_lm :
+    "s --tr X = <Ev a> ^^^ t \<longrightarrow> a ~: X"
+  apply (induct s rule: induct_trace)
+  apply (simp)
+  apply (simp)
+  apply (simp)
+  apply (safe)
+  apply (case_tac "aa : X", simp)
+  apply (subst (asm) hide_tr_notin, simp, simp)
+done
+
+
+lemma notin_hide_tr_appt:
+    "s --tr X = <Ev a> ^^^ t ==> a ~: X"
+  apply (insert notin_hide_tr_appt_lm[of s X a t])
+by (drule mp, simp, simp)
+
+lemma notin_hide_tr_one :
+    "s --tr X = <Ev a> \<Longrightarrow> a ~: X"
+  apply (insert notin_hide_tr_appt[of s X a <>])
+by (simp)
+
+lemma notin_appt_hide_tr_one :
+    "(<Ev a> ^^^ s) --tr X = <Ev a> \<Longrightarrow> a ~: X"
+  apply (insert notin_hide_tr_one[of "<Ev a> ^^^ s" X a])
+by (assumption)
+
+lemma notin_one_hide_tr_one :
+    "<Ev a> --tr X = <Ev a> \<Longrightarrow> a ~: X"
+by (rule notin_appt_hide_tr_one[of _ <>], simp)
+(*by (erule hide_tr_elims, simp_all)*)
+
+
+
+
+lemma in_hide_tr_appt_lm :
+    "(<Ev a> ^^^ s) --tr X = <> \<longrightarrow> a : X"
+  apply (induct s rule: induct_trace)
+  apply (simp, intro impI)
+  apply (subst (asm) hide_tr_nilt_sett, simp add: image_def)
+  apply (simp, intro impI)
+  apply (subst (asm) hide_tr_nilt_sett, simp add: image_def)
+  apply (subst (asm) hide_tr_nilt_sett, simp add: image_def)
+done
+
+
+lemma in_hide_tr_one_if :
+    "<Ev a> --tr X = <> \<Longrightarrow> a : X"
+by (erule hide_tr_elims, simp_all)
+
+(*lemma hide_tr_one_sett_in_iff:
+  "a : X \<Longrightarrow> (s --tr X = <Ev a>) = (s = <>)"
+apply (rule iffI)
+apply (frule hide_tr_in_one)
+apply (drule sym)
+apply (frule hide_tr_notin)
+done*)
+
+
+lemma sett_subset_hide_tr_X :
+    "(t --tr X = s) \<Longrightarrow> (sett t <= sett s \<union> Ev ` X)"
+  apply (induct t arbitrary: X rule: induct_trace)
+    apply (simp, drule sym, simp)
+    apply (rule)
+    apply (simp, drule sym, simp)
+    apply (force)
+  done
+
+lemma notin_Ev_image : "a \<notin> X \<Longrightarrow> Ev a \<notin> Ev ` X"
+by (auto)
+
+lemma hide_tr_notin_only_if_not_subset :
+     "sa --tr X = <Ev a> ^^^ s \<Longrightarrow>
+      \<not> sett sa \<subseteq> Ev ` X"
+  apply (induct sa rule: induct_trace)
+  apply (simp_all)
+  apply (rule impI)
+  apply (case_tac "aa : X", simp)
+  apply (simp)
+  apply (simp add: image_def)
+done
+
+
+lemma hiding_all_sett : "{s --tr X |s. sett s \<subseteq> Ev ` X} = {<>}"
+  apply (simp only: singleton_conv[THEN sym])
+  apply (simp only: set_eq_iff)
+  apply (rule)
+    apply (induct_tac x rule: induct_trace)
+
+    (* <> *)
+    apply (simp add: subset_singleton_iff)
+    apply (rule_tac x="<>" in exI, simp)
+
+    (* <Tick> *)
+    apply (simp)
+    apply (intro allI impI)
+    apply (simp add: hide_tr_sym)
+    apply (simp add: hide_tr_Tick_sett)
+    apply (elim exE conjE disjE, simp)
+
+    (* <Ev a> ^^^ s *)
+    apply (simp (no_asm))
+    apply (intro allI impI)
+    apply (simp add: hide_tr_sym)
+    apply (simp add: hide_tr_notin_only_if_not_subset)
+done
 
 
 

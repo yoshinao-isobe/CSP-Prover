@@ -44,13 +44,11 @@ apply (induct_tac P)
 apply (simp_all add: in_traces)
 apply (intro impI conjI allI)
 
- apply (erule noTick_rmTickE)
- apply (simp)
  apply (auto)
- apply (erule noTick_rmTickE)
- apply (simp)
- apply (erule noTick_rmTickE)
- apply (simp)
+ apply (erule noTick_rmTickE, simp)
+ apply (erule noTick_rmTickE, simp)
+ apply (erule noTick_rmTickE, simp)
+ apply (erule noTick_rmTickE, simp)
 done
 
 (*--------------------------------*
@@ -552,6 +550,94 @@ lemma contraction_alpha_traces_IF:
   ==> contraction_alpha (traces (IF b THEN P ELSE Q)) alpha"
 by (simp add: contraction_alpha_def map_alpha_traces_IF)
 
+
+(*--------------------------------*
+ |           Interrupt            |
+ *--------------------------------*)
+
+(*** rest_domT (subset) ***)
+
+lemma Interrupt_rest_domT_sub:
+   "[| traces P1 M1 .|. n <= traces P2 M2 .|. n ;
+       traces Q1 M1 .|. n <= traces Q2 M2 .|. n  |]
+    ==> traces (P1 /> Q1) M1 .|. n <= traces (P2 /> Q2) M2 .|. n"
+apply (simp add: subdomT_iff)
+apply (intro allI impI)
+apply (simp add: in_rest_domT)
+apply (simp add: in_traces)
+
+apply (elim conjE exE disjE)
+  apply (rule disjI1)
+  apply (simp)
+
+  apply (rule disjI2)
+  apply (rule_tac x="s" in exI)
+  apply (rule_tac x="u" in exI)
+  apply (simp)
+done
+
+(*** rest_domT (equal) ***)
+
+lemma Interrupt_rest_domT:
+   "[| traces P1 M1 .|. n = traces P2 M2 .|. n ;
+       traces Q1 M1 .|. n = traces Q2 M2 .|. n  |]
+    ==> traces (P1 /> Q1) M1 .|. n = traces (P2 /> Q2) M2 .|. n"
+apply (rule order_antisym)
+by (simp_all add: Interrupt_rest_domT_sub)
+
+(*** distT lemma ***)
+
+lemma Interrupt_distT:
+"PQs = {(traces P1 M1, traces P2 M2), (traces Q1 M1, traces Q2 M2)}
+ ==> (EX PQ. PQ:PQs & 
+             distance(traces (P1 /> Q1) M1, traces (P2 /> Q2) M2)
+          <= distance((fst PQ), (snd PQ)))"
+apply (simp only: to_distance_rs)
+apply (rule rest_to_dist_pair)
+by (auto intro: Interrupt_rest_domT)
+
+(*** map_alpha T lemma ***)
+
+lemma map_alpha_traces_Interrupt_lm:
+  "[| distance (traces P1 M1, traces P2 M2) <= alpha * distance (x1, x2) ;
+      distance (traces Q1 M1, traces Q2 M2) <= alpha * distance (x1, x2) |]
+    ==> distance (traces (P1 /> Q1) M1, traces (P2 /> Q2) M2)
+     <= alpha * distance (x1, x2)"
+apply (insert Interrupt_distT)
+apply (insert Interrupt_distT
+       [of "{(traces P1 M1, traces P2 M2), (traces Q1 M1, traces Q2 M2)}" 
+           P1 M1 P2 M2 Q1 Q2])
+by (auto)
+
+(*** map_alpha ***)
+
+lemma map_alpha_traces_Interrupt:
+ "[| map_alpha (traces P) alpha ; map_alpha (traces Q) alpha |]
+  ==> map_alpha (traces (P /> Q)) alpha"
+apply (simp add: map_alpha_def)
+apply (intro allI)
+apply (erule conjE)
+apply (drule_tac x="x" in spec)
+apply (drule_tac x="x" in spec)
+apply (drule_tac x="y" in spec)
+apply (drule_tac x="y" in spec)
+by (simp add: map_alpha_traces_Interrupt_lm)
+
+(*** non_expanding ***)
+
+lemma non_expanding_traces_Interrupt:
+ "[| non_expanding (traces P) ; non_expanding (traces Q) |]
+  ==> non_expanding (traces (P /> Q))"
+by (simp add: non_expanding_def map_alpha_traces_Interrupt)
+
+(*** contraction_alpha ***)
+
+lemma contraction_alpha_traces_Interrupt:
+ "[| contraction_alpha (traces P) alpha ; contraction_alpha (traces Q) alpha|]
+  ==> contraction_alpha (traces (P /> Q)) alpha"
+by (simp add: contraction_alpha_def map_alpha_traces_Interrupt)
+
+
 (*--------------------------------*
  |           Parallel             |
  *--------------------------------*)
@@ -1036,6 +1122,7 @@ apply (simp add: non_expanding_traces_Ext_choice)
 apply (simp add: non_expanding_traces_Int_choice)
 apply (simp add: non_expanding_traces_Rep_int_choice)
 apply (simp add: non_expanding_traces_IF)
+apply (simp add: non_expanding_traces_Interrupt)
 apply (simp add: non_expanding_traces_Parallel)
 
 (* hiding --> const *)
@@ -1108,6 +1195,7 @@ apply (simp add: contraction_alpha_traces_Ext_choice)
 apply (simp add: contraction_alpha_traces_Int_choice)
 apply (simp add: contraction_alpha_traces_Rep_int_choice)
 apply (simp add: contraction_alpha_traces_IF)
+apply (simp add: contraction_alpha_traces_Interrupt)
 apply (simp add: contraction_alpha_traces_Parallel)
 
 (* hiding --> const *)

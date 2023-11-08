@@ -1,16 +1,19 @@
 theory CSP_T_law_RUN
 imports CSP.CSP_RUN
-        CSP_T.CSP_T_law_step
+        CSP_T_law_fix
+        CSP_T_law_step
+        CSP_T_law_ref
 begin
 
 
-definition
-   traces_run :: "'a set => 'a domT"
+
+section \<open> RUN traces semantics - code from CSPIO \<close>
+
+definition traces_run :: "'a set => 'a domT"
 where "traces_run A == Abs_domT (set_run A)"
 
 
-definition
-   RUNs :: "('a set => ('p,'a) proc) set"
+definition RUNs :: "('a set => ('p,'a) proc) set"
 where "RUNs == {Pf. ALL A. traces (Pf A) MT = traces_run A}"
 
 
@@ -18,8 +21,7 @@ where "RUNs == {Pf. ALL A. traces (Pf A) MT = traces_run A}"
                         alpha
  * ---------------------------------------------- *)
 
-definition
-   alphas :: "('p,'a) proc => ('a set) set"
+definition alphas :: "('p,'a) proc => ('a set) set"
 where "alphas == (%P. {A. traces P MT <= traces_run A})"
 
 
@@ -110,13 +112,13 @@ done
  * ------------------------------ *)
 
 lemma in_traces_RUNs:
-  "RUN : RUNs ==> (t :t traces (RUN A) MT) = (t : set_run A)"
+  "P : RUNs ==> (t :t traces (P A) MT) = (t : set_run A)"
 apply (simp add: RUNs_def)
 apply (simp add: in_traces_run)
 done
 
 lemma traces_run_RUNs:
-  "RUN : RUNs ==> traces (RUN A) MT = traces_run A"
+  "P : RUNs ==> traces (P A) MT = traces_run A"
 apply (rule order_antisym)
 apply (rule)
 apply (simp add: in_traces_RUNs)
@@ -127,7 +129,7 @@ apply (simp add: in_traces_run)
 done
 
 lemma traces_RUNs_subset:
-  "[| RUN : RUNs ; A <= B ; t :t traces (RUN A) MT|] ==> t :t traces (RUN B) MT"
+  "[| P : RUNs ; A <= B ; t :t traces (P A) MT|] ==> t :t traces (P B) MT"
 apply (simp add: RUNs_def)
 apply (simp add: traces_run_subset)
 done
@@ -150,8 +152,8 @@ done
 
 lemma traces_RUNs_hide_lm:
    "ALL t.
-     (RUN : RUNs & t --tr X :t traces (RUN A) MT)
-      --> t :t traces(RUN(A Un X)) MT"
+     (P : RUNs & t --tr X :t traces (P A) MT)
+      --> t :t traces(P(A Un X)) MT"
 apply (rule allI)
 apply (induct_tac t rule: induct_trace)
 
@@ -202,8 +204,8 @@ done
  * ---------------------------------- *)
 
 lemma traces_RUNs_hide:
-   "[| RUN : RUNs ;  t --tr X :t traces (RUN A) MT ; B = A Un X |]
-    ==> t :t traces(RUN B) MT"
+   "[| P : RUNs ;  t --tr X :t traces (P A) MT ; B = A Un X |]
+    ==> t :t traces(P B) MT"
 apply (simp add: traces_RUNs_hide_lm)
 done
 
@@ -215,8 +217,8 @@ done
  * ----------------------------------------------- *)
 (*
 lemma complete_on_ref:
-  "[| RUN : RUNs ; complete_on X P |]
-   ==> P <=T RUN X"
+  "[| P : RUNs ; complete_on X P |]
+   ==> P <=T P X"
 apply (simp add: cspT_semantics)
 apply (simp add: complete_on_def)
 apply (simp add: traces_run_RUNs)
@@ -224,8 +226,8 @@ done
 *)
 
 lemma alphas_ref:
-  "[| RUN : RUNs ; alpha : alphas P |]
-   ==> RUN alpha <=T P"
+  "[| R : RUNs ; alpha : alphas P |]
+   ==> R alpha <=T P"
 apply (simp add: cspT_semantics)
 apply (simp add: alphas_def)
 apply (simp add: traces_run_RUNs)
@@ -240,7 +242,7 @@ apply (simp add: traces_run_subset)
 done
 
 lemma alphas_RUN:
-  "[| RUN : RUNs ; B <= A |] ==> A : alphas (RUN B)"
+  "[| P : RUNs ; B <= A |] ==> A : alphas (P B)"
 apply (simp add: alphas_def)
 apply (simp add: traces_run_RUNs)
 apply (rule)
@@ -516,7 +518,7 @@ done
 
 
 lemma cspT_interleave_RUN_Un:
-  "RUN : RUNs ==> RUN X ||| RUN Y =T RUN (X Un Y)"
+  "P : RUNs ==> P X ||| P Y =T P (X Un Y)"
 apply (simp add: cspT_semantics)
 apply (rule order_antisym)
 
@@ -575,20 +577,16 @@ done
                  preliminary for CSPIO
  * --------------------------------------------------------- *)
 
-definition
-   tr_after_set :: "'a domT => 'a trace => 'a trace set"
+definition tr_after_set :: "'a domT => 'a trace => 'a trace set"
 where "tr_after_set T s == {t. s ^^^ t :t T & (noTick s | t = <>)}"
 
-definition
-   tr_after :: "'a domT => 'a trace => 'a domT" ("_ afterTr _" [1000,1000] 1000)
+definition tr_after :: "'a domT => 'a trace => 'a domT" ("_ afterTr _" [1000,1000] 1000)
 where "T afterTr s == Abs_domT (tr_after_set T s)"
 
-definition
-   tr_initials :: "'a domT => 'a set"
+definition tr_initials :: "'a domT => 'a set"
 where "tr_initials T == {a. EX t. t :t T & t~=<> & hdt(t) = Ev a}"
 
-definition
-   tr_initials_after :: "'a domT => 'a trace => 'a set"
+definition tr_initials_after :: "'a domT => 'a trace => 'a set"
 where "tr_initials_after T s == if s :t T then (tr_initials (T afterTr s)) else {}"
 
 
@@ -689,8 +687,8 @@ done
 
 
 lemma tr_initials_after_RUN:
-  "[| RUN : RUNs ; s : set_run A |]
-   ==> tr_initials_after (traces (RUN A) MT) s = A"
+  "[| P : RUNs ; s : set_run A |]
+   ==> tr_initials_after (traces (P A) MT) s = A"
 apply (subgoal_tac "noTick s")
 apply (rule equalityI)
 
@@ -718,8 +716,7 @@ done
       non-observationally terminating process
  * ----------------------------------------------- *)
 
-definition
-   noTickPr :: "('p,'a) proc => bool"
+definition noTickPr :: "('p,'a) proc => bool"
 where "noTickPr == (%P. ALL t. t :t traces(P) MT --> noTick t)"
 
 (* lemmas for non-observationally terminating process *)
@@ -742,9 +739,154 @@ apply (auto)
 done
 
 lemma noTickPr_RUN:
-  "RUN : RUNs ==> noTickPr (RUN A)"
+  "P : RUNs ==> noTickPr (P A)"
 apply (rule alphas_noTickPr[of A])
 apply (simp add: alphas_RUN)
+done
+
+
+
+
+
+section \<open> RUN semantics \<close>
+
+lemmas Run_domT = Ext_pre_choice_domT
+
+
+subsubsection \<open> traces RUN \<close>
+
+
+lemma cspT_Run :
+    "(($Run A)::('e RunName, 'e) proc) =T (((Runfun (Run A)))::('e RunName, 'e) proc)"
+by (rule cspT_unwind, simp_all)
+
+
+lemma traces_Run :
+    "traces ($Run A) MT = traces (? a:A -> $Run A) MT"
+  apply (insert cspT_Run)
+by (simp add: cspT_eqT_semantics)
+
+
+
+subsection \<open> in traces Run S \<close>
+
+
+lemma traces_included_in_Run_lm :
+    "noTick t & sett t \<subseteq> Ev ` S -->
+     t :t traces ((FIX Runfun) (Run S)) M"
+  apply (induct_tac t rule: induct_trace)
+
+  (* <> *)
+    apply (intro impI conjI)
+    apply (simp add: FIX_def in_traces)
+
+  (* <Tick> *)
+    apply (simp)
+
+  (* <Ev a> ^^^ s *)
+    apply (simp)
+    apply (intro impI)
+    apply (simp)
+    apply (elim conjE)
+    apply (simp add: FIX_def in_traces)
+
+    apply (elim disjE exE)
+
+    apply (rule_tac x="Suc 0" in exI)
+    apply (simp add: FIXn_def Subst_procfun_prod_def in_traces)
+    apply (simp add: image_def)
+
+    apply (rule_tac x="Suc n" in exI)
+    apply (simp add: FIXn_def Subst_procfun_prod_def in_traces)
+    apply (simp add: image_def)
+done
+
+lemma traces_included_in_Run :
+    "[| noTick t ; sett t \<subseteq> Ev ` S |] ==>
+     t :t traces ((FIX Runfun) (Run S)) M"
+by (simp add: traces_included_in_Run_lm)
+
+
+
+lemma Tickt_notin_traces_included_in_Run :
+    "<Tick> ~:t traces ((FIX Runfun) (Run S)) M"
+  apply (simp add: FIX_def in_traces)
+  apply (intro allI)
+  apply (case_tac n)
+  apply (simp add: FIXn_def Subst_procfun_prod_def in_traces)
+  apply (simp add: FIXn_def Subst_procfun_prod_def in_traces)
+done
+
+
+
+subsection \<open> $Run {} =T STOP \<close>
+
+
+lemma cspT_Run_STOP : "(($Run {})::('a RunName,'a) proc) =T STOP"
+  apply (rule cspT_rw_left, rule cspT_unwind)
+  apply (simp, simp)
+  apply (simp add: cspT_semantics)
+  apply (simp add: traces_iff)
+done
+
+
+
+subsection \<open> RUN {} =T STOP \<close>
+
+
+lemma cspT_RUN_STOP : "RUN {} =T STOP"
+by (simp add: RUN_def, rule cspT_Run_STOP)
+
+
+
+subsection \<open> $Run {} =T DIV \<close>
+
+
+lemma cspT_Run_DIV : "(($Run {})::('a RunName,'a) proc) =T DIV"
+  apply (rule cspT_rw_left, rule cspT_unwind)
+  apply (simp, simp)
+  apply (simp add: cspT_semantics)
+  apply (simp add: traces_iff)
+done
+
+
+subsection \<open> RUN {} =T DIV \<close>
+
+
+lemma cspT_RUN_DIV : "RUN {} =T DIV"
+by (simp add: RUN_def, rule cspT_Run_DIV)
+
+
+
+
+subsection \<open> $Run S <=T DIV \<close>
+
+
+lemma cspT_Run_ref_DIV : "(($Run S)::('a RunName,'a) proc) <=T DIV"
+by (rule cspT_top)
+
+
+
+subsection \<open> $Run S <=T STOP \<close>
+
+
+lemma cspT_Run_ref_STOP : "(($Run S)::('a RunName,'a) proc) <=T STOP"
+by (rule cspT_top)
+
+
+
+subsection \<open> ~ $Run S <=T SKIP \<close>
+
+
+lemma not_cspT_Run_SKIP : "~ (($Run S)::('a RunName,'a) proc) <=T SKIP"
+  apply (rule notI)
+
+  apply (erule cspT_rw_leftE)
+  apply (rule cspT_FIX[of Runfun], simp_all)
+  apply (simp add: cspT_semantics)
+
+  apply (simp add: subdomT_iff in_traces)
+  apply (simp add: Tickt_notin_traces_included_in_Run)
 done
 
 

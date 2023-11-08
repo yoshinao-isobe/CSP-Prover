@@ -49,26 +49,16 @@ type_synonym 'e alphabet = "('e) set"
 subsection \<open> chanset \<close>
 
 
-abbreviation
-    chanset :: "('a => 'e) =>  ('e) alphabet" ("{|(\<open>unbreakable\<close> _) |}cs")
+definition chanset :: "('a => 'e) =>  ('e) alphabet" ("{|(\<open>unbreakable\<close> _) |}cs")
 where
     "{| c |}cs == range c"
 
-syntax
-  \<comment> \<open>chanset Enumeration\<close>
-  "_chanset" :: "args => ('a) set"    ("{|(_)|}\<^sub>c")
+\<comment> \<open> rangeset \<close>
+syntax "rangeset" :: "args => ('a) set"    ("{|(_)|}s")
 
-translations
-  "{|x, xs|}\<^sub>c" == "{|x|}cs \<union> {|xs|}\<^sub>c"
-  "{|x|}\<^sub>c" == "{|x|}cs"
-(*abbreviation
-    chanset2 :: "('a => 'e) => ('a => 'e) => ('e) alphabet" ("{|(\<open>unbreakable\<close> _),(\<open>unbreakable\<close> _) |}cs")
-where
-    "{| c1, c2 |}cs == {| c1 |}cs \<union> {| c2 |}cs"
+translations "{|x, xs|}s" == "{|x|}cs \<union> {|xs|}s"
+             "{|x|}s" == "{|x|}cs"
 
-
-notation chanset ("{|(\<open>unbreakable\<close> _) |}\<^sub>c")
-notation chanset2 ("{|(\<open>unbreakable\<close> _),(\<open>unbreakable\<close> _) |}\<^sub>c")*)
 
 
 subsection \<open> Process Type Definitions \<close>
@@ -82,13 +72,10 @@ subsection \<open> Process Type Definitions \<close>
                        process expression
  *********************************************************************)
 
-type_synonym
-   'a sets_nats = "('a set set, nat set) sum"
-type_synonym
-   'a aset_anat = "('a set, nat) sum"
+type_synonym 'a sets_nats = "('a set set, nat set) sum"
+type_synonym 'a aset_anat = "('a set, nat) sum"
 
-datatype 
- ('p,'a) proc
+datatype ('p,'a) proc
     = STOP
 
     | SKIP
@@ -107,6 +94,8 @@ datatype
                                                ("(1!! :_ .. /_)" [900,68] 68) 
     | IF             "bool" "('p,'a) proc" "('p,'a) proc"
                                  ("(0IF _ /THEN _ /ELSE _)" [900,88,88] 88)
+    | Interrupt      "('p,'a) proc" "('p,'a) proc"
+                                               ("_ /'/> _" [68,69] 68)
 (*                               ("(0IF _ /THEN _ /ELSE _)" [900,60,60] 88) *)
     | Parallel       "('p,'a) proc" "'a set" "('p,'a) proc"  
                                                ("(1_ /|[_]| _)" [76,0,77] 76)
@@ -440,6 +429,10 @@ lemmas csp_prefix_ss_def = Int_pre_choice_def
 
 
 
+
+
+
+
 subsubsection \<open> Parallel: Interleave, Synchro, Alpha_parallel and Inductive_parallel \<close>
 
 abbreviation
@@ -744,42 +737,6 @@ by (case_tac FPmode, simp_all)
 
 
 
-subsection \<open> CHAOS \<close>
-
-(* This CHAOS may cause some error on process definition ... ? *)
-
-datatype 'a ChaosName = Chaos "'a set"
-
-primrec
-  Chaosfun :: "'a ChaosName => ('a ChaosName, 'a) proc"
-where
-  "Chaosfun   (Chaos A) = (! x:A -> $(Chaos A)) |~| STOP"
-
-(* Isabelle 2013
-defs (overloaded)
-Set_Chaosfun_def [simp]: "PNfun == Chaosfun 
-*)
-
-overloading Set_Chaosfun == 
-  "PNfun :: ('a ChaosName, 'a) pnfun"
-begin
-  definition "PNfun (pn::'a ChaosName) == Chaosfun pn"
-end
-
-(* test of overloading *)
-lemma "((PNfun pn)::('a ChaosName, 'a) proc) = Chaosfun pn"
-apply (simp add: Set_Chaosfun_def)
-done
-
-(* Isabelle 2013
-consts CHAOS :: "'a set => ('a ChaosName, 'a) proc"
-defs   CHAOS_def : "CHAOS == (%A. $(Chaos A))"
-*)
-
-definition
-  CHAOS :: "'a set => ('a ChaosName, 'a) proc"
-  where
-  CHAOS_def : "CHAOS == (%A. $(Chaos A))"
 
 
 (* --------------------------------------- *
@@ -815,6 +772,7 @@ where
  |"(P |~| Q)<<Pf    = P<<Pf |~| Q<<Pf"
  |"(!! :C .. Qf)<<Pf = !! c:C .. (Qf c)<<Pf"
  |"(IF b THEN P ELSE Q)<<Pf = IF b THEN P<<Pf ELSE Q<<Pf"
+ |"(P /> Q)<<Pf    = P<<Pf /> (Q << Pf)"
  |"(P |[X]| Q)<<Pf  = P<<Pf |[X]| Q<<Pf"
  |"(P -- X)<<Pf     = P<<Pf -- X"
  |"(P [[r]])<<Pf    = P<<Pf [[r]]"
@@ -939,6 +897,7 @@ where
  |"noPN (P |~| Q)     = (noPN P & noPN Q)"
  |"noPN (!! :C .. Pf) = (ALL c. noPN (Pf c))"
  |"noPN (IF b THEN P ELSE Q) = (noPN P & noPN Q)"
+ |"noPN (P /> Q)     = (noPN P & noPN Q)"
  |"noPN (P |[X]| Q)   = (noPN P & noPN Q)"
  |"noPN (P -- X)      = noPN P"
  |"noPN (P [[r]])     = noPN P"
@@ -962,6 +921,7 @@ where
  |"gSKIP (P |~| Q)     = (gSKIP P & gSKIP Q)"
  |"gSKIP (!! :C .. Pf) = (ALL c. gSKIP (Pf c))"
  |"gSKIP (IF b THEN P ELSE Q) = (gSKIP P & gSKIP Q)"
+ |"gSKIP (P /> Q)     = (gSKIP P & gSKIP Q)"
  |"gSKIP (P |[X]| Q)   = (gSKIP P | gSKIP Q)"
  |"gSKIP (P -- X)      = False"
  |"gSKIP (P [[r]])     = gSKIP P"
@@ -985,6 +945,7 @@ where
  |"noHide (P |~| Q)     = (noHide P & noHide Q)"
  |"noHide (!! :C .. Pf) = (ALL c. noHide (Pf c))"
  |"noHide (IF b THEN P ELSE Q) = (noHide P & noHide Q)"
+ |"noHide (P /> Q)     = (noHide P & noHide Q)"
  |"noHide (P |[X]| Q)   = (noHide P & noHide Q)"
  |"noHide (P -- X)      = noPN P"
  |"noHide (P [[r]])     = noHide P"
@@ -1008,6 +969,7 @@ where
  |"guarded (P |~| Q)     = (guarded P & guarded Q)"
  |"guarded (!! :C .. Pf) = (ALL c. guarded (Pf c))"
  |"guarded (IF b THEN P ELSE Q) = (guarded P & guarded Q)"
+ |"guarded (P /> Q)     = (guarded P & guarded Q)"
  |"guarded (P |[X]| Q)   = (guarded P & guarded Q)"
  |"guarded (P -- X)      = noPN P"
  |"guarded (P [[r]])     = guarded P"

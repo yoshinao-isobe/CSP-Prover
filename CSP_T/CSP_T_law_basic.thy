@@ -882,7 +882,7 @@ apply (rule order_antisym)
 
   apply (rule disjI2)
   apply (rule_tac x="sa" in exI)
-  apply (insert noTick_or_last_Tick2)
+  apply (insert Trace.trace_last_noTick_or_Tick)
   apply (drule_tac x="ta" in spec)
   apply (elim disjE conjE exE)
 
@@ -893,10 +893,10 @@ apply (rule order_antisym)
    apply (simp)
 
    apply (simp)
-   apply (rule_tac x="tb" in exI)
+   apply (rule_tac x="sb" in exI)
    apply (simp)
    apply (rule disjI2)
-   apply (rule_tac x="tb" in exI)
+   apply (rule_tac x="sb" in exI)
    apply (rule_tac x="<>" in exI)
    apply (simp)
 

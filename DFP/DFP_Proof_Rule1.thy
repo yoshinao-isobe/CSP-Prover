@@ -15,20 +15,9 @@
 
 theory DFP_Proof_Rule1
 imports DFP_Block
+        HOL.Transitive_Closure
 begin
 
-(*  The following simplification rules are deleted in this theory file *)
-(*  because they unexpectly rewrite UnionT and InterT.                 *)
-(*                  Union (B ` A) = (UN x:A. B x)                      *)
-(*                  Inter (B ` A) = (INT x:A. B x)                     *)
-(*
-declare Union_image_eq [simp del]
-declare Inter_image_eq [simp del]
-*)
-(* no simp rules in Isabelle 2017 
-declare Sup_image_eq [simp del]
-declare Inf_image_eq [simp del]
-*)
 
 (*  The following simplification rules are deleted in this theory file *)
 (*  because they unexpectly rewrite (notick | t = []t)                 *)
@@ -207,17 +196,9 @@ apply (rule_tac x="f" in exI)
 apply (auto)
 done
 
+
 (****************** to add it again ******************)
 
 declare disj_not1   [simp]
-(*
-declare Union_image_eq [simp]
-declare Inter_image_eq [simp]
-*)
-
-(*
-declare Sup_image_eq [simp]
-declare Inf_image_eq [simp]
-*)
 
 end

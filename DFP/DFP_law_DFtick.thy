@@ -1,19 +1,19 @@
            (*-------------------------------------------*
             |        CSP-Prover on Isabelle2021         |
             |                 August 2021               |
+            |                  2022 / 2023 (modified)   |
             |                                           |
             | Joabe Jesus (eComp POLI UPE and CIn UFPE) |
             *-------------------------------------------*)
 
 theory DFP_law_DFtick
-imports DFP_DFtick CSP_F
+imports DFP_DFtick
+        DFP_DIV
 begin
 
 
-subsection \<open> DFtick \<close>
 
-lemma dfp_DFtick : "$DFtick \<sqsubseteq>F $DFtick"
-  by (simp)
+section \<open> dfp \<close>
 
 
 subsection \<open> STOP \<close>
@@ -24,15 +24,16 @@ lemma not_isDeadlockFree_STOP : "\<not> STOP isDeadlockFree"
   by (simp add: in_failures)
 
 
-lemma not_dfp_STOP : "\<not> $DFtick <=F STOP"
+lemma not_dfp_STOP : "\<not> $DFtick \<sqsubseteq>F STOP"
   apply (rule)
   by (simp only: DeadlockFree_DFtick_ref[THEN sym] not_isDeadlockFree_STOP)
+
 
 
 subsection \<open> DIV \<close>
 
 lemma dfp_DIV : "$DFtick \<sqsubseteq>F DIV"
-  by (rule cspF_DIV_top)
+  by (rule dfp_DIV)
 
 
 
@@ -76,6 +77,7 @@ lemma dfp_Ext_pre_choice_DIV : "X \<noteq> {} \<Longrightarrow> $DFtick \<sqsubs
    apply (simp)
    apply (simp add: UFP_def hasUFP_def isUFP_def semFfun_def semFf_def)
    apply (simp add: UFP_def LFP_def)*)
+
 
 
 subsection \<open> Act_prefix, Send_prefix and Rec_prefix \<close>
@@ -249,19 +251,25 @@ lemmas dfp_Timeout = dfp_Timeout1 dfp_Timeout2 dfp_Timeout3
 
 subsection \<open> Hiding \<close>
 
+lemma DeadlockFree_Hiding :
+    "[X]-DeadlockFree P \<Longrightarrow> [X]-DeadlockFree P -- A"
+  apply (simp add: DeadlockFree_def)
+  apply (simp add: in_failures)
+  apply (intro allI impI)
+  apply (erule_tac x="sa" in allE)
+  apply (drule mp, simp add: image_def)
+  apply (erule contrapos_nn)
+  apply (erule contrapos_np)
+  by (simp add: memF_F2)
+  (*TODO by (erule non_memF_F2, simp)*)
+
 
 lemma isDeadlockFree_Hiding :
-    "P isDeadlockFree \<Longrightarrow> (P -- R) isDeadlockFree"
-  apply (simp add: DeadlockFree_def)
-  apply (simp add: in_failures in_traces)
-  apply (rule allI, rule impI)
-  apply (rule allI)
-  apply (erule_tac x="sa" in allE)
-  apply (rule)
-  by (simp add: image_def)
+    "P isDeadlockFree \<Longrightarrow> (P -- X) isDeadlockFree"
+  by (simp add: DeadlockFree_Hiding)
 
 
-lemma dfp_Hiding : "$DFtick <=F P \<Longrightarrow> $DFtick <=F P -- R"
+lemma dfp_Hiding : "$DFtick <=F P \<Longrightarrow> $DFtick <=F P -- X"
   by (simp only: DeadlockFree_DFtick_ref[THEN sym] isDeadlockFree_Hiding)
 
 
@@ -305,6 +313,7 @@ lemma dfp_Renaming :
 done
 
 
+
 subsection \<open> Rep_int_choice \<close>
 
 lemma dfp_Rep_int_choice_f :
@@ -315,8 +324,6 @@ lemma dfp_Rep_int_choice_f :
 lemma dfp_Rep_int_choice_nat :
     "$DFtick <=F P \<Longrightarrow> $DFtick <=F !nat n:X .. P"
   by (rule cspF_Rep_int_choice_right, simp)
-
-
 
 
 
@@ -344,8 +351,6 @@ lemma dfp_Rep_ext_choice :
      $DFtick <=F [+] :L .. PXf"
   apply (simp add: Rep_ext_choice_def)
   by (rule dfp_Inductive_ext_choice, simp_all)
-
-
 
 
 
@@ -468,12 +473,20 @@ lemma dfp_Int_pre_choice :
 
 
 
+subsection \<open> DFtick \<close>
+
+lemma dfp_DFtick : "$DFtick \<sqsubseteq>F $DFtick"
+  by (simp)
+
+
+
 
 lemmas dfp = allI
              ballI
              dfp_DFtick
              not_dfp_STOP
-             dfp_SKIP dfp_DIV
+             dfp_SKIP
+             dfp_DIV
              dfp_Timeout
              dfp_Ext_pre_choice dfp_Send_prefix dfp_Rec_prefix dfp_Rec_prefix2 dfp_Act_prefix
              dfp_Ext_choice_STOP_l dfp_Ext_choice_STOP_r dfp_Ext_choice

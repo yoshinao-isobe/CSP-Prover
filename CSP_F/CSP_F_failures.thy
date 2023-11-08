@@ -351,6 +351,50 @@ lemma in_failures_IF:
  = (if b then f :f failures(P) M else f :f failures(Q) M)"
 by (simp add: failures_iff)
 
+
+(*--------------------------------*
+ |            Interrupt           |
+ *--------------------------------*)
+
+(*** Interrupt_setF ***)
+(* & (ALL i. <Ev i> :t traces(Q) (fstF o M) --> Ev i ~: X)*)
+lemma Interrupt_setF: 
+  "{f. (EX s   X. f = (s,X) & f :f failures(P) M ) |
+       (EX s   X. f = (s,X) & noTick s & s ^^^ <Tick> :t traces(P) (fstF o M) & Tick ~: X ) |
+       (EX s   X. f = (s ^^^ <Tick> , X) & noTick s & s ^^^ <Tick> :t traces(P) (fstF o M) ) |
+       (EX s t X. f = (s ^^^ t,X) & s :t traces(P) (fstF o M) & noTick s & (t,X) :f failures(Q) M ) } : setF"
+apply (simp add: setF_def HC_F2_def)
+apply (intro allI impI)
+apply (elim conjE disjE)
+apply (intro disjI1 conjI allI impI)
+  apply (rule memF_F2, simp, simp)(*, force, fast*)
+apply (rule disjI2)
+  apply (intro disjI1, simp, fast)
+apply (rule disjI2)
+  apply (rule disjI2)
+  apply (intro disjI1, fast)
+apply (intro disjI2)
+apply (elim conjE exE, simp)
+apply (rule_tac x=sa in exI)
+apply (rule_tac x=t in exI, simp)
+apply (rule memF_F2, simp_all)
+done
+
+(*** Interrupt ***)
+(*& (ALL i. <Ev i> :t traces(Q) (fstF o M) --> Ev i ~: X)*)
+lemma in_failures_Interrupt:
+  "(f :f failures(P /> Q) M)
+ = ( (EX s X. f = (s,X) & (s,X) :f failures(P) M ) |
+     (EX s X. f = (s,X) & noTick s & s ^^^ <Tick> :t traces(P) (fstF o M) & Tick ~: X ) |
+     (EX s X. f = (s ^^^ <Tick>,X) & noTick s & s ^^^ <Tick> :t traces(P) (fstF o M) ) |
+     (EX s t X. f = (s ^^^ t,X) & s :t traces(P) (fstF o M) & noTick s & (t,X) :f failures(Q) M ) )"
+apply (simp only: failures_iff)
+apply (simp only: CollectF_open_memF Interrupt_setF)
+apply (case_tac f)
+apply (rule disj_cong, simp)+
+apply (fast)
+done
+
 (*--------------------------------*
  |           Parallel             |
  *--------------------------------*)
@@ -420,7 +464,7 @@ lemma Parallel_setF_nilt_Tick :
 lemma Interleave_setF : 
   "{(u, Y Un Z) |u Y Z.
      Y - {Tick} = Z - {Tick} &
-     (EX s t. u : s |[{}]|tr t & (s, Y) :f F & (t, Z) :f E)}
+     (EX s t. u : s |||tr t & (s, Y) :f F & (t, Z) :f E)}
     : setF"
 apply (simp add: setF_def HC_F2_def)
 apply (intro allI impI)
@@ -444,7 +488,7 @@ done
 lemma in_failures_Interleave:
   "(f :f failures(P ||| Q) M) = 
    (EX u Y Z. f = (u, Y Un Z) & Y - {Tick} = Z - {Tick} &
-      (EX s t. u : s |[{}]|tr t & (s,Y) :f failures(P) M & (t,Z) :f failures(Q) M))"
+      (EX s t. u : s |||tr t & (s,Y) :f failures(P) M & (t,Z) :f failures(Q) M))"
 apply (simp add: failures_iff)
 by (simp only: CollectF_open_memF Interleave_setF)
 
@@ -590,17 +634,21 @@ done
 lemmas failures_setF = STOP_setF       SKIP_setF
                        Act_prefix_setF Ext_pre_choice_setF
                        Ext_choice_setF Rep_int_choice_setF
+                       Interrupt_setF
                        Parallel_setF   Hiding_setF
                        Renaming_setF   Seq_compo_setF
+                       Interleave_setF
 
 lemmas in_failures = in_failures_STOP  in_failures_SKIP  in_failures_DIV
                      in_failures_Act_prefix     in_failures_Ext_pre_choice
                      in_failures_Ext_choice     in_failures_Int_choice
                      in_failures_Rep_int_choice in_failures_IF
+                     in_failures_Interrupt
                      in_failures_Parallel       in_failures_Hiding
                      in_failures_Renaming       in_failures_Seq_compo
                      in_failures_Union_proc     in_failures_UNIV_Union_proc
                      in_failures_Depth_rest     in_failures_Proc_name
+                     in_failures_Interleave
 
 (****************** to add them again ******************)
 

@@ -189,16 +189,33 @@ done
               conclusion
  *===================================*)
 
+(*lemma fstF_MF_MT:
+    "[| (Pf::'p=>('p,'a) proc) = PNfun; 
+          FPmode = CPOmode
+        | FPmode = CMSmode & guardedfun Pf
+        | FPmode = MIXmode |]
+     ==> (fstF o MF) = (MT::'p => 'a domT)"
+  apply (elim conjE disjE)
+  apply (simp add: fstF_MF_MT_cpo)
+  apply (simp add: fstF_MF_MT_cms)
+  apply (simp add: fstF_MF_MT_cpo)
+done*)
+
 lemma fstF_MF_MT:
- "[| (Pf::'p=>('p,'a) proc) = PNfun; 
-       FPmode = CPOmode
-     | FPmode = CMSmode & guardedfun Pf
-     | FPmode = MIXmode |]
-  ==> (fstF o MF) = (MT::'p => 'a domT)"
-apply (elim conjE disjE)
-apply (simp add: fstF_MF_MT_cpo)
-apply (simp add: fstF_MF_MT_cms)
-apply (simp add: fstF_MF_MT_cpo)
+    "[| (Pf::'p=>('p,'a) proc) = PNfun; FPmode ~= CMSmode | guardedfun Pf |]
+     ==> (fstF o MF) = (MT::'p => 'a domT)"
+  apply (case_tac FPmode)
+  apply (simp add: fstF_MF_MT_cpo)
+  apply (simp add: fstF_MF_MT_cms)
+  apply (simp add: fstF_MF_MT_cpo)
 done
+
+
+
+lemma fstF_MF_iff_MT:
+   "[| (Pf::'p=>('p,'a) proc) = PNfun; 
+       FPmode ~= CMSmode | guardedfun Pf |]
+    ==> fstF (MF p) = (MT::'p => 'a domT) p"
+  by (simp only: fstF_MF_MT[THEN sym], simp)
 
 end

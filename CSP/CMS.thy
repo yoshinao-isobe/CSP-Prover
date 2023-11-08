@@ -157,7 +157,7 @@ definition
      "map_alpha f alpha == (0 <= alpha &
               (ALL x y. distance(f x,f y) <= (alpha * distance(x,y))))"
 
-              definition
+definition
   non_expanding     :: "('a::ms => 'b::ms) => bool"
   where
   non_expanding_def    : 

@@ -231,6 +231,25 @@ lemma cspT_IF_cong:
                IF b2 THEN Q1 ELSE Q2"
 by (simp add: cspT_eq_ref_iff cspT_IF_mono)
 
+
+(*********************************************************
+                     Interrupt mono 
+ *********************************************************)
+
+lemma cspT_Interrupt_mono:
+  "[| P1 <=T[M1,M2] Q1 ; P2 <=T[M1,M2] Q2 |] ==> P1 /> P2 <=T[M1,M2] Q1 /> Q2"
+apply (simp add: cspT_semantics)
+apply (rule subdomTI)
+apply (simp add: subdomT_iff)
+apply (simp add: in_traces_Interrupt)
+apply (auto)
+done
+
+lemma cspT_Interrupt_cong:
+  "[| P1 =T[M1,M2] Q1 ; P2 =T[M1,M2] Q2 |] ==> P1 /> P2 =T[M1,M2] Q1 /> Q2"
+by (simp add: cspT_eq_ref_iff cspT_Interrupt_mono)
+
+
 (*********************************************************
                      Parallel mono 
  *********************************************************)
@@ -372,7 +391,8 @@ by (simp add: cspT_eq_ref_iff cspT_Timeout_mono)
  *------------------------------------------------------*)
 
 lemmas cspT_free_mono =
-   cspT_Ext_choice_mono cspT_Int_choice_mono cspT_Parallel_mono
+   cspT_Ext_choice_mono cspT_Int_choice_mono cspT_Interrupt_mono
+   cspT_Parallel_mono
    cspT_Hiding_mono cspT_Renaming_mono cspT_Seq_compo_mono
    cspT_Depth_rest_mono
 
@@ -381,7 +401,8 @@ lemmas cspT_mono = cspT_free_mono
    cspT_Rep_int_choice_mono cspT_IF_mono 
 
 lemmas cspT_free_cong =
-   cspT_Ext_choice_cong cspT_Int_choice_cong cspT_Parallel_cong
+   cspT_Ext_choice_cong cspT_Int_choice_cong cspT_Interrupt_cong
+   cspT_Parallel_cong
    cspT_Hiding_cong cspT_Renaming_cong cspT_Seq_compo_cong
    cspT_Depth_rest_cong
 

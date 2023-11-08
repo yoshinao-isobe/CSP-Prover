@@ -1212,7 +1212,8 @@ done
  |  for Seq_compo T2 |
  *-------------------*)
 
-lemma noTick_or_last_Tick2: 
+lemmas noTick_or_last_Tick2 = trace_last_noTick_or_Tick
+(*lemma noTick_or_last_Tick2:
   "ALL s. noTick s | (EX t. s = t ^^^ <Tick> & noTick t)"
 apply (rule allI)
 apply (induct_tac s rule: rev_induct_trace)
@@ -1223,7 +1224,7 @@ apply (elim disjE exE)
 apply (force)
 apply (rule disjI1)
 apply (force)
-done
+done*)
 
 
 
@@ -1241,6 +1242,9 @@ lemma Ev_UNIV_eq_Evset : "Ev ` UNIV = Evset"
   by (simp add: image_def not_Tick_to_Ev[THEN sym] Evset_def)
 
 
+lemmas Evset_eq_Ev_UNIV = Ev_UNIV_eq_Evset[THEN sym]
+
+
 lemma Ev_Un_Tick : "(Ev ` UNIV) \<union> {Tick} = UNIV"
   apply (auto simp add: image_def)
   by (case_tac x, auto)
@@ -1254,6 +1258,36 @@ lemma Tick_Un_Ev : "{Tick} \<union> (Ev ` UNIV) = UNIV"
 lemma insert_Tick_Ev : "insert Tick (Ev ` UNIV) = UNIV"
   apply (auto simp add: image_def)
   by (case_tac x, auto)
+
+
+
+
+
+
+lemma all_Ev_in_Evset_iff : "(\<forall>a. Ev a \<in> X) = (Evset \<subseteq> X)"
+  apply (auto simp add: Evset_def)
+by (case_tac x, fast, simp)
+
+lemma noTick_if_sett_subset_Ev_image :
+    "sett s \<subseteq> Ev ` A \<Longrightarrow> noTick (s::'e trace)"
+  apply (induct s rule: induct_trace)
+  apply (simp)
+  apply (simp add: image_def)
+  apply (force)
+done
+
+lemma sett_subset_Ev_image_if_noTick :
+    "noTick (s::'e trace) \<Longrightarrow> \<exists>A. sett s \<subseteq> Ev ` A"
+  apply (rule_tac x=UNIV in exI)
+  apply (simp add: noTick_def image_def)
+by (clarsimp, case_tac x, simp_all)
+
+
+lemma sett_subset_Ev_image_iff_noTick : "(\<exists>A. sett s \<subseteq> Ev ` A) = noTick s"
+  apply (rule iffI)
+  apply (erule exE, simp add: noTick_if_sett_subset_Ev_image)
+  apply (simp add: sett_subset_Ev_image_if_noTick)
+done
 
 
 (****************** to add it again ******************)
