@@ -1,3 +1,15 @@
+           (*-------------------------------------------*
+            |        CSP-Prover on Isabelle2021         |
+            |                 2022 / 2023               |
+            |                                           |
+            |          Lemmas and Theorems from         |
+            |    Jesus and Sampaio's SBMF 2022 paper    |
+            |                     and                   |
+            |    Jesus and Sampaio's SCP 2023 paper     |
+            |                                           |
+            | Joabe Jesus (eComp POLI UPE and CIn UFPE) |
+            *-------------------------------------------*)
+
 theory TSF_TOCKSTick
 imports TSF_law_TimeStop
 begin
@@ -27,8 +39,8 @@ lemma refTOCKSTick_if_isTimeStopFree:
     (*apply (rule_tac X="NonTickTockEv \<union> X" in memF_F2, simp_all)*)
     apply (rule failures_included_in_TOCKSTick)
 
-    (* P isTimeStopFree \<Longrightarrow> ... *)
-    apply (simp add: isTimeStopFree_def)
+    (* P isTimeStopFree ==> ... *)
+    apply (simp add: TimeStopFree_def)
     apply (simp add: DeadlockFree_def in_failures_Hiding hide_tr_sym)
 
     apply (frule hide_tr_non_x_sett)
@@ -70,7 +82,7 @@ subsection \<open> syntactical approach --> semantical approach \<close>
 lemma isTimeStopFree_if_refTOCKSTick:
     "($TOCKSTick :: (TOCKSTickPN, 'event) proc) <=F P -- (Nontock) ==>
     (P::('pn,'event::tockCSP) proc) isTimeStopFree"
-  apply (simp add: isTimeStopFree_def)
+  apply (simp add: TimeStopFree_def)
   apply (simp add: DeadlockFree_def in_failures_Hiding hide_tr_sym)
   apply (intro allI)
   (* s : traces (P -- Nontock) *)
@@ -109,7 +121,6 @@ lemma isTimeStopFree_if_refTOCKSTick:
     apply (simp only: Tick_notin_iff_noTick)
     apply (drule nonexists_in_failures_TOCKSTick, simp)
   done
-
 
 
 
