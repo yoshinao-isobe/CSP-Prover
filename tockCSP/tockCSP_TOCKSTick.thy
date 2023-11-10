@@ -10,7 +10,7 @@
             | Joabe Jesus (eComp POLI UPE and CIn UFPE) |
             *-------------------------------------------*)
 
-theory tockCSP_TOCKS
+theory tockCSP_TOCKSTick
 imports tockCSP_tock
 begin
 
@@ -18,26 +18,29 @@ begin
 subsection \<open> TOCKS from Roscoe's book The Theory and Practice of Concurrency \<close>
 
 
-datatype TOCKSPN = TOCKS
+subsection \<open> TOCKSTick = TOCKS\<surd> from Roscoe's book The Theory and Practice of Concurrency \<close>
+
+
+datatype TOCKSTickPN = TOCKSTick
 
 primrec
-  TOCKSfun ::  "(TOCKSPN, 'event::tockCSP) pnfun"
+  TOCKSTickfun ::  "(TOCKSTickPN, 'event::tockCSP) pnfun"
 where
-  "TOCKSfun (TOCKS) = tock \<rightarrow> $(TOCKS)"
+  "TOCKSTickfun (TOCKSTick) = (tock \<rightarrow> $(TOCKSTick)) |~| SKIP"
 
-overloading Set_TOCKSfun == 
-  "PNfun :: (TOCKSPN, 'event::tockCSP) pnfun"
+overloading Set_TOCKSTickfun == 
+  "PNfun :: (TOCKSTickPN, 'event::tockCSP) pnfun"
 begin
-  definition "PNfun :: (TOCKSPN, 'event::tockCSP) pnfun == TOCKSfun"
+  definition "PNfun :: (TOCKSTickPN, 'event::tockCSP) pnfun == TOCKSTickfun"
 end
 
-declare Set_TOCKSfun_def [simp]
+declare Set_TOCKSTickfun_def [simp]
 
 
-lemma guardedfun_TOCKSfun [simp]: "guardedfun TOCKSfun"
+lemma guardedfun_TOCKSTickfun [simp]: "guardedfun TOCKSTickfun"
   apply (simp add: guardedfun_def)
-  by (rule allI, induct_tac p, simp)
-
+  apply (rule allI, induct_tac p, simp)
+  done
 
 
 

@@ -12,6 +12,7 @@
 
 theory TSF_law
 imports TSF_Lemma1
+        TSF_law_TimeStop
 begin
 
 

@@ -12,7 +12,7 @@
 
 theory tockCSP_Infra_CSP_F
 imports tockCSP_T.tockCSP_T_Main
-        CSP_F.CSP_F
+        CSP_F
 begin
 
 

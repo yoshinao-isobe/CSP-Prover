@@ -19,7 +19,7 @@ begin
 subsection \<open> semantical approach --> syntactical approach \<close>
 
 
-lemma refTOCKSTick_if_isTimeStopFree:
+lemma refines_TOCKSTick_if_isTimeStopFree:
     "(P) isTimeStopFree ==>
     ($TOCKSTick :: (TOCKSTickPN, 'event::tockCSP) proc) <=F P -- Nontock"
   apply (simp add: cspF_refF_semantics, rule conjI)
@@ -75,11 +75,13 @@ lemma refTOCKSTick_if_isTimeStopFree:
     apply (simp add: sett_doubleton)
   done
 
+lemmas refTOCKSTick_if_isTimeStopFree = refines_TOCKSTick_if_isTimeStopFree
+
+
 
 subsection \<open> syntactical approach --> semantical approach \<close>
 
-
-lemma isTimeStopFree_if_refTOCKSTick:
+lemma isTimeStopFree_if_refines_TOCKSTick:
     "($TOCKSTick :: (TOCKSTickPN, 'event) proc) <=F P -- (Nontock) ==>
     (P::('pn,'event::tockCSP) proc) isTimeStopFree"
   apply (simp add: TimeStopFree_def)
@@ -122,17 +124,27 @@ lemma isTimeStopFree_if_refTOCKSTick:
     apply (drule nonexists_in_failures_TOCKSTick, simp)
   done
 
+lemmas isTimeStopFree_if_refTOCKSTick = isTimeStopFree_if_refines_TOCKSTick
+
+
 
 
 subsection \<open> syntactical approach <--> semantical approach \<close>
 
-theorem TimeStopFree_TOCKSTick_ref_iff:
+
+theorem TimeStopFree_iff_refines_TOCKSTick :
     "(P::('pn,'event) proc) isTimeStopFree =
      (($TOCKSTick:: (TOCKSTickPN, 'event::tockCSP) proc) <=F P -- Nontock)"
   apply (rule iffI)
-    apply (simp add: refTOCKSTick_if_isTimeStopFree)
-    apply (simp add: isTimeStopFree_if_refTOCKSTick)
+    apply (simp add: refines_TOCKSTick_if_isTimeStopFree)
+    apply (simp add: isTimeStopFree_if_refines_TOCKSTick)
   done
+
+lemmas TimeStopFree_TOCKSTick_ref_iff = TimeStopFree_iff_refines_TOCKSTick
+
+
+
+
 
 
 

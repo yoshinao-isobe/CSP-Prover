@@ -12,7 +12,6 @@
 
 theory tockCSP_T
 imports tockCSP_Infra_CSP_T
-        tockCSP.tockCSP_Main
 begin
 
 

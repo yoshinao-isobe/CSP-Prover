@@ -12,7 +12,6 @@
 
 theory tockCSP_DFP_law
 imports tockCSP_Infra_DFP
-        tockCSP_F.tockCSP_F_Main
 begin
 
 subsection \<open> DF and Hiding \<close>

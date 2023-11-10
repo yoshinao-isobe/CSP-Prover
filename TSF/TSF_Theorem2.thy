@@ -11,9 +11,7 @@
             *-------------------------------------------*)
 
 theory TSF_Theorem2
-imports TSF_law
-        TSF_Network
-        tockCSP_DFP.tockCSP_DFP_Main
+imports TSF_TimeStop
 begin
 
 

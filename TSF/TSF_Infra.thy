@@ -11,8 +11,20 @@
             *-------------------------------------------*)
 
 theory TSF_Infra
-imports tockCSP_DFP.tockCSP_DFP_Main
+imports tockCSP_DFP
 begin
+
+
+lemma DeadlockFree_subset :
+    "[X]-DeadlockFree P \<Longrightarrow> [X \<union> Y]-DeadlockFree P"
+  apply (simp add: DeadlockFree_def)
+  apply (simp only: imp_conv_disj)
+    apply (rule)
+    apply (subst disj_imp, rule)
+    apply (simp add: disj_imp)
+    apply (drule_tac x=s in spec, simp)
+    apply (rule non_memF_F2[of _ X], simp, force)
+  done
 
 
 

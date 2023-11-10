@@ -11,7 +11,7 @@
             *-------------------------------------------*)
 
 theory tockCSP_Network
-imports tockCSP_DFP.tockCSP_DFP_Main
+imports tockCSP_DFP
 begin
 
 

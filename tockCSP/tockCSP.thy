@@ -12,6 +12,8 @@
 
 theory tockCSP
 imports tockCSP_TOCKS
+        tockCSP_TOCKSTick
+        tockCSP_Timeout
         tockCSP_RUNT
 begin
 

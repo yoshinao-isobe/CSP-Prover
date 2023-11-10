@@ -12,7 +12,6 @@
 
 theory TSF_TimeStop
 imports TSF_Infra
-        tockCSP_DFP.tockCSP_DFP_Main
 begin
 
 

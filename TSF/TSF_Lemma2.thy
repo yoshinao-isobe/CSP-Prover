@@ -151,7 +151,7 @@ lemma NonTockDeadlockState_if :
     apply (drule_tac x="j" in spec)
     apply (drule mp, simp)
     apply (fast)
-    apply (blast)
+    apply (fast)
 
     apply (case_tac "j = i")
     apply (simp)
@@ -160,7 +160,7 @@ lemma NonTockDeadlockState_if :
     apply (drule_tac x="ia" in spec)
     apply (drule mp, simp)
     apply (fast)
-    apply (blast)
+    apply (fast)
 
     (* ia ~= i; j ~= i; ia ~= j, but xa : snd (PXf i), ... *)
     apply (simp add: tock_triple_conjoint_def)
