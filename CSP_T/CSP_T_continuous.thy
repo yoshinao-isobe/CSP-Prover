@@ -271,6 +271,60 @@ apply (case_tac "b")
 done
 
 (*--------------------------------*
+ |           Interrupt            |
+ *--------------------------------*)
+
+lemma continuous_traces_Interrupt:
+ "[| continuous (traces P) ; continuous (traces Q) |]
+  ==> continuous (traces (P /> Q))"
+apply (frule continuous_mono[of "traces P"])
+apply (frule continuous_mono[of "traces Q"])
+
+apply (simp add: continuous_iff)
+apply (intro allI impI)
+apply (drule_tac x="X" in spec, simp)
+apply (drule_tac x="X" in spec, simp)
+apply (elim conjE exE)
+
+apply (case_tac "xa ~= x", simp add: LUB_unique, simp)
+apply (case_tac "X = {}", simp add: directed_def)
+
+apply (rule_tac x="x" in exI, simp)
+apply (simp add: isLUB_UnionT)
+apply (rule order_antisym)
+
+(* <= *)
+ apply (rule)
+ apply (simp add: in_traces)
+ apply (elim exE bexE conjE disjE)
+ apply (fast)
+
+ apply (simp add: directed_def)
+ apply (drule_tac x="xb" in spec)
+ apply (drule_tac x="xc" in spec)
+ apply (simp, elim conjE exE)
+ apply (rule_tac x="z" in bexI)
+ apply (rule disjI2)
+ apply (rule_tac x="s" in exI)
+ apply (rule_tac x="u" in exI)
+ apply (simp)
+ apply (rule conjI)
+ apply (rule memT_subdomT, simp)
+ apply (simp add: mono_def)
+ apply (rotate_tac -4)
+ apply (rule memT_subdomT, simp)
+ apply (simp add: mono_def)
+ apply (simp)
+
+(* => *)
+ apply (rule)
+ apply (simp add: in_traces)
+ apply (fast)
+
+done
+
+
+(*--------------------------------*
  |           Parallel             |
  *--------------------------------*)
 
@@ -319,10 +373,10 @@ apply (rule order_antisym)
  apply (fast)
 
 apply (simp add: directed_def)
-apply (simp add: LUB_unique)
+apply (simp add: LUB_unique)      
 
 by (simp add: continuous_mono)
-
+                   
 (*--------------------------------*
  |            Hiding              |
  *--------------------------------*)
@@ -474,6 +528,7 @@ apply (simp add: continuous_traces_Ext_choice)
 apply (simp add: continuous_traces_Int_choice)
 apply (simp add: continuous_traces_Rep_int_choice)
 apply (simp add: continuous_traces_IF)
+apply (simp add: continuous_traces_Interrupt)
 apply (simp add: continuous_traces_Parallel)
 apply (simp add: continuous_traces_Hiding)
 apply (simp add: continuous_traces_Renaming)

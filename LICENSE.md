@@ -1,0 +1,1 @@
+See [licence.txt](./licence.txt) file.

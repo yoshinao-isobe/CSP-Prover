@@ -10,32 +10,16 @@
             |        CSP-Prover on Isabelle2017         |
             |                  April 2018  (modified)   |
             |                                           |
+            |        CSP-Prover on Isabelle2021         |
+            |                  2022 / 2023  (modified)  |
+            |                                           |
             |        Yoshinao Isobe (AIST JAPAN)        |
+            | Joabe Jesus (eComp POLI UPE and CIn UFPE) |
             *-------------------------------------------*)
 
 theory DFP_Deadlock
 imports DFP_Network
 begin
-
-(*  The following simplification rules are deleted in this theory file *)
-(*  because they unexpectly rewrite UnionT and InterT.                 *)
-(*                  Union (B ` A) = (UN x:A. B x)                      *)
-(*                  Inter (B ` A) = (INT x:A. B x)                     *)
-(*
-declare Union_image_eq [simp del]
-declare Inter_image_eq [simp del]
-*)
-(* no simp rules in Isabelle 2017 
-declare Sup_image_eq [simp del]
-declare Inf_image_eq [simp del]
-*)
-
-(*  The following simplification rules are deleted in this theory file *)
-(*  because they unexpectly rewrite (notick | t = []t)                 *)
-(*                                                                     *)
-(*                  disj_not1: (~ P | Q) = (P --> Q)                   *)
-
-declare disj_not1 [simp del]
 
 (*****************************************************************
 
@@ -50,43 +34,82 @@ declare disj_not1 [simp del]
                     definitions
  *********************************************************)
 
-definition
-  DeadlockFree :: "'a event set => ('p,'a) proc => bool" 
-                                           ("(0[_]-DeadlockFree _)" [0,55] 55)
-  where
+definition DeadlockFree :: "'a event set => ('p,'a) proc => bool" 
+           ("(0[_]-DeadlockFree _)" [0,55] 55)
+where
   DeadlockFree_def : 
     "[X]-DeadlockFree P == (ALL s. (Tick ~: sett(s)) --> (s,X) ~:f failures P MF)"
 
-  (* R is deadlock free with respect to X, thus
-     R can always perform an event in X at least *)
-
-definition     
-  DeadlockFreeNetwork :: "('i,'p,'a) Network => bool" 
-  where
-  DeadlockFreeNetwork_def : 
-    "DeadlockFreeNetwork V == 
-     [Ev ` (ALP V)]-DeadlockFree PAR V"
+  (* P is deadlock free with respect to X, thus
+     P can always perform an event in X at least *)
 
 
 (*** UNIV deadlockfree ***)
 
-syntax
-  "@isDeadlockFree"  :: "('p,'a) proc => bool" 
-                         ("_ isDeadlockFree" [1000] 1000)
+abbreviation "isDeadlockFree"  :: "('p,'a) proc => bool" 
+       ("_ isDeadlockFree" [1000] 1000)
+where
+    "P isDeadlockFree == [UNIV]-DeadlockFree P"
 
-translations
-  "P isDeadlockFree"  == "[(CONST UNIV)]-DeadlockFree P"
 
-definition
-  isDeadlockStateOf :: 
-   "('i,'a) net_state => ('i,'a) NetworkF => bool"
-                           ("(0_ isDeadlockStateOf _)" [55,55] 55)
-  where
+(*** deadlockfree NETWORK ***)
+
+definition DeadlockFreeNetwork :: "('i,'p,'a) Network => bool" 
+where
+  DeadlockFreeNetwork_def : 
+    "DeadlockFreeNetwork V == [Ev ` ALP V]-DeadlockFree PAR V"
+
+
+
+(*** deadlock STATE of a NETWORK ***)
+
+definition isDeadlockStateOf :: "('i,'a) net_state => ('i,'a) NetworkF => bool"
+           ("(0_ isDeadlockStateOf _)" [55,55] 55)
+where
   isDeadlockStateOf_def : 
    "sigma isDeadlockStateOf VF == 
                 sigma isStateOf VF & 
                 Union {((snd sigma) i) |i. i : fst VF}
-                = Ev ` (ALP VF)"
+                = Ev ` ALP VF"
+
+
+
+
+(*********************************************************
+           Non-terminating (NonTick) definitions
+ *********************************************************)
+
+definition NonTickDeadlockFree :: "'a event set => ('p,'a) proc => bool" 
+           ("(0[_]-NonTickDeadlockFree _)" [0,55] 55)
+where
+  NonTickDeadlockFree_def : 
+    "[X]-NonTickDeadlockFree P == (ALL s. (s,X) ~:f failures P MF)"
+
+
+(*** UNIV non-terminating deadlockfree ***)
+
+abbreviation "isNonTickDeadlockFree"  :: "('p,'a) proc => bool" 
+       ("_ isNonTickDeadlockFree" [1000] 1000)
+where
+    "P isNonTickDeadlockFree == [Evset]-NonTickDeadlockFree P"
+
+
+(*** Non-terminating deadlockfree NETWORK ***)
+
+definition NonTickDeadlockFreeNetwork :: "('i,'p,'a) Network => bool" 
+where
+  NonTickDeadlockFreeNetwork_def : 
+    "NonTickDeadlockFreeNetwork V == [Ev ` ALP V]-NonTickDeadlockFree PAR V"
+
+
+
+
+
+lemma isStateOf_if_isDeadlockStateOf :
+    "sigma isDeadlockStateOf VF \<Longrightarrow>
+     sigma isStateOf VF"
+  by (simp add: isDeadlockStateOf_def)
+
 
 (*********************************************************
            isDeadlockStateOf subset alpha
@@ -382,15 +405,18 @@ apply (erule contrapos_pp)
 apply (simp add: DeadlockState_notDeadlockFree)
 done
 
-(****************** to add it again ******************)
 
-declare disj_not1   [simp]
-(*
-declare Union_image_eq [simp]
-declare Inter_image_eq [simp]
-*)
-(*
-declare Sup_image_eq [simp]
-declare Inf_image_eq [simp]
-*)
+subsection \<open> isNonTickDeadlockFree --> isDeadlockFree \<close>
+
+theorem isDeadlockFree_if_isNonTickDeadlockFree:
+    "P isNonTickDeadlockFree \<Longrightarrow> P isDeadlockFree"
+  apply (simp add: NonTickDeadlockFree_def)
+  apply (simp add: DeadlockFree_def)
+  apply (intro allI impI)
+  apply (drule_tac x=s in spec)
+  apply (erule contrapos_nn)
+  apply (erule contrapos_np)
+  apply (rule memF_F2, simp, simp)
+done
+
 end

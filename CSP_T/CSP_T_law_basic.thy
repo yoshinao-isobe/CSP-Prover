@@ -183,6 +183,39 @@ apply (rule cspT_sym)
 apply (simp add: cspT_Int_choice_assoc)
 done
 
+
+(* --------------------------------------------------- *
+              Associativity of Interleave
+ * --------------------------------------------------- *)
+
+
+
+lemma cspT_Interleave_assoc :
+    "P ||| (Q ||| R) =T[M,M] (P ||| Q) ||| R"                 
+  apply (simp add: cspT_semantics)
+  apply (simp add: traces_iff)
+
+  apply (simp add: CollectT_open_memT Parallel_domT)
+  apply (rule CollectT_eq)
+
+  apply (simp only: ex_simps[THEN sym] conj_assoc conj_left_commute)
+
+  apply (rule sym, rule trans, rule ex_comm3, rule sym)
+  apply (rule ex_cong1)
+  apply (rule trans, rule ex_comm)
+  apply (rule sym, rule trans, rule ex_comm3, rule sym)
+  apply (rule ex_cong1)
+  apply (rule trans, rule ex_comm)
+  apply (rule sym, rule trans, rule ex_comm, rule sym)
+  apply (rule ex_cong1)
+
+  apply (simp only: ex_simps)
+  apply (rule conj_cong, simp)+
+  apply (simp only: conj_assoc[THEN sym])
+
+  by (simp only: ex_simps inter_tr_assoc)
+
+
 (*------------------*
  |      csp law     |
  *------------------*)
@@ -210,6 +243,25 @@ done
 
 lemmas cspT_left_commut = 
        cspT_Ext_choice_left_commut cspT_Int_choice_left_commut
+
+
+
+(*-----------------------------------*
+ |     Interleave Commutativity      |
+ *-----------------------------------*)
+
+lemma cspT_Interleave_commute :
+    "P ||| Q =T[M,M] Q ||| P"
+  by (rule cspT_Parallel_commut)
+
+lemma cspT_Interleave_left_commute :
+    "P ||| (Q ||| R) =T[M,M] Q ||| (P ||| R)"
+  apply (rule cspT_rw_left, rule cspT_Interleave_commute)
+  apply (rule cspT_rw_left, rule cspT_Interleave_assoc[THEN cspT_sym])
+  apply (rule cspT_decompo, simp_all, rule cspT_Interleave_commute)
+  done
+
+
 
 (*-----------------------------------*
  |              Unit                 |
@@ -256,6 +308,35 @@ lemmas cspT_Int_choice_unit =
        cspT_Int_choice_unit_l cspT_Int_choice_unit_r
 
 lemmas cspT_unit = cspT_Ext_choice_unit cspT_Int_choice_unit
+
+
+(*-----------------------------------*
+ |             guard proc            |
+ *-----------------------------------*)
+
+lemma cspT_guard_False [simp]:
+    "False &: P =T[M,M] STOP"
+  by (rule cspT_IF_False)
+
+lemma cspT_guard_True [simp]:
+    "True &: P =T[M,M] P"
+  by (rule cspT_IF_True)
+
+lemma cspT_Ext_choice_guard_IF :
+    "g &: P [+] \<not> g &: Q =T[M,M] (IF g THEN P ELSE Q)"
+  apply (case_tac g, auto)
+  apply (rule cspT_rw_left, rule cspT_Ext_choice_cong)
+  apply (rule cspT_IF, rule cspT_IF)
+  apply (rule cspT_rw_right, rule cspT_IF)
+  apply (rule cspT_rw_left, rule cspT_Ext_choice_unit)
+  apply (rule cspT_reflex)
+  apply (rule cspT_rw_left, rule cspT_Ext_choice_cong)
+  apply (rule cspT_IF, rule cspT_IF)
+  apply (rule cspT_rw_right, rule cspT_IF)
+  apply (rule cspT_rw_left, rule cspT_Ext_choice_unit)
+  apply (rule cspT_reflex)
+  done
+
 
 (*-----------------------------------*
  |             !-empty               |
@@ -775,6 +856,15 @@ lemmas cspT_first_prefix_ss =
        cspT_first_Nondet_send_prefix
 
 
+lemma cspT_Rec_prefix_cong_right :
+    "\<forall>x. Pf x =T[M1,M2] Qf x
+     \<Longrightarrow> a ? u:T -> Pf u =T[M1,M2] a ? u:T -> Qf u"
+  apply (rule cspT_rw_left, rule cspT_first_Rec_prefix)
+  apply (rule cspT_rw_right, rule cspT_first_Rec_prefix)
+  apply (simp only: image_def)
+  apply (rule cspT_decompo, simp_all add: inv_def)
+done
+
 
 (* --------------------------------------------------- *
       Associativity of Sequential composition
@@ -792,7 +882,7 @@ apply (rule order_antisym)
 
   apply (rule disjI2)
   apply (rule_tac x="sa" in exI)
-  apply (insert noTick_or_last_Tick2)
+  apply (insert Trace.trace_last_noTick_or_Tick)
   apply (drule_tac x="ta" in spec)
   apply (elim disjE conjE exE)
 
@@ -803,10 +893,10 @@ apply (rule order_antisym)
    apply (simp)
 
    apply (simp)
-   apply (rule_tac x="tb" in exI)
+   apply (rule_tac x="sb" in exI)
    apply (simp)
    apply (rule disjI2)
-   apply (rule_tac x="tb" in exI)
+   apply (rule_tac x="sb" in exI)
    apply (rule_tac x="<>" in exI)
    apply (simp)
 
@@ -881,7 +971,6 @@ apply (rule order_antisym)
   apply (rule_tac x="sa ^^^ <Tick>" in exI)
   apply (simp)
 done
-
 
 
 (* ---------------------------------------------- *

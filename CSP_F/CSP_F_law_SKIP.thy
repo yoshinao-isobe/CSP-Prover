@@ -12,7 +12,11 @@
             |        CSP-Prover on Isabelle2009         |
             |                   June 2009  (modified)   |
             |                                           |
+            |        CSP-Prover on Isabelle2021         |
+            |                 August 2021  (modified)   |
+            |                                           |
             |        Yoshinao Isobe (AIST JAPAN)        |
+            | Joabe Jesus (eComp POLI UPE and CIn UFPE) |
             *-------------------------------------------*)
 
 theory CSP_F_law_SKIP
@@ -201,20 +205,18 @@ apply (rule order_antisym)
   apply (rule_tac x="Ya" in exI)
   apply (rule_tac x="Z" in exI)
   apply (simp add: par_tr_nil_right)
-  apply (rule_tac x="<Ev a> ^^^ sb" in exI)
+  apply (rule_tac x="<Ev a> ^^^ sa" in exI)
   apply (rule_tac x="<>" in exI)
   apply (simp add: par_tr_nil_right)
   apply (simp add: image_iff)
-  apply (fast)
 
   apply (rule_tac x="Ya" in exI)
   apply (rule_tac x="Z" in exI)
   apply (simp add: par_tr_Tick_right)
-  apply (rule_tac x="<Ev a> ^^^ sb" in exI)
+  apply (rule_tac x="<Ev a> ^^^ sa" in exI)
   apply (rule_tac x="<Tick>" in exI)
   apply (simp add: par_tr_Tick_right)
   apply (simp add: image_iff)
-  apply (fast)
 
   apply (rule_tac x="Xa" in exI)
   apply (rule_tac x="Xa" in exI)
@@ -246,6 +248,33 @@ done
 lemmas cspF_SKIP_Parallel_Ext_choice_SKIP =
        cspF_SKIP_Parallel_Ext_choice_SKIP_l
        cspF_SKIP_Parallel_Ext_choice_SKIP_r
+
+
+(*********************************************************
+                      SKIP and Synchro
+ *********************************************************)
+
+
+lemma cspF_SKIP_Synchro_STOP :
+    "SKIP || STOP =F[M,M] STOP"
+  apply (simp add: cspF_cspT_semantics, rule)
+  apply (rule cspT_SKIP_Synchro_STOP)
+
+  apply (simp add: failures_iff insert_Tick_Ev)
+  apply (simp only: ex_simps[THEN sym])
+  apply (subst CollectF_open_memF, simp add: SKIP_setF)
+  apply (subst CollectF_open_memF, simp add: STOP_setF)
+
+  apply (rule CollectF_eq, rule)
+  apply (elim exE conjE disjE, simp_all)
+  apply (elim exE)
+  apply (rule_tac x="<>" in exI, simp)
+  apply (rule_tac x="{}" in exI, simp)
+  done
+
+
+lemmas cspF_SKIP_Synchro_SKIP = cspF_Parallel_term
+
 
 (*********************************************************
                       SKIP -- X
@@ -582,8 +611,6 @@ apply (rule order_antisym)
   apply (simp add: par_tr_Tick_left)
   apply (simp add: Tick_in_sett)
   apply (elim conjE exE)
-  apply (rotate_tac -3)
-  apply (drule sym)
   apply (simp)
   apply (rule proc_T2_T3)
   apply (simp_all)
@@ -628,5 +655,73 @@ done
 lemmas cspF_Interleave_unit =
        cspF_Interleave_unit_l
        cspF_Interleave_unit_r
+
+
+
+(*********************************************************
+                      SKIP and Synchro
+ ********************************************************)
+
+
+lemma cspF_Synchro_SKIP_Interleave_dist_l :
+       "SKIP || (P ||| Q) =F[M,M] (SKIP || P) ||| (SKIP || Q)"
+  apply (simp add: cspF_cspT_semantics, rule)
+
+  (* traces are the same *)
+  apply (rule cspT_Synchro_SKIP_Interleave_dist_l)
+  (* failures are the same *)
+  apply (simp add: failures_iff)
+    apply (simp add: CollectF_open_memF Interleave_setF Parallel_setF SKIP_setF)
+    apply (subst CollectF_open_memF, simp add: insert_Tick_Ev Parallel_setF_nilt_Tick)
+    apply (subst CollectF_open_memF, simp add: insert_Tick_Ev Parallel_setF_nilt_Tick)
+    apply (rule CollectF_eq)
+
+    apply (rule ex_cong1) (* traces are the same *)
+    apply (rule iffI)
+
+    apply (elim exE conjE)
+      apply (simp only: ex_simps[THEN sym])
+      apply (rule_tac x="Y \<union> Ya" in exI)
+      apply (rule_tac x="Y \<union> Za" in exI)
+      apply (simp only: Un_diff_dist_right Un_assoc Un_left_commute insert_Tick_Ev)
+      apply (elim disjE conjE)
+        apply (simp add: par_tr_nil sett_Int_Evset_empty_iff_nilt_or_Tick)
+        apply (simp add: Tick_notin_trace_nilt_or_Tick_iff, force)
+        apply (simp add: par_tr_Tick sett_Int_Evset_empty_iff_nilt_or_Tick)
+        apply (simp add: Tick_in_trace_nilt_or_Tick_iff, force)
+
+    apply (elim exE conjE)
+      apply (simp only: ex_simps[THEN sym])
+      apply (rule_tac x="Ya \<union> Yb" in exI)
+      apply (subst ex_comm4, rule_tac x="Za - (Ya \<union> Yb)" in exI)
+      apply (subst ex_comm4, rule_tac x="Zb - (Ya \<union> Yb)" in exI)
+      apply (subst ex_comm4, rule_tac x="ta" in exI)
+      apply (subst ex_comm4, rule_tac x="tb" in exI)
+  
+      apply (frule_tac X="Za" and Y="Za - (Ya \<union> Yb)" in memF_F2, simp, simp)
+      apply (frule_tac X="Zb" and Y="Zb - (Ya \<union> Yb)" in memF_F2, simp, simp)
+  
+      apply (elim conjE disjE)
+        apply (simp_all add: par_tr_nil par_tr_Tick)
+        apply (simp_all add: sett_Int_Evset_empty_iff_nilt_or_Tick)
+          apply (simp_all add: Tick_notin_trace_nilt_or_Tick_iff)
+          apply (simp_all add: Tick_in_trace_nilt_or_Tick_iff)
+          apply (simp_all add: insert_Tick_Ev)
+          apply (rule, force, force)
+          apply (rule, force, force)
+    done
+
+
+lemma cspF_Synchro_SKIP_Interleave_dist_r :
+       "P ||| Q || SKIP =F[M,M] P || SKIP ||| (Q || SKIP)"
+  apply (rule cspF_rw_left, rule cspF_Parallel_commut)
+  apply (rule cspF_rw_left, rule cspF_Synchro_SKIP_Interleave_dist_l)
+  by (rule cspF_decompo, simp, rule cspF_Parallel_commut, rule cspF_Parallel_commut)
+
+
+lemmas cspF_Synchro_SKIP_Interleave_dist = cspF_Synchro_SKIP_Interleave_dist_l
+                                           cspF_Synchro_SKIP_Interleave_dist_r
+
+
 
 end

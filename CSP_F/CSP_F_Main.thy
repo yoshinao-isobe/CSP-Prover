@@ -14,7 +14,11 @@
             |        CSP-Prover on Isabelle2009         |
             |                   June 2009  (modified)   |
             |                                           |
+            |        CSP-Prover on Isabelle2021         |
+            |                 August 2021  (modified)   |
+            |                                           |
             |        Yoshinao Isobe (AIST JAPAN)        |
+            | Joabe Jesus (eComp POLI UPE and CIn UFPE) |
             *-------------------------------------------*)
 
 theory CSP_F_Main
@@ -154,5 +158,63 @@ by (auto simp add: inj_on_def)
 (*
 declare simp_event_set [simp]
 *)
+
+
+
+
+
+
+(* =================================================== *
+ |             addition for CSP-Prover 6               |
+ * =================================================== *)
+
+(* -------------------------------------------------- *
+           convenient lemmas for process names
+ * -------------------------------------------------- *)
+
+
+lemma cspF_PN_mono :
+    "\<lbrakk> (Pf::'p \<Rightarrow> ('p,'e) proc) = PNfun ;
+       guardedfun Pf ;
+       Pf P = Q \<rbrakk>
+     \<Longrightarrow> $P =F Q"
+by (rule cspF_rw_left, rule cspF_unwind, simp, induct FPmode, simp_all)
+
+
+
+lemma cspF_PN_eqF :
+    "\<lbrakk> (Qf::'q \<Rightarrow> ('q,'e) proc) = PNfun ;
+       (Pf::'p \<Rightarrow> ('p,'e) proc) = PNfun ;
+       FPmode = CMSmode \<or> FPmode = MIXmode ;
+       guardedfun Pf ;
+       guardedfun Qf ;
+       \<forall>P. \<exists>Q. P2Qf P = $Q \<and> Qf (Q) = ((Pf P) << P2Qf) ;
+       Pf (P) = p;
+       P2Qf P = $Q \<rbrakk>
+     \<Longrightarrow> (($Q)::('q,'e) proc) =F (($P)::('p,'e) proc)"
+
+  apply (rule cspF_rw_right, rule cspF_fp_induct_left[of "Pf" "P2Qf"], simp)
+  apply (erule disjE)
+    apply (simp)
+    apply (simp)
+    apply (simp)
+    apply (simp)
+    apply (clarsimp)
+    apply (rule cspF_reflex)
+    apply (simp)
+
+  apply (erule_tac x="pa" in allE, erule_tac exE)
+  apply (erule conjE)
+  apply (simp)
+  apply (rule cspF_rw_right, rule cspF_unwind, simp, simp, simp)
+  
+  apply (erule_tac x="P" in allE, erule_tac exE)
+  apply (erule conjE)
+  apply (simp)
+  done
+
+
+lemma cspF_eqF_eq : "P = Q \<Longrightarrow> P =F[M,M] Q"
+by (simp)
 
 end

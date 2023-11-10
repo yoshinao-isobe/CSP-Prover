@@ -176,7 +176,7 @@ apply (rule order_antisym)
  apply (elim conjE exE)
  apply (rule_tac x="Z" in exI)
  apply (rule_tac x="Y" in exI)
- apply (simp add: Un_sym)
+ apply (simp add: Un_commute)
 
 (* <= *)
  apply (rule)
@@ -184,7 +184,7 @@ apply (rule order_antisym)
  apply (elim conjE exE)
  apply (rule_tac x="Z" in exI)
  apply (rule_tac x="Y" in exI)
- apply (simp add: Un_sym)
+ apply (simp add: Un_commute)
 done
 
 (************************************

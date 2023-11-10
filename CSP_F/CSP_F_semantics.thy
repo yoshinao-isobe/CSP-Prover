@@ -60,6 +60,13 @@ where
 
  |"failures(IF b THEN P ELSE Q) = (%M. if b then failures(P) M else failures(Q) M)"
 
+ |"failures(P /> Q) = (%M. {f.
+       (EX s   X. f = (s,X) & f :f failures(P) M ) |
+       (EX s   X. f = (s,X) & noTick s & s ^^^ <Tick> :t traces(P) (fstF o M) & Tick ~: X ) |
+       (EX s   X. f = (s ^^^ <Tick> , X) & noTick s & s ^^^ <Tick> :t traces(P) (fstF o M) ) |
+       (EX s t X. f = (s ^^^ t,X) & s :t traces(P) (fstF o M) & noTick s & (t,X) :f failures(Q) M ) }f)"
+(*& (ALL i. <Ev i> :t traces(Q) (fstF o M) --> Ev i ~: X) *)
+
  |"failures(P |[X]| Q)  = (%M. {f. 
       EX u Y Z. f = (u, Y Un Z) & Y-((Ev`X) Un {Tick})= Z-((Ev`X) Un {Tick}) &
      (EX s t. u : s |[X]|tr t & (s,Y) :f failures(P) M & (t,Z) :f failures(Q) M) }f)"
@@ -128,10 +135,83 @@ lemmas Rep_int_choice_failures =
        Rep_int_choice_failures_com
        Rep_int_choice_failures_f
 
+
+(*--------------------------------*
+ |      Inductive_Ext_choice      |
+ *--------------------------------*)
+
+abbreviation in_f_Inductive_ext_choice ::
+    "(('p,'a) proc) list \<Rightarrow> ('p \<Rightarrow> 'a domF) \<Rightarrow> 'a failure \<Rightarrow> bool"
+where "in_f_Inductive_ext_choice l Mf f ==
+        ((l = [] \<and> (\<exists> X. f = (<>,X)))
+        \<or>(l \<noteq> []
+         \<and> ((\<exists>X. f = (<>,X) \<and> f :f failures(hd l) Mf
+                                    IntF failures([+] tl l) Mf)
+            \<or> (\<exists>s X. f = (s,X)
+                \<and> f :f failures(hd l) Mf
+                        UnF failures([+] tl l) Mf
+                \<and> s ~= <>)
+            \<or> (\<exists>X. f = (<>,X)
+                \<and> <Tick> :t traces(hd l) (fstF \<circ> Mf)
+                            UnT traces([+] tl l) (fstF \<circ> Mf)
+                \<and> X <= Evset))))"
+
+
+theorem Inductive_ext_choice_failures :
+    "failures ([+] PXs) Mf = { f. in_f_Inductive_ext_choice PXs Mf f }f"
+  apply (induct PXs, simp add: failures.simps)
+  by (simp add: failures.simps traces_iff comp_def)
+
+
+(*--------------------------------*
+ |      Replicated_Ext_choice     |
+ *--------------------------------*)
+
+theorem Rep_ext_choice_failures :
+    "failures ([+] X .. PXf) Mf = {f. in_f_Inductive_ext_choice (map PXf X) Mf f }f"
+  apply (simp add: Rep_ext_choice_def)
+  apply (rule trans, rule Inductive_ext_choice_failures)
+  by (case_tac X, simp_all add: hd_map map_tl)
+
+
+(*--------------------------------*
+ |        Induct_interleave       |
+ *--------------------------------*)
+
+abbreviation in_f_Induct_interleave ::
+    "(('p,'a) proc) list \<Rightarrow> ('p \<Rightarrow> 'a domF) \<Rightarrow> 'a failure \<Rightarrow> bool"
+where "in_f_Induct_interleave l Mf f ==
+    ((l = [] \<and> ((EX X. f = (<>, X) & X <= Evset) \<or> (EX X. f = (<Tick>, X))))
+    \<or> (l \<noteq> [] \<and> (EX u Y Z. f = (u, Y Un Z) \<and> Y-{Tick}= Z-{Tick}
+               \<and> (EX s t. u : s |[{}]|tr t
+                        \<and> (s,Y) :f failures(hd l) Mf
+                        \<and> (t,Z) :f failures( ||| tl l) Mf))))"
+
+theorem Inductive_interleave_failures :
+    "failures ( ||| l) Mf = {f. in_f_Induct_interleave l Mf f }f"
+  apply (induction l)
+  apply (simp add: failures.simps)
+  by (simp add: failures.simps traces_iff)
+
+
+(*--------------------------------*
+ |         Rep_interleaving       |
+ *--------------------------------*)
+
+theorem Rep_interleaving_failures :
+    "failures ( ||| X .. PXf) Mf = {f. in_f_Induct_interleave (map PXf X) Mf f }f"
+  apply (simp add: Rep_interleaving_def)
+  apply (rule trans, rule Inductive_interleave_failures)
+  by (case_tac X, simp_all add: map_tl hd_map)
+
+
 (*
 lemmas failures_def = failures.simps Rep_int_choice_failures
 *)
-lemmas failures_iff = failures.simps Rep_int_choice_failures
+lemmas failures_iff = failures.simps
+                      Rep_int_choice_failures
+                      (*Inductive_ext_choice_failures
+                      Rep_ext_choice_failures*)
 
 (*********************************************************
                      semantics
@@ -333,7 +413,8 @@ lemma cspF_trans_right_ref:
   "[| P2 <=F[M2,M3] P3 ;  P1 <=F[M1,M2] P2 |] ==> P1 <=F[M1,M3] P3"
 by (simp add: refF_def)
 
-lemmas cspF_trans_rught = cspF_trans_right_eq cspF_trans_right_ref
+lemmas cspF_trans_right = cspF_trans_right_eq cspF_trans_right_ref
+lemmas cspF_trans_rught = cspF_trans_right (* backward compatibility *)
 
 (*** rewrite (eq) ***)
 
@@ -561,6 +642,20 @@ apply (simp add: failures_iff, force)
  apply (simp)
  apply (simp)
 
+(* Interrupt *)
+ apply (intro impI)
+ apply (simp add: failures_iff)
+ apply (elim exE)
+ apply (simp)
+ apply (subgoal_tac "ALL P. noPN P --> (EX T. traces P = (%M. T))")
+ apply (frule_tac x="x1" in spec)
+ apply (drule_tac x="x2" in spec)
+ apply (simp)
+ apply (elim exE)
+ apply (simp)
+ apply (force)
+ apply (simp add: traces_noPN_Constant)
+
 apply (simp add: failures_iff, force)
 apply (simp add: failures_iff, force)
 apply (simp add: failures_iff, force)
@@ -586,5 +681,64 @@ lemma failures_noPN_Constant:
   "noPN P ==> (EX F. failures P = (%M. F))"
 apply (simp add: failures_noPN_Constant_lm)
 done
+
+
+
+
+(*-----------------------------------------------------*
+ |                   CSP-Prover v6                     |
+ *-----------------------------------------------------*)
+
+
+(*-------------------------------------------*
+ |   transitivity processes in assumptions   |
+ *-------------------------------------------*)
+
+lemma cspF_tr_left_refE_MF:
+    "[| P <=F Q ; Pb <=F P ;
+        [| Pb <=F Q |] ==> R |] ==> R"
+  apply (subgoal_tac "Pb <=F Q")
+  apply (simp)
+  apply (rule cspF_trans_left)
+  apply (simp)
+  apply (simp)
+done
+
+lemma cspF_tr_left_refE:
+    "[| P <=F[Mp,Mq] Q ; Pb <=F[Mb,Mp] P ; 
+        [| Pb <=F[Mb,Mq] Q |] ==> R |] ==> R"
+  apply (subgoal_tac "Pb <=F[Mb,Mq] Q")
+  apply (simp)
+  apply (rule cspF_trans_left)
+  apply (simp)
+  apply (simp)
+done
+
+lemmas cspF_tr_leftE = cspF_tr_left_refE_MF
+                       cspF_tr_left_refE
+
+(* right *)
+
+lemma cspF_tr_right_refE_MF:
+    "[| P <=F Q ; Q <=F Pt ; [| P <=F Pt |] ==> R |] ==> R"
+  apply (subgoal_tac "P <=F Pt")
+  apply (simp)
+  apply (rule cspF_trans_right)
+  apply (simp)
+  apply (simp)
+done
+
+lemma cspF_tr_right_refE:
+    "[| P <=F[Mp,Mq] Q ; Q <=F[Mq,Mt] Pt ;
+        [| P <=F[Mp,Mt] Pt |] ==> R |] ==> R"
+  apply (subgoal_tac "P <=F[Mp,Mt] Pt")
+  apply (simp)
+  apply (rule cspF_trans_right)
+  apply (simp)
+  apply (simp)
+done
+
+lemmas cspF_tr_rightE = cspF_tr_right_refE_MF
+                        cspF_tr_right_refE
 
 end

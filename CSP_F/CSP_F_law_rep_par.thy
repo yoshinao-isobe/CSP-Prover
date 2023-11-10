@@ -101,6 +101,11 @@ done
 
 (* main *)
 
+lemma cspF_Rep_parallel_cong:
+   "[| l1 = l2 |]
+     ==> [||] l1 =F[M,M] [||] l2"
+  by (simp)
+
 lemma cspF_Rep_parallel_index_eq:
    "[| finite I1 ;
        EX f. I2 = f ` I1 & inj_on f I1 &

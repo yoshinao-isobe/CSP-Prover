@@ -64,9 +64,8 @@ axclass
   complete_cpo : "(directed (X::'a::order set)) ==> X hasLUB"
 *)
 
-class cpo = order +
+class cpo = ord +
 assumes complete_cpo : "(directed (X::'a::order set)) ==> X hasLUB"
-
 
 (*** pointed cpo ***)
 

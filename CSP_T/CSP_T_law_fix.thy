@@ -273,6 +273,7 @@ where
  |"rmPN(P |~| Q)     = (rmPN P) |~| (rmPN Q)"
  |"rmPN(!! :C .. Pf) = !! c:C .. rmPN (Pf c)"
  |"rmPN(IF b THEN P ELSE Q) = (IF b THEN rmPN(P) ELSE rmPN(Q))"
+ |"rmPN(P /> Q)      = (rmPN P) /> (rmPN Q)"
  |"rmPN(P |[X]| Q)   = (rmPN P) |[X]| (rmPN Q)"
  |"rmPN(P -- X)      = (rmPN P) -- X"
  |"rmPN(P [[r]])     = (rmPN P) [[r]]"
@@ -363,6 +364,18 @@ apply (rule order_antisym)
  apply (rule_tac x="n + f n" in exI)
  apply (simp)
 done
+
+
+(*-----------------------------------------------------*
+ |                   CSP-Prover v6                     |
+ *-----------------------------------------------------*)
+
+lemma FIX_traces :
+    "(Pf::('pn,'e) pnfun) = PNfun \<Longrightarrow>
+     guardedfun Pf \<Longrightarrow>
+     traces ($(p::'pn)) MT = traces ((FIX Pf) p) MT"
+  apply (insert cspT_FIX[of Pf p])
+  by (simp add: cspT_semantics)
 
 (****************** to add them again ******************)
 (*

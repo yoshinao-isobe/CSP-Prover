@@ -2,7 +2,11 @@
             |        CSP-Prover on Isabelle2009         |
             |                   June 2009  (modified)   |
             |                                           |
+            |        CSP-Prover on Isabelle2021         |
+            |                 August 2021  (modified)   |
+            |                                           |
             |        Yoshinao Isobe (AIST JAPAN)        |
+            | Joabe Jesus (eComp POLI UPE and CIn UFPE) |
             *-------------------------------------------*)
 
 theory Trace_op
@@ -304,11 +308,9 @@ apply (simp)
  apply (case_tac "a : range mid")
  apply (simp add: ren_tr_decompo_right)
  apply (elim conjE exE)
- apply (simp)
 
  apply (simp add: image_iff)
  apply (elim conjE exE)
- apply (simp)
  apply (simp add: pair_in_Renaming_channel)
 
  (* 2 *)
@@ -317,7 +319,6 @@ apply (simp)
  apply (simp)
  apply (simp add: ren_tr_decompo_right)
  apply (elim conjE exE)
- apply (simp)
 
  apply (simp add: image_iff)
  apply (elim conjE exE)
@@ -339,7 +340,6 @@ apply (simp)
  apply (simp)
  apply (simp add: ren_tr_decompo_right)
  apply (elim conjE exE)
- apply (simp)
 
  apply (simp add: image_iff)
  apply (elim conjE exE)
@@ -351,8 +351,6 @@ apply (simp)
  apply (simp)
  apply (force)
 
- apply (elim conjE exE)
- apply (elim add_not_eq_symE)
  apply (force)
 
 apply (simp)
@@ -362,7 +360,7 @@ done
 
 lemma Renaming_channel_tr_rest_eq[rule_format]:
   "ALL s t.
-   (inj f & inj g & (ALL x y. f x ~= g y) &
+   (inj f & inj g & (disjoint_range f g) &
     range f Int Y = {} & range g Int Y = {} & s [[f<==>g]]* t)
    --> s rest-tr Y = t rest-tr Y"
 apply (rule)
@@ -393,8 +391,8 @@ apply (simp)
 done
 
 lemma Renaming_channel_tr_rest_eq_range:
-  "[| inj f ; inj g ; ALL x y. f x ~= g y ; 
-      ALL x y. f x ~= h y ; ALL x y. g x ~= h y ;
+  "[| inj f ; inj g ; disjoint_range f g ; 
+      disjoint_range f h ; disjoint_range g h ;
       s [[f<==>g]]* t |]
    ==> s rest-tr range h = t rest-tr range h"
 apply (rule Renaming_channel_tr_rest_eq[of f g "range h" s t])
@@ -407,9 +405,9 @@ done
 lemma Renaming_channel_range_sett_lm[rule_format]:
   "ALL t s.
    (inj f & inj h & inj g &
-   (ALL x y. f x ~= g y) &
-   (ALL x y. f x ~= h y) &
-   (ALL x y. g x ~= h y) &
+   (disjoint_range f g) &
+   (disjoint_range f h) &
+   (disjoint_range g h) &
    (s [[f<==>g]]* (t rest-tr (range f Un range h))))
    --> sett s <= insert Tick (Ev ` (range g Un range h))"
 apply (rule)
@@ -453,9 +451,9 @@ done
 
 lemma Renaming_channel_range_sett1:
   "[| inj f ; inj h ; inj g ;
-      (ALL x y. f x ~= g y) ;
-      (ALL x y. f x ~= h y) ;
-      (ALL x y. g x ~= h y) ;
+      (disjoint_range f g) ;
+      (disjoint_range f h) ;
+      (disjoint_range g h) ;
       (s [[f<==>g]]* (t rest-tr (range f Un range h))) |]
    ==> sett s <= insert Tick (Ev ` (range g Un range h))"
 apply (rule Renaming_channel_range_sett_lm)
@@ -464,20 +462,20 @@ done
 
 lemma Renaming_channel_range_sett2:
   "[| inj f ; inj h ; inj g ;
-      (ALL x y. f x ~= g y) ;
-      (ALL x y. f x ~= h y) ;
-      (ALL x y. g x ~= h y) ;
+      (disjoint_range f g) ;
+      (disjoint_range f h) ;
+      (disjoint_range g h) ;
       (s [[f<==>g]]* (t rest-tr (range h Un range f))) |]
    ==> sett s <= insert Tick (Ev ` (range h Un range g))"
-apply (simp add: Un_sym)
+apply (simp add: Un_commute)
 apply (simp add: Renaming_channel_range_sett1)
 done
 
 lemma Renaming_channel_range_sett3:
   "[| inj f ; inj h ; inj g ;
-      (ALL x y. f x ~= g y) ;
-      (ALL x y. f x ~= h y) ;
-      (ALL x y. g x ~= h y) ;
+      (disjoint_range f g) ;
+      (disjoint_range f h) ;
+      (disjoint_range g h) ;
       (s [[g<==>f]]* (t rest-tr (range f Un range h))) |]
    ==> sett s <= insert Tick (Ev ` (range g Un range h))"
 apply (simp add: Renaming_commut)
@@ -486,9 +484,9 @@ done
 
 lemma Renaming_channel_range_sett4:
   "[| inj f ; inj h ; inj g ;
-      (ALL x y. f x ~= g y) ;
-      (ALL x y. f x ~= h y) ;
-      (ALL x y. g x ~= h y) ;
+      (disjoint_range f g) ;
+      (disjoint_range f h) ;
+      (disjoint_range g h) ;
       (s [[g<==>f]]* (t rest-tr (range h Un range f))) |]
    ==> sett s <= insert Tick (Ev ` (range h Un range g))"
 apply (simp add: Renaming_commut)
@@ -506,9 +504,9 @@ lemmas Renaming_channel_range_sett =
 lemma Renaming_channel_tr_par_comp[rule_format]:
    "ALL n s t.
    (inj f & inj h & inj g &
-   (ALL x y. f x ~= g y) &
-   (ALL x y. f x ~= h y) &
-   (ALL x y. g x ~= h y) &
+   (disjoint_range f g) &
+   (disjoint_range f h) &
+   (disjoint_range g h) &
     lengtht s + lengtht t <= n &
     sett(s) <= insert Tick (Ev ` (range f Un range g)) &
     sett(t) <= insert Tick (Ev ` (range f Un range g)) &
@@ -1202,7 +1200,7 @@ done
 
 lemma Renaming_channel_rest_tr_eq_n:
   "ALL n s t s' t'.
-   (inj f & inj g & (ALL x y. f x ~= g y) &
+   (inj f & inj g & (disjoint_range f g) &
     lengtht s + lengtht t <= n &
     s rest-tr range f = t rest-tr range f &
     s [[f<==>g]]* s' &
@@ -1461,7 +1459,7 @@ done
 
 
 lemma Renaming_channel_rest_tr_eq_EX:
-  "[| inj f ; inj g ; ALL x y. f x ~= g y ;
+  "[| inj f ; inj g ; disjoint_range f g ;
       EX s t. s rest-tr range f = t rest-tr range f &
               s [[f<==>g]]* s' &
               t [[f<==>g]]* t' |]

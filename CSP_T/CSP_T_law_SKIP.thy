@@ -9,7 +9,11 @@
             |                  April 2006  (modified)   |
             |                  March 2007  (modified)   |
             |                                           |
+            |        CSP-Prover on Isabelle2021         |
+            |                 August 2021  (modified)   |
+            |                                           |
             |        Yoshinao Isobe (AIST JAPAN)        |
+            | Joabe Jesus (eComp POLI UPE and CIn UFPE) |
             *-------------------------------------------*)
 
 theory CSP_T_law_SKIP
@@ -158,14 +162,14 @@ apply (rule order_antisym)
 
   apply (simp add: par_tr_nil_right)
   apply (elim conjE)
-  apply (rule_tac x="<Ev a> ^^^ sa" in exI)
+  apply (rule_tac x="<Ev a> ^^^ s" in exI)
   apply (rule_tac x="<>" in exI)
   apply (simp add: par_tr_nil_right)
   apply (simp add: image_iff)
 
   apply (simp add: par_tr_Tick_right)
   apply (elim conjE)
-  apply (rule_tac x="<Ev a> ^^^ sa" in exI)
+  apply (rule_tac x="<Ev a> ^^^ s" in exI)
   apply (rule_tac x="<Tick>" in exI)
   apply (simp add: par_tr_Tick_right)
   apply (simp add: image_iff)
@@ -190,6 +194,27 @@ done
 lemmas cspT_SKIP_Parallel_Ext_choice_SKIP =
        cspT_SKIP_Parallel_Ext_choice_SKIP_l
        cspT_SKIP_Parallel_Ext_choice_SKIP_r
+
+
+(*********************************************************
+                      SKIP and Synchro
+ *********************************************************)
+
+lemma Tick_notin_trace_nilt_or_Tick_iff : "(Tick \<notin> sett s \<and> (s = <> \<or> s = <Tick>)) \<longleftrightarrow> s = <>"
+  by (auto)
+
+lemma Tick_in_trace_nilt_or_Tick_iff : "(Tick \<in> sett s \<and> (s = <> \<or> s = <Tick>)) \<longleftrightarrow> s = <Tick>"
+  by (auto)
+
+lemma cspT_SKIP_Synchro_STOP :
+    "SKIP || STOP =T[M,M] STOP"
+  apply (simp add: cspT_semantics, simp add: traces_iff)
+  apply (simp add: par_tr_nil sett_Int_Evset_empty_iff_nilt_or_Tick)
+  by (simp add: Tick_notin_trace_nilt_or_Tick_iff)
+
+
+lemmas cspT_SKIP_Synchro_SKIP = cspT_Parallel_term
+
 
 (*********************************************************
                       SKIP -- X
@@ -509,5 +534,51 @@ lemmas cspT_Interleave_unit =
        cspT_Interleave_unit_l
        cspT_Interleave_unit_r
 
+
+
+(*********************************************************
+                      SKIP and Synchro
+ *********************************************************)
+
+lemma cspT_Synchro_SKIP_Interleave_dist_l :
+       "SKIP || (P ||| Q) =T[M,M] (SKIP || P) ||| (SKIP || Q)"
+  apply (simp add: cspT_semantics)
+  apply (simp (no_asm) add: traces_iff)
+
+  apply (simp only: CollectT_open_memT Parallel_domT)
+  apply (rule CollectT_eq)
+  apply (simp only: ex_simps[THEN sym])
+
+  apply (subst CollectT_open_memT, simp add: Parallel_nilt_Tick_domT)
+  apply (subst CollectT_open_memT, simp add: Parallel_nilt_Tick_domT)
+  
+  apply (rule ex_cong1)
+  apply (rule ex_cong1)
+  apply (rule)
+
+  apply (elim exE conjE)
+    apply (elim disjE)
+      apply (simp_all add: par_tr_nil par_tr_Tick)
+        apply (simp_all add: sett_Int_Evset_empty_iff_nilt_or_Tick)
+        apply (simp_all add: Tick_notin_trace_nilt_or_Tick_iff)
+        apply (simp_all add: Tick_in_trace_nilt_or_Tick_iff)
+  apply (elim exE conjE)
+    apply (elim disjE)
+      apply (simp_all add: par_tr_nil par_tr_Tick)
+        apply (simp_all add: sett_Int_Evset_empty_iff_nilt_or_Tick)
+        apply (simp_all add: Tick_notin_trace_nilt_or_Tick_iff)
+        apply (simp_all add: Tick_in_trace_nilt_or_Tick_iff)
+  done
+
+
+lemma cspT_Synchro_SKIP_Interleave_dist_r :
+       "(P ||| Q) || SKIP =T[M,M] (P || SKIP) ||| (Q || SKIP)"
+  apply (rule cspT_rw_left, rule cspT_Parallel_commut)
+  apply (rule cspT_rw_left, rule cspT_Synchro_SKIP_Interleave_dist_l)
+  by (rule cspT_decompo, simp, rule cspT_Parallel_commut, rule cspT_Parallel_commut)
+
+
+lemmas cspT_Synchro_SKIP_Interleave_dist = cspT_Synchro_SKIP_Interleave_dist_l
+                                           cspT_Synchro_SKIP_Interleave_dist_r
 
 end

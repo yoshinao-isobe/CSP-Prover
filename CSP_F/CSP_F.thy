@@ -35,7 +35,11 @@
             |        CSP-Prover on Isabelle2018         |
             |               February 2019  (modified)   |
             |                                           |
+            |        CSP-Prover on Isabelle2021         |
+            |                 August 2021  (modified)   |
+            |                                           |
             |        Yoshinao Isobe (AIST JAPAN)        |
+            | Joabe Jesus (eComp POLI UPE and CIn UFPE) |
             *-------------------------------------------*)
 
 theory CSP_F

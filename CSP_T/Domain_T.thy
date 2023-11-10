@@ -142,11 +142,9 @@ definition
 definition
   psubdomT_def:
      "T < S  ==  (Rep_domT T) < (Rep_domT S)"
-(*
+
 instance ..
-*)
-instance
-by (intro_classes)
+
 end
 
 (*********************************************************
@@ -183,6 +181,10 @@ apply (simp add: domT_def HC_T1_def)
 apply (rule prefix_closed_iff)
 by (simp_all)
 
+lemma Rep_domT_is_prefix_closed_unfold:
+    "[| t : Rep_domT T ; prefix s t |] ==> s : Rep_domT T"
+by (rule domT_is_prefix_closed_unfold, simp_all)
+
 (*** {<>} in domT ***)
 
 lemma nilt_set_in[simp]: "{<>} : domT"
@@ -212,6 +214,12 @@ by (auto)
 (*******************************
         check in domT 
  *******************************)
+
+lemma empty_notin_domT [simp]: "{} ~: domT"        
+by (simp add: domT_def HC_T1_def)
+
+lemma UNIV_in_domT [simp]: "UNIV : domT"
+by (simp add: domT_def HC_T1_def prefix_closed_def)
 
 (*** Union ***)
 
@@ -417,6 +425,10 @@ lemma UnT_nilt_right[simp]: "T UnT {<>}t = T"
 apply (rule order_antisym)
 by (auto)
 
+lemma S_UnT_T :
+    "S UnT T = {u. u :t S \<or> u :t T}t"
+by (simp add: UnionT_def CollectT_def Un_def memT_def)
+
 (*********************************************************
                          IntT
  *********************************************************)
@@ -452,12 +464,24 @@ by (simp add: memT_def Abs_domT_inverse)
 (*** implies {  }t ***)
 
 lemma set_CollectT_eq: 
-  "{t. Pr1 t} = {t. Pr2 t} ==>{t. Pr1 t}t = {t. Pr2 t}t"
+  "{t. Pr1 t} = {t. Pr2 t} ==> {t. Pr1 t}t = {t. Pr2 t}t"
 by (simp)
 
 lemma CollectT_eq: 
-  "[| !! t. Pr1 t = Pr2 t |] ==>{t. Pr1 t}t = {t. Pr2 t}t"
+  "[| !! t. Pr1 t = Pr2 t |] ==> {t. Pr1 t}t = {t. Pr2 t}t"
 by (simp)
+
+lemma set_CollectT_commute_left :
+    "{u. Q u \<or> u :t S \<or> P u}t
+     = {u. u :t S \<or> Q u \<or> P u}t"
+by (rule set_CollectT_eq, force)
+
+
+lemma nilt_one_CollectT : "{t. t = <> | t = <a> }t = {<>, <a>}t"
+  apply (subst Abs_domT_inject)
+  apply (simp add: domT_def HC_T1_def prefix_closed_def, force)
+  by (simp only: one_t_set_in, force)
+
 
 (****************** to add them again ******************)
 (*

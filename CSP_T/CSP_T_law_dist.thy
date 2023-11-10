@@ -2003,4 +2003,13 @@ lemmas cspT_Dist_Alpha_Parallel_nonempty =
 
 (****************** to add them again ******************)
 
+
+lemma cspT_Renaming_IF_dist :
+    "( IF b THEN P ELSE Q ) [[r]] =T[M,M] IF b THEN (P [[r]]) ELSE (Q [[r]])"
+  apply (rule cspT_rw_left, rule cspT_decompo, simp)
+    apply (rule cspT_IF_split, auto)
+  apply (rule cspT_rw_right, rule cspT_IF, simp)
+  apply (rule cspT_rw_right, rule cspT_IF, simp)
+done
+
 end

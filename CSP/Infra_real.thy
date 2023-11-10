@@ -13,7 +13,11 @@
             |        CSP-Prover on Isabelle2020         |
             |                  April 2016  (modified)   |
             |                                           |
+            |        CSP-Prover on Isabelle2021         |
+            |                 August 2021  (modified)   |
+            |                                           |
             |        Yoshinao Isobe (AIST JAPAN)        |
+            | Joabe Jesus (eComp POLI UPE and CIn UFPE) |
             *-------------------------------------------*)
 
 theory Infra_real
@@ -56,24 +60,15 @@ done
 
 lemma real_div_le_eq:
    "0 < (z::real) ==> (x <= y / z) = (x * z <= y)"
-apply (rule iffI)
-apply (insert mult_right_mono[of x "y/z" z], simp)
-apply (insert real_mult_le_cancel_iff1[of z x "y/z"], simp)
-done
+by (simp_all add: pos_le_divide_eq)
 
 lemma real_div_less_eq:
    "0 < (z::real) ==> (x < y / z) = (x * z < y)"
-apply (rule iffI)
-apply (insert real_mult_less_iff1[of z x "y/z"], simp)
-apply (insert mult_less_cancel_right[of x "y/z" z], simp)
-done
+by (simp_all add: pos_less_divide_eq)
 
 lemma real_less_div_eq:
    "0 < (z::real) ==> (x / z < y) = (x < y * z)"
-apply (rule iffI)
-apply (insert real_mult_less_iff1[of z "x/z" y], simp)
-apply (insert mult_less_cancel_right[of "x/z" y z], simp)
-done
+by (simp_all add: pos_divide_less_eq)
 
 lemma real_mult_div_commute: 
      "[| (0::real) <= x ; 0 < y ; 0 < z ; 0 < r |]

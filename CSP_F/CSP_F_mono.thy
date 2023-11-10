@@ -145,6 +145,31 @@ apply (auto simp add: in_failures subsetF_iff)
 done
 
 (*--------------------------------*
+ |           Interrupt            |
+ *--------------------------------*)
+
+lemma mono_failures_Interrupt:
+ "[| mono (traces P) ; mono (traces Q) ;
+     mono (failures P) ; mono (failures Q) |]
+  ==> mono (failures (P /> Q))"
+apply (simp add: mono_def)
+apply (intro allI impI)
+apply (rule)
+apply (simp add: in_failures)
+apply (drule_tac x="x" in spec)
+apply (drule_tac x="x" in spec)
+apply (drule_tac x="y" in spec)
+apply (drule_tac x="y" in spec)
+apply (drule_tac x="(fstF o x)" in spec)
+apply (drule_tac x="(fstF o x)" in spec)
+apply (drule_tac x="(fstF o y)" in spec)
+apply (drule_tac x="(fstF o y)" in spec)
+apply (simp add: order_prod_def mono_fstF[simplified mono_def])
+apply (elim conjE disjE)
+apply (force)+
+done
+
+(*--------------------------------*
  |           Parallel             |
  *--------------------------------*)
 
@@ -280,6 +305,7 @@ apply (simp add: mono_failures_Ext_choice mono_traces)
 apply (simp add: mono_failures_Int_choice)
 apply (simp add: mono_failures_Rep_int_choice)
 apply (simp add: mono_failures_IF)
+apply (simp add: mono_failures_Interrupt mono_traces)
 apply (simp add: mono_failures_Parallel)
 apply (simp add: mono_failures_Hiding)
 apply (simp add: mono_failures_Renaming)

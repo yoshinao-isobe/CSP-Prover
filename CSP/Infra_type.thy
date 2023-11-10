@@ -7,7 +7,11 @@
             |        CSP-Prover on Isabelle2005         |
             |                October 2005  (modified)   |
             |                                           |
+            |        CSP-Prover on Isabelle2021         |
+            |                 August 2021  (modified)   |
+            |                                           |
             |        Yoshinao Isobe (AIST JAPAN)        |
+            | Joabe Jesus (eComp POLI UPE and CIn UFPE) |
             *-------------------------------------------*)
 
 theory Infra_type
@@ -28,8 +32,9 @@ type_synonym 'a infinite_seq = "nat => 'a"           (* synonym *)
 
 datatype
   ('a,'b) sum
-   = type1 "'a"
-   | type2 "'b"
+   = type1 (open1: "'a")
+   | type2 (open2: "'b")
+
 
 (* lemmas *)
 
@@ -75,7 +80,7 @@ recdef open2 "{}"
 
 *)
 
-primrec
+(*primrec
  open1  :: "('a, 'b) sum => 'a"
 where
   "open1 (type1 x) = x"
@@ -83,7 +88,7 @@ where
 primrec
  open2  :: "('a, 'b) sum => 'b"
 where
-  "open2 (type2 x) = x"
+  "open2 (type2 x) = x"*)
 
 
 (* primrec can be used for these defs, but it displays warnings. *)

@@ -13,7 +13,11 @@
             |        CSP-Prover on Isabelle2016         |
             |                    May 2016  (modified)   |
             |                                           |
+            |        CSP-Prover on Isabelle2021         |
+            |                 August 2021  (modified)   |
+            |                                           |
             |        Yoshinao Isobe (AIST JAPAN)        |
+            | Joabe Jesus (eComp POLI UPE and CIn UFPE) |
             *-------------------------------------------*)
 
 theory Trace_ren
@@ -695,9 +699,9 @@ done
 lemma Renaming1_channel_sett_lm[rule_format]:
   "ALL t s.
    (inj f & inj h & inj g &
-   (ALL x y. f x ~= g y) &
-   (ALL x y. f x ~= h y) &
-   (ALL x y. g x ~= h y) &
+   (disjoint_range f g) &
+   (disjoint_range f h) &
+   (disjoint_range g h) &
     sett t <= insert Tick (Ev ` (range f Un range h)) &
    (s [[f<==>g]]* t))
    --> sett s <= insert Tick (Ev ` (range g Un range h))"
@@ -720,9 +724,9 @@ done
 
 lemma Renaming1_channel_sett1:
   "[| inj f ; inj h ; inj g ;
-       ALL x y. f x ~= g y ;
-       ALL x y. f x ~= h y ;
-       ALL x y. g x ~= h y ;
+       disjoint_range f g ;
+       disjoint_range f h ;
+       disjoint_range g h ;
        sett t <= insert Tick (Ev ` (range f Un range h)) ;
        s [[f<==>g]]* t |]
    ==> sett s <= insert Tick (Ev ` (range g Un range h))"
@@ -732,21 +736,21 @@ done
 
 lemma Renaming1_channel_sett2:
   "[| inj f ; inj h ; inj g ;
-       ALL x y. f x ~= g y ;
-       ALL x y. f x ~= h y ;
-       ALL x y. g x ~= h y ;
+       disjoint_range f g ;
+       disjoint_range f h ;
+       disjoint_range g h ;
        sett t <= insert Tick (Ev ` (range h Un range f)) ;
        s [[f<==>g]]* t |]
    ==> sett s <= insert Tick (Ev ` (range h Un range g))"
-apply (simp add: Un_sym)
+apply (simp add: Un_commute)
 apply (simp add: Renaming1_channel_sett1)
 done
 
 lemma Renaming1_channel_sett3:
   "[| inj f ; inj h ; inj g ;
-       ALL x y. f x ~= g y ;
-       ALL x y. f x ~= h y ;
-       ALL x y. g x ~= h y ;
+       disjoint_range f g ;
+       disjoint_range f h ;
+       disjoint_range g h ;
        sett t <= insert Tick (Ev ` (range f Un range h)) ;
        s [[g<==>f]]* t |]
    ==> sett s <= insert Tick (Ev ` (range g Un range h))"
@@ -756,9 +760,9 @@ done
 
 lemma Renaming1_channel_sett4:
   "[| inj f ; inj h ; inj g ;
-       ALL x y. f x ~= g y ;
-       ALL x y. f x ~= h y ;
-       ALL x y. g x ~= h y ;
+       disjoint_range f g ;
+       disjoint_range f h ;
+       disjoint_range g h ;
        sett t <= insert Tick (Ev ` (range h Un range f)) ;
        s [[g<==>f]]* t |]
    ==> sett s <= insert Tick (Ev ` (range h Un range g))"
@@ -777,9 +781,9 @@ lemmas Renaming1_channel_sett =
 lemma Renaming2_channel_sett_lm[rule_format]:
   "ALL t s.
    (inj f & inj h & inj g &
-   (ALL x y. f x ~= g y) &
-   (ALL x y. f x ~= h y) &
-   (ALL x y. g x ~= h y) &
+   (disjoint_range f g) &
+   (disjoint_range f h) &
+   (disjoint_range g h) &
     sett s <= insert Tick (Ev ` (range f Un range h)) &
    (s [[f<==g]]* t))
    --> sett t <= insert Tick (Ev ` (range g Un range h))"
@@ -812,9 +816,9 @@ done
 
 lemma Renaming2_channel_sett:
   "[| inj f ; inj h ; inj g ;
-       ALL x y. f x ~= g y ;
-       ALL x y. f x ~= h y ;
-       ALL x y. g x ~= h y ;
+       disjoint_range f g ;
+       disjoint_range f h ;
+       disjoint_range g h ;
        sett s <= insert Tick (Ev ` (range f Un range h)) ;
        s [[f<==g]]* t |]
    ==> sett t <= insert Tick (Ev ` (range g Un range h))"
@@ -836,7 +840,7 @@ apply (rule)
 apply (induct_tac s rule: induct_trace)
 apply (simp_all)
 apply (intro allI impI)
-apply (case_tac "~ (ALL x y. f x ~= g y)")
+apply (case_tac "~ (disjoint_range f g)")
  apply (subgoal_tac "(f<==>g) = <rel> (%c. c)")
  apply (simp)
  apply (simp add: ren_tr_decompo_left)
@@ -876,7 +880,7 @@ apply (rule)
 apply (induct_tac s rule: induct_trace)
 apply (simp_all)
 apply (elim conjE exE)
-apply (case_tac "~ (ALL x y. f x ~= g y)")
+apply (case_tac "~ (disjoint_range f g)")
  apply (subgoal_tac "(f<==>g) = <rel> (%c. c)")
  apply (rule_tac x="<Ev a> ^^^ x" in exI)
  apply (simp add: fun_to_rel_def)
@@ -920,7 +924,7 @@ apply (rule)
 apply (induct_tac s rule: induct_trace)
 apply (simp_all)
 apply (elim conjE exE)
-apply (case_tac "~ (ALL x y. f x ~= g y)")
+apply (case_tac "~ (disjoint_range f g)")
  apply (subgoal_tac "(f<==g) = <rel> (%c. c)")
  apply (rule_tac x="<Ev a> ^^^ x" in exI)
  apply (simp add: fun_to_rel_def)
@@ -952,7 +956,7 @@ lemmas Renaming_channel_exist_right =
 
 lemma Renaming_channel_ren_inv_Int_Tick_eq:
   "[[f<==>g]]inv X Int {Tick} = X Int {Tick}"
-apply (case_tac "~ (ALL x y. f x ~= g y)")
+apply (case_tac "~ (disjoint_range f g)")
 apply (subgoal_tac "f<==>g = <rel> (%c. c)")
  apply (simp)
  apply (simp add: ren_inv_def)
@@ -968,16 +972,16 @@ apply (force)
 apply (rule)
 apply (simp add: image_iff)
 apply (elim conjE exE)
-apply (rule_tac x="x" in bexI)
+apply (rule_tac x="Tick" in bexI)
 apply (simp)
 apply (simp)
 done
 
 lemma Renaming_channel_ren_inv_Int_eq:
-  "[| ALL x y. f x ~= h y ;
-      ALL x y. g x ~= h y |] ==>
+  "[| disjoint_range f h ;
+      disjoint_range g h |] ==>
      [[f<==>g]]inv X Int Ev ` range h = X Int Ev ` range h"
-apply (case_tac "~ (ALL x y. f x ~= g y)")
+apply (case_tac "~ (disjoint_range f g)")
 apply (subgoal_tac "f<==>g = <rel> (%c. c)")
  apply (simp)
  apply (simp add: ren_inv_def)
@@ -1004,7 +1008,7 @@ done
 
 lemma Renaming_channel_ren_inv_ren_inv_eq:
   "[| inj f; inj g |] ==> [[f<==>g]]inv [[f<==>g]]inv X = X"
-apply (case_tac "~ (ALL x y. f x ~= g y)")
+apply (case_tac "~ (disjoint_range f g)")
 apply (subgoal_tac "f<==>g = <rel> (%c. c)")
  apply (simp add: ren_inv_def)
  apply (simp add: fun_to_rel_def)
@@ -1025,7 +1029,7 @@ apply (subgoal_tac "f<==>g = <rel> (%c. c)")
   apply (force)
  apply (simp (no_asm_simp) add: Renaming_channel_def Renaming_channel_fun_def)
 
-(* (ALL x y. f x ~= g y) *)
+(* (disjoint_range f g) *)
  (* <= *)
  apply (simp add: ren_inv_def)
  apply (rule equalityI)
@@ -1187,7 +1191,7 @@ done
 (* not used ? *)
 
 lemma Renaming1_channel_id[rule_format]:
-  "(inj f & inj g & (ALL x y. f x ~= g y) &
+  "(inj f & inj g & (disjoint_range f g) &
     sett s Int Ev ` range f = {} &
     sett s Int Ev ` range g = {}) 
     --> s [[f<==>g]]* s"
@@ -1203,7 +1207,7 @@ apply (simp add: image_iff)
 done
 
 lemma Renaming2_channel_id[rule_format]:
-  "(inj f & inj g & (ALL x y. f x ~= g y) &
+  "(inj f & inj g & (disjoint_range f g) &
     sett s Int Ev ` range f = {})
     --> s [[f<==g]]* s"
 apply (induct_tac s rule: induct_trace)
@@ -1224,7 +1228,7 @@ lemmas Renaming_channel_id =
 (* Un *)
 
 lemma Renaming_channel_id_Un[rule_format]:
-  "(inj f & inj g & (ALL x y. f x ~= g y) &
+  "(inj f & inj g & (disjoint_range f g) &
     sett s Int Ev ` (range f Un range g) = {})
      --> s [[f<==>g]]* s"
 apply (induct_tac s rule: induct_trace)

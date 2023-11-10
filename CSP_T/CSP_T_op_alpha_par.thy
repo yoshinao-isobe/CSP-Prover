@@ -9,19 +9,16 @@
             |                  April 2006  (modified)   |
             |                  March 2007  (modified)   |
             |                                           |
+            |        CSP-Prover on Isabelle2021         |
+            |                 August 2021  (modified)   |
+            |                                           |
             |        Yoshinao Isobe (AIST JAPAN)        |
+            | Joabe Jesus (eComp POLI UPE and CIn UFPE) |
             *-------------------------------------------*)
 
 theory CSP_T_op_alpha_par
 imports CSP_T_traces
 begin
-
-(*  The following simplification rules are deleted in this theory file *)
-(*  because they unexpectly rewrite (notick | t = <>)                  *)
-(*                                                                     *)
-(*                  disj_not1: (~ P | Q) = (P --> Q)                   *)
-
-declare disj_not1 [simp del]
 
 (*********************************************************
        Preparation (traces operated by par and hide)
@@ -122,11 +119,9 @@ apply (rule iffI)
 
  (* t = <> *)
   apply (simp add: par_tr_nil)
-  apply (elim conjE, simp)
 
  (* t = [Tick]t *)
   apply (simp add: par_tr_Tick)
-  apply (elim conjE, simp)
 
 (* <= *)
  apply (case_tac "Tick ~: sett u")
@@ -185,9 +180,5 @@ lemma traces_Alpha_parallel:
         sett(u) <= insert Tick (Ev ` (X1 Un X2)))}t"
 apply (simp add: in_traces_Alpha_parallel[THEN sym])
 done
-
-(****************** to add it again ******************)
-
-declare disj_not1   [simp]
 
 end

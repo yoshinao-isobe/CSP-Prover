@@ -15,12 +15,16 @@
             |        CSP-Prover on Isabelle2016         |
             |                    May 2016  (modified)   |
             |                                           |
+            |        CSP-Prover on Isabelle2021         |
+            |                 August 2021  (modified)   |
+            |                                           |
             |        Yoshinao Isobe (AIST JAPAN)        |
+            | Joabe Jesus (eComp POLI UPE and CIn UFPE) |
             *-------------------------------------------*)
 
-theory CSP_T_semantics
+theory CSP_T_semantics                     
 imports CSP.Trace_op CSP.CSP_syntax Domain_T_cms
-
+                                            
 begin
 
 (*****************************************************************
@@ -54,6 +58,9 @@ where
 
  |"traces(IF b THEN P ELSE Q) = (%M. (if b then traces(P) M else traces(Q) M))"
 
+ |"traces(P /> Q)   = (%M. {u . u :t traces(P) M | (EX s t . u = s ^^^ t & noTick s &
+                                                   s :t traces(P) M & t :t traces(Q) M ) }t)"
+
  |"traces(P |[X]| Q) = (%M. {u. EX s t. u : s |[X]|tr t & 
                                   s :t traces(P) M & t :t traces(Q) M }t)"
  |"traces(P -- X)    = (%M. {t. EX s. t = s --tr X & s :t traces(P) M }t)"
@@ -67,6 +74,8 @@ where
  |"traces($p)        = (%M. M p)"
 
 declare traces.simps [simp del]
+
+
 
 (*** for dealing with both !nat and !set ***)
 
@@ -117,8 +126,130 @@ lemmas Rep_int_choice_traces =
        Rep_int_choice_traces_f
 
 
+(*--------------------------------*
+ |      Inductive_Ext_choice      |
+ *--------------------------------*)
+
+lemma Inductive_external_choice_P_domT: 
+    "{t. t = <> | 
+         (\<exists> P\<in>set l. t :t traces P M) } : domT"
+  apply (simp add: domT_def HC_T1_def)
+  apply (simp add: prefix_closed_def)
+  apply (rule conjI)
+  apply (rule_tac x="<>" in exI, simp)
+  
+  apply (intro allI impI)
+  apply (elim conjE exE)
+  apply (elim disjE, simp)
+  
+  apply (rule disjI2)
+  apply (elim bexE)
+  apply (rule_tac x="P" in bexI)
+  apply (rule memT_prefix_closed)
+  by (simp_all)
+
+lemma Inductive_external_choice_i_domT: 
+    "{t. t = <> | 
+         (\<exists> i\<in>set l. t :t traces (Pf i) M) } : domT"
+  apply (simp add: domT_def HC_T1_def)
+  apply (simp add: prefix_closed_def)
+  apply (rule conjI)
+  apply (rule_tac x="<>" in exI, simp)
+  
+  apply (intro allI impI)
+  apply (elim conjE exE)
+  apply (elim disjE, simp)
+  
+  apply (rule disjI2)
+  apply (elim bexE)
+  apply (rule_tac x="i" in bexI)
+  apply (rule memT_prefix_closed)
+  by (simp_all)
+
+lemmas Inductive_external_choice_domT =
+    Inductive_external_choice_P_domT
+    Inductive_external_choice_i_domT
+
+theorem Inductive_ext_choice_traces:
+    "traces ([+] l) M = {u. u = <> \<or> (\<exists> P\<in> set l. u :t traces P M)}t"
+  apply (induct_tac l)
+  apply (simp add: traces.simps)
+  apply (simp add: traces.simps S_UnT_T set_CollectT_commute_left)
+  by (simp add: CollectT_open_memT Inductive_external_choice_domT)
+
+
+(*--------------------------------*
+ |      Replicated_Ext_choice     |
+ *--------------------------------*)
+
+(*theorem Rep_ext_choice_traces:
+    "finite X \<Longrightarrow> l = (SOME l. l isListOf X)
+     \<Longrightarrow> traces ([+] x:X .. PXf x) M = {u. u = <> \<or> (\<exists> P\<in>(set (map PXf l)). u :t traces P M)}t"
+  apply (simp (no_asm) only: Rep_ext_choice_def)
+  by (simp only: Inductive_ext_choice_traces)*)
+
+theorem Rep_ext_choice_traces:
+    "traces ([+] X .. PXf) M = {u. u = <> \<or> (\<exists> i\<in> set X. u :t traces (PXf i) M)}t"
+  apply (simp add: Rep_ext_choice_def)
+  by (simp add: Inductive_ext_choice_traces)
+
+
+
+(*--------------------------------*
+ |       Inductive_interleave     |
+ *--------------------------------*)
+
+theorem Inductive_interleave_traces :
+    "traces ( ||| l) M = {u. ((l = [] \<and> (u = <> \<or> u = <Tick>))
+                           \<or> (l \<noteq> [] \<and> (\<exists>s t. u \<in> s |[{}]|tr t
+                                             \<and> s :t traces (hd l) M
+                                             \<and> t :t traces ( ||| tl l) M))) }t"
+  apply (induct_tac l)
+  by (simp_all add: traces.simps nilt_one_CollectT)
+
+(*--------------------------------*
+ |         Rep_interleaving       |
+ *--------------------------------*)
+
+theorem Rep_interleaving_traces :
+    "traces ( ||| X .. PXf) M = {u. ((X = [] \<and> (u = <> \<or> u = <Tick>))
+                                  \<or> (X \<noteq> [] \<and> (\<exists>s t. u \<in> s |[{}]|tr t
+                                                   \<and> s :t traces (PXf (hd X)) M
+                                                   \<and> t :t traces ( ||| map PXf (tl X)) M))) }t"
+  apply (simp only: Rep_interleaving_def)
+  apply (rule trans, rule Inductive_interleave_traces)
+  by (case_tac X, simp_all add: map_tl hd_map)
+
+
+(*
+lemma isListOf_nonEmpty_minus_hd :
+    "\<And>X . X \<noteq> {} \<Longrightarrow> x isListOf X \<Longrightarrow> xa isListOf X - {hd x} \<Longrightarrow>
+    xa = tl x"
+  apply (frule isListOf_distinct)
+  apply (frule isListOf_set_eq)
+  apply (frule_tac X="X - {hd x}" in isListOf_distinct)
+  apply (frule_tac X="X - {hd x}" in isListOf_set_eq)
+  apply (elim conjE)
+  oops (* xa could be a permutation of x elements *)
+*)
+
+lemma Rep_interleaving_traces :
+    "traces ( ||| :X .. PXf) M = {u. (X = [] \<and> (u = <> \<or> u = <Tick>))
+                                   \<or> (X \<noteq> [] \<and> (\<exists>i\<in> set X . (\<exists>s t. u \<in> s |[{}]|tr t
+                                                           \<and> s :t traces (PXf i) M
+                                                           \<and> t :t traces ( ||| :(remove1 i X) .. PXf) M))) }t"
+  apply (simp add: Rep_interleaving_def)
+  apply (rule trans, rule Inductive_interleave_traces)
+  apply (induct_tac X, simp_all add: map_tl hd_map)
+  apply (rule CollectT_eq)
+  oops
+
 
 lemmas traces_iff = traces.simps Rep_int_choice_traces
+                    (*Inductive_ext_choice_traces
+                    Rep_ext_choice_traces
+                    Inductive_interleave_traces
+                    Rep_interleaving_traces*)
 
 (*==================================================================*
                             traces model
@@ -616,6 +747,7 @@ apply (simp add: traces_iff, force)
 apply (simp add: traces_iff, force)
 apply (simp add: traces_iff, force)
 apply (simp add: traces_iff, force)
+apply (simp add: traces_iff, force)
 apply (simp add: traces_iff)
 done
 
@@ -647,5 +779,64 @@ lemma traces_subst:
 apply (induct_tac P)
 apply (simp_all add: semT_def traces_iff)
 done
+
+
+
+
+(*-----------------------------------------------------*
+ |                   CSP-Prover v6                     |
+ *-----------------------------------------------------*)
+
+
+(*-------------------------------------------*
+ |   transitivity processes in assumptions   |
+ *-------------------------------------------*)
+
+lemma cspT_tr_left_refE_MF:
+    "[| P <=T Q ; Pb <=T P ;
+        [| Pb <=T Q |] ==> R |] ==> R"
+  apply (subgoal_tac "Pb <=T Q")
+  apply (simp)
+  apply (rule cspT_trans_left)
+  apply (simp)
+  apply (simp)
+done
+
+lemma cspT_tr_left_refE:
+    "[| P <=T[Mp,Mq] Q ; Pb <=T[Mb,Mp] P ; 
+        [| Pb <=T[Mb,Mq] Q |] ==> R |] ==> R"
+  apply (subgoal_tac "Pb <=T[Mb,Mq] Q")
+  apply (simp)
+  apply (rule cspT_trans_left)
+  apply (simp)
+  apply (simp)
+done
+
+lemmas cspT_tr_leftE = cspT_tr_left_refE_MF
+                       cspT_tr_left_refE
+
+(* right *)
+
+lemma cspT_tr_right_refE_MF:
+    "[| P <=T Q ; Q <=T Pt ; [| P <=T Pt |] ==> R |] ==> R"
+  apply (subgoal_tac "P <=T Pt")
+  apply (simp)
+  apply (rule cspT_trans_right)
+  apply (simp)
+  apply (simp)
+done
+
+lemma cspT_tr_right_refE:
+    "[| P <=T[Mp,Mq] Q ; Q <=T[Mq,Mt] Pt ;
+        [| P <=T[Mp,Mt] Pt |] ==> R |] ==> R"
+  apply (subgoal_tac "P <=T[Mp,Mt] Pt")
+  apply (simp)
+  apply (rule cspT_trans_right)
+  apply (simp)
+  apply (simp)
+done
+
+lemmas cspT_tr_rightE = cspT_tr_right_refE_MF
+                        cspT_tr_right_refE
 
 end

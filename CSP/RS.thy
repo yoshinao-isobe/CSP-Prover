@@ -470,17 +470,19 @@ apply (insert triangle_inequality_nat[of x y z], simp)
 
 apply (case_tac "distance_nat (x, y) <= distance_nat (y, z)")
  apply (simp add: min_is)
- apply (subgoal_tac "((1::real) / 2) ^ distance_nat (y, z) 
+ apply (simp add: max_is)
+(* apply (subgoal_tac "((1::real) / 2) ^ distance_nat (y, z)
                   <= (1 / 2) ^ distance_nat (x, y)") 
  apply (simp add: max_is)
  apply (simp) (* modified for Isabelle2020 *)
 
  (* ~ distance_nat (x, y) <= distance_nat (y, z) *)
  apply (simp add: min_is)
- apply (subgoal_tac "((1::real) / 2) ^ distance_nat (x, y) 
-                  <= (1 / 2) ^ distance_nat (y, z)") 
+ apply (subgoal_tac "((1::real) / 2) ^ distance_nat (x, y)
+                  <= (1 / 2) ^ distance_nat (y, z)")
+
  apply (simp add: max_is)
- apply (simp) (* modified for Isabelle2020 *)
+ apply (simp) (* modified for Isabelle2020 *)*)
 done
 
 lemma triangle_inequality_max:
@@ -1051,7 +1053,7 @@ by (simp add: cms_fixpoint_induction)
 
 class ms_rs_order0 = ms_rs + order
 
-class ms_rs_order = ms_rs_order0 +
+class ms_rs_order =
 assumes  rs_order_iff: 
     "ALL (x::'a::ms_rs_order0) y.
         (ALL n. x .|. n <= y .|. n) = (x <= y)"

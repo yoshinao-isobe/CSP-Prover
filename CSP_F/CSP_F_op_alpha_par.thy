@@ -9,7 +9,11 @@
             |                  April 2006  (modified)   |
             |                  March 2007  (modified)   |
             |                                           |
+            |        CSP-Prover on Isabelle2021         |
+            |                 August 2021  (modified)   |
+            |                                           |
             |        Yoshinao Isobe (AIST JAPAN)        |
+            | Joabe Jesus (eComp POLI UPE and CIn UFPE) |
             *-------------------------------------------*)
 
 theory CSP_F_op_alpha_par
@@ -53,14 +57,12 @@ apply (rule iffI)
 
  (* t = <> *)
   apply (simp add: par_tr_nil)
-  apply (elim conjE, simp)
   apply (rule_tac x="Y" in exI)
   apply (rule_tac x="Z - Y" in exI)
   apply (simp add: in_failures_Parallel_SKIP_lm1)
 
  (* t = <Tick> *)
   apply (simp add: par_tr_Tick)
-  apply (elim conjE, simp)
   apply (case_tac "Tick ~: Z")
 
    apply (rule_tac x="Y" in exI)
@@ -71,8 +73,9 @@ apply (rule iffI)
    apply (rule_tac x="insert Tick Y" in exI)
    apply (rule_tac x="(Z - insert Tick Y)" in exI)
    apply (rule conjI, force)
+   apply (erule exE conjE)
    apply (simp add: Tick_in_sett)
-   apply (erule exE)
+   apply (erule exE conjE)
    apply (rule conjI)
    apply (simp)
    apply (rule proc_T2_T3)

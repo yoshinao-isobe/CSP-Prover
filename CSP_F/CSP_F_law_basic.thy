@@ -60,6 +60,14 @@ by (simp)
 
 lemmas cspF_IF = cspF_IF_True cspF_IF_False
 
+lemma cspF_IF_b_True:
+    "b = True ==> IF b THEN P ELSE Q =F[M,M] P"
+  by (simp, rule cspF_IF_True)
+
+lemma cspF_IF_b_False:
+    "b = False ==> IF b THEN P ELSE Q =F[M,M] Q"
+  by (simp, rule cspF_IF_False)
+
 (*-----------------------------------*
  |           Idempotence             |
  *-----------------------------------*)
@@ -190,6 +198,55 @@ apply (rule cspF_sym)
 apply (simp add: cspF_Int_choice_assoc)
 done
 
+
+(* --------------------------------------------------- *
+              Associativity of Interleave
+ * --------------------------------------------------- *)
+
+lemma cspF_Interleave_assoc :
+    "P ||| (Q ||| R) =F[M,M] (P ||| Q) ||| R"
+  apply (simp add: cspF_cspT_semantics)
+  apply (rule, rule cspT_Interleave_assoc)
+  apply (simp add: failures_iff)
+
+  apply (simp add: CollectF_open_memF Interleave_setF)
+  apply (rule CollectF_eq)
+
+  apply (rule ex_cong1)
+  apply (simp only: ex_simps[THEN sym] conj_assoc)
+
+  apply (simp only: conj_left_commute)
+  apply (simp only: conj_assoc[THEN sym])
+  apply (simp only: conj_left_commute conj_commute)
+
+  apply (rule trans, rule ex_comm3)
+  apply (rule sym, rule trans, rule ex_comm7, rule sym)
+  apply (rule ex_cong1)
+  apply (rule sym, rule trans, rule ex_comm5, rule sym)
+  apply (rule ex_cong1)
+  apply (rule trans, rule ex_comm5)
+  apply (rule sym, rule trans, rule ex_comm6, rule sym)
+  apply (rule ex_cong1)
+  apply (rule trans, rule ex_comm3)
+  apply (rule sym, rule trans, rule ex_comm5)
+  apply (rule ex_cong1)
+  apply (rule trans, rule ex_comm4)
+  apply (rule sym, rule trans, rule ex_comm4)
+  apply (rule ex_cong1)
+  apply (rule trans, rule ex_comm3)
+  apply (rule sym, rule trans, rule ex_comm)
+  apply (rule ex_cong1)
+
+  apply (simp only: ex_simps, simp add: Un_assoc)
+  apply (simp only: conj_assoc[THEN sym], simp only: ex_simps)
+  apply (simp add: inter_tr_assoc)
+  apply (rule conj_cong, simp)+
+  apply (simp add: conj_left_commute)
+  apply (rule conj_cong, simp)+
+  by (fast)
+
+
+
 (*------------------*
  |      csp law     |
  *------------------*)
@@ -222,6 +279,25 @@ done
 
 lemmas cspF_left_commut = 
        cspF_Ext_choice_left_commut cspF_Int_choice_left_commut
+
+
+
+(*-----------------------------------*
+ |     Interleave Commutativity      |
+ *-----------------------------------*)
+
+lemma cspF_Interleave_commute :
+    "P ||| Q =F[M,M] Q ||| P"
+  by (rule cspF_Parallel_commut)
+
+lemma cspF_Interleave_left_commute :
+    "P ||| (Q ||| R) =F[M,M] Q ||| (P ||| R)"
+  apply (rule cspF_rw_left, rule cspF_Interleave_commute)
+  apply (rule cspF_rw_left, rule cspF_Interleave_assoc[THEN cspF_sym])
+  apply (rule cspF_decompo, simp_all, rule cspF_Interleave_commute)
+  done
+
+
 
 (*-----------------------------------*
  |              Unit                 |

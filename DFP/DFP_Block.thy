@@ -13,26 +13,16 @@
             |        CSP-Prover on Isabelle2017         |
             |                  April 2018  (modified)   |
             |                                           |
+            |        CSP-Prover on Isabelle2021         |
+            |                  2022 / 2023  (modified)  |
+            |                                           |
             |        Yoshinao Isobe (AIST JAPAN)        |
+            | Joabe Jesus (eComp POLI UPE and CIn UFPE) |
             *-------------------------------------------*)
 
 theory DFP_Block
 imports DFP_Deadlock
 begin
-
-(*  The following simplification rules are deleted in this theory file *)
-(*  because they unexpectly rewrite UnionT and InterT.                 *)
-(*                  Union (B ` A) = (UN x:A. B x)                      *)
-(*                  Inter (B ` A) = (INT x:A. B x)                     *)
-(*
-declare Union_image_eq [simp del]
-declare Inter_image_eq [simp del]
-*)
-
-(* no simp rules in Isabelle 2017 
-declare Sup_image_eq [simp del]
-declare Inf_image_eq [simp del]
-*)
 
 (*  The following simplification rules are deleted in this theory file *)
 (*  because they unexpectly rewrite (notick | t = []t)                 *)
@@ -55,7 +45,7 @@ declare disj_not1 [simp del]
  *********************************************************)
 
 definition
-  triple_disjoint :: "('i,'a) NetworkF => bool"
+  triple_disjoint :: "('i,'x,'a) Net => bool"
   where
   triple_disjoint_def :
     "triple_disjoint VF == 
@@ -63,7 +53,7 @@ definition
           --> (snd ((snd VF) i) Int snd ((snd VF) j) Int snd ((snd VF) k) = {}))"
 
 definition
-  VocabularyOf :: "('i,'a) NetworkF => 'a set"
+  VocabularyOf :: "('i,'x,'a) Net => 'a set"
   where
   VocabularyOf_def : 
     "VocabularyOf VF == 
@@ -134,6 +124,16 @@ definition
   where
   isUngrantedRequestOfwrt_def :
     "VF >> i --[sigma,Lambda]-->o j == VF >> i --[sigma]-->o j &
+        ((Ev ` (snd (snd VF i))) - (snd sigma) i) Un
+        ((Ev ` (snd (snd VF j))) - (snd sigma) j) <= Ev ` Lambda"
+
+definition
+  isUngrantedStrongRequestOfwrt ::
+      "('i,'a) NetworkF => 'i => ('i,'a) net_state => 'a set => 'i => bool"
+      ("(1_ >> /(0_ (1/==[(0_,/_)]==>o) /_))" [800, 800,0,0,800] 900)
+  where
+  isUngrantedStrongRequestOfwrt_def :
+    "VF >> i ==[sigma,Lambda]==>o j == VF >> i ==[sigma]==>o j &
         ((Ev ` (snd (snd VF i))) - (snd sigma) i) Un
         ((Ev ` (snd (snd VF j))) - (snd sigma) j) <= Ev ` Lambda"
 
@@ -547,12 +547,5 @@ done
 (****************** to add it again ******************)
 
 declare disj_not1   [simp]
-(*
-declare Union_image_eq [simp]
-declare Inter_image_eq [simp]
-*)
-(*
-declare Sup_image_eq [simp]
-declare Inf_image_eq [simp]
-*)
+
 end

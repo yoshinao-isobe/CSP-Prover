@@ -20,7 +20,12 @@ imports CSP_F_law_SKIP      CSP_F_law_ref
         CSP_F_law_step      CSP_F_law_rep_par   
         CSP_F_law_fix
         CSP_F_law_DIV       CSP_F_law_SKIP_DIV  
-        CSP_F_law_step_ext  CSP_F_law_norm      
+        CSP_F_law_step_ext  CSP_F_law_norm
+        CSP_F_law_rep_ext_choice
+        CSP_F_law_rep_interleaving
+        CSP_F_law_Subst_procfun
+        CSP_F_law_CHAOS
+        CSP_F_law_RUN
         CSP_T.CSP_T_law
 begin
 
@@ -132,5 +137,26 @@ lemmas cspF_SKIP_DIV_Rep_int_choice =
        cspF_SKIP_DIV_Rep_int_choice_sum
        cspF_SKIP_DIV_Rep_int_choice_nat
        cspF_SKIP_DIV_Rep_int_choice_set
+
+
+(*********************************************************
+                      guard to IF
+ *********************************************************)
+
+lemma cspF_Ext_choice_guard_IF :
+    "g &: P [+] \<not> g &: Q =F (IF g THEN P ELSE Q)"
+  apply (case_tac g)
+  apply (auto)
+  apply (rule cspF_rw_left, rule cspF_Ext_choice_cong)
+  apply (rule cspF_IF, rule cspF_IF)
+  apply (rule cspF_rw_right, rule cspF_IF)
+  apply (rule cspF_rw_left, rule cspF_Ext_choice_unit)
+  apply (rule cspF_reflex)
+  apply (rule cspF_rw_left, rule cspF_Ext_choice_cong)
+  apply (rule cspF_IF, rule cspF_IF)
+  apply (rule cspF_rw_right, rule cspF_IF)
+  apply (rule cspF_rw_left, rule cspF_Ext_choice_unit)
+  apply (rule cspF_reflex)
+  done
 
 end

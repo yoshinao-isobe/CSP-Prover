@@ -7,7 +7,11 @@
             |        CSP-Prover on Isabelle2009         |
             |                   June 2009  (modified)   |
             |                                           |
+            |        CSP-Prover on Isabelle2021         |
+            |                 August 2021  (modified)   |
+            |                                           |
             |        Yoshinao Isobe (AIST JAPAN)        |
+            | Joabe Jesus (eComp POLI UPE and CIn UFPE) |
             *-------------------------------------------*)
 
 theory CSP_T_law_aux
@@ -522,6 +526,22 @@ lemmas cspT_SKIP_DIV_resolve =
 lemmas cspT_SKIP_or_DIV_resolve =
        cspT_Parallel_Timeout_split_resolve_SKIP_or_DIV
        cspT_Parallel_Timeout_input_resolve_SKIP_or_DIV
+
+
+(* =================================================== *
+ |             addition for CSP-Prover 6               |
+ * =================================================== *)
+
+
+(*********************************************************
+            Seq Compo and Ext choice
+ *********************************************************)
+
+lemma cspT_Seq_compo_Ext_dist:
+    "(P1 [+] P2) ;; Q =T[M,M] (P1 ;; Q) [+] (P2 ;; Q)"
+  apply (simp add: cspT_semantics)
+  apply (rule order_antisym)
+  by (rule, simp add: in_traces, fast)+
 
 
 (* =================================================== *

@@ -230,6 +230,33 @@ lemma cspF_IF_cong:
 by (simp add: cspF_eq_ref_iff cspF_IF_mono)
 
 (*********************************************************
+                   Interrupt mono
+ *********************************************************)
+
+(*------------------*
+ |      csp law     |
+ *------------------*)
+
+lemma cspF_Interrupt_mono:
+  "[| P1 <=F[M1,M2] Q1 ; P2 <=F[M1,M2] Q2 |]
+           ==> P1 /> P2 <=F[M1,M2] Q1 /> Q2"
+apply (simp add: cspF_cspT_semantics)
+apply (simp add: cspT_Interrupt_mono)
+apply (simp add: cspT_semantics)
+apply (simp add: subdomT_iff)
+apply (simp add: subsetF_iff)
+apply (intro allI impI)
+apply (simp add: in_failures)
+apply (elim conjE disjE)
+apply (force)+
+done
+
+lemma cspF_Interrupt_cong:
+  "[| P1 =F[M1,M2] Q1 ;  P2 =F[M1,M2] Q2 |]
+           ==> P1 /> P2 =F[M1,M2] Q1 /> Q2"
+by (simp add: cspF_eq_ref_iff cspF_Interrupt_mono)
+
+(*********************************************************
                      Parallel mono 
  *********************************************************)
 
@@ -370,16 +397,16 @@ by (simp add: cspF_eq_ref_iff cspF_Timeout_mono)
 lemmas cspF_free_mono =
    cspF_Ext_choice_mono cspF_Int_choice_mono cspF_Parallel_mono
    cspF_Hiding_mono cspF_Renaming_mono cspF_Seq_compo_mono
-   cspF_Depth_rest_mono
+   cspF_Depth_rest_mono cspF_Interrupt_mono
 
 lemmas cspF_mono = cspF_free_mono
    cspF_Act_prefix_mono cspF_Ext_pre_choice_mono 
-   cspF_Rep_int_choice_mono cspF_IF_mono 
+   cspF_Rep_int_choice_mono cspF_IF_mono
 
 lemmas cspF_free_cong =
    cspF_Ext_choice_cong cspF_Int_choice_cong cspF_Parallel_cong
    cspF_Hiding_cong cspF_Renaming_cong cspF_Seq_compo_cong
-   cspF_Depth_rest_cong
+   cspF_Depth_rest_cong cspF_Interrupt_cong
 
 lemmas cspF_cong = cspF_free_cong
    cspF_Act_prefix_cong cspF_Ext_pre_choice_cong 

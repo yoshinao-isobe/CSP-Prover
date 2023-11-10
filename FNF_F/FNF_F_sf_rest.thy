@@ -237,7 +237,7 @@ apply (erule fsfF_Depth_rest_rel.cases, simp_all)
 
  apply (simp add: fun_eq_iff)
  apply (intro allI conjI)
- apply (elim conjE)
+
  apply (drule_tac x="x" in spec)+
  apply (case_tac "x : A1a")
  apply (simp add: fsfF_Depth_rest_rel_unique)
@@ -450,7 +450,6 @@ apply (intro impI)
 apply (simp)
 apply (rotate_tac -1)
 apply (erule fsfF_Depth_rest_rel.cases, simp_all)
-apply (elim conjE)
 
 apply (rule cspF_rw_left)
 apply (rule cspF_Dist)

@@ -4,7 +4,11 @@
             |                  April 2006  (modified)   |
             |                  March 2007  (modified)   |
             |                                           |
+            |        CSP-Prover on Isabelle2021         |
+            |                 August 2021  (modified)   |
+            |                                           |
             |        Yoshinao Isobe (AIST JAPAN)        |
+            | Joabe Jesus (eComp POLI UPE and CIn UFPE) |
             *-------------------------------------------*)
 
 theory CSP_T_law_SKIP_DIV
@@ -88,15 +92,11 @@ apply (rule order_antisym)
  apply (elim conjE exE disjE)
  apply (simp_all)
   apply (simp add: par_tr_nil_right)
-  apply (elim conjE)
-  apply (simp add: image_iff)
 
 (* <= *)
  apply (rule, simp add: in_traces)
  apply (elim conjE exE disjE)
   apply (simp add: par_tr_nil_right)
-  apply (elim conjE)
-  apply (simp add: image_iff)
 done
 
 lemma cspT_DIV_Parallel_Ext_choice_SKIP_r:
@@ -156,14 +156,14 @@ apply (rule order_antisym)
 
   apply (simp add: par_tr_nil_right)
   apply (elim conjE)
-  apply (rule_tac x="<Ev a> ^^^ sa" in exI)
+  apply (rule_tac x="<Ev a> ^^^ s" in exI)
   apply (rule_tac x="<>" in exI)
   apply (simp add: par_tr_nil_right)
   apply (simp add: image_iff)
 
   apply (simp add: par_tr_Tick_right)
   apply (elim conjE)
-  apply (rule_tac x="<Ev a> ^^^ sa" in exI)
+  apply (rule_tac x="<Ev a> ^^^ s" in exI)
   apply (rule_tac x="<Tick>" in exI)
   apply (simp add: par_tr_Tick_right)
   apply (simp add: image_iff)

@@ -119,7 +119,6 @@ apply (case_tac "N <= Suc n")
  apply (drule_tac x="Suc n" in spec)
  apply (drule_tac x="N" in spec)
  apply (simp add: symmetry_ms)
- apply (simp add: min_def)
  apply (simp add: power_Suc)
 done
 
@@ -249,7 +248,7 @@ apply (case_tac "n <= m")
  apply (rule min_number_cauchy_half, simp_all)
 
 (* else *)
- apply (simp add: min_def)
+ (*apply (simp add: min_def)*)
  apply (rule Nmin_cauchy, simp_all)
  apply (rule min_number_cauchy_half, simp_all)
 done

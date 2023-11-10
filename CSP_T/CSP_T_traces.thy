@@ -9,18 +9,16 @@
             |               December 2005  (modified)   |
             |                  March 2007  (modified)   |
             |                                           |
+            |        CSP-Prover on Isabelle2021         |
+            |                 August 2021  (modified)   |
+            |                                           |
             |        Yoshinao Isobe (AIST JAPAN)        |
+            | Joabe Jesus (eComp POLI UPE and CIn UFPE) |
             *-------------------------------------------*)
 
 theory CSP_T_traces
 imports  CSP_T_semantics
 begin
-
-(*  The following simplification rules are deleted in this theory file *)
-(*  because they unexpectly rewrite UnionT and InterT.                 *)
-(*                  disj_not1: (~ P | Q) = (P --> Q)                   *)
-
-declare disj_not1 [simp del]
 
 (*********************************************************
                         DomT
@@ -36,6 +34,19 @@ by (simp add: traces_iff)
 (*--------------------------------*
  |             SKIP               |
  *--------------------------------*)
+
+lemma SKIP_domT: "{t. (t = <> | t = <Tick>) } : domT"
+  apply (simp add: domT_def HC_T1_def)
+  apply (rule conjI)
+  apply (rule_tac x="<>" in exI, simp)
+  
+  apply (simp add: prefix_closed_def)
+  apply (intro allI impI)
+  apply (elim conjE exE)
+  
+  apply (erule disjE, simp)    (* <> *)  
+  by (simp_all)
+
 
 lemma in_traces_SKIP: "(t :t traces(SKIP) M) = (t = <> | t = <Tick>)"
 by (simp add: traces_iff)
@@ -115,6 +126,40 @@ lemma in_traces_Ext_pre_choice:
 apply (simp add: traces_iff)
 by (simp add: CollectT_open_memT Ext_pre_choice_domT)
 
+
+(*** Act_prefix to Ext_pre_choice ***)
+
+lemma traces_Act_prefix_to_Ext_pre_choice: 
+  "(traces(a -> P a) M) 
+    = (traces(? :{a} -> (\<lambda> x. P x)) M)"
+by (simp add: traces_iff)
+
+lemma in_traces_Act_prefix_to_Ext_pre_choice: 
+  "(t :t traces(a -> P a) M) 
+    = (t :t traces(? :{a} -> (\<lambda> x. P x)) M)"
+by (simp add: in_traces_Act_prefix in_traces_Ext_pre_choice)
+
+
+(*** Ext_pre_choice traces disj ***)
+
+lemma traces_Ext_pre_choice_disj:
+    "S = {a} \<union> X \<Longrightarrow>
+     (traces(? :S -> (\<lambda> x. Pf x)) M)
+     = (traces(? :{a} -> (\<lambda> x. Pf x)) M UnT traces(? :X -> Pf) M)"
+  apply (simp add: traces_iff S_UnT_T)
+  apply (rule set_CollectT_eq)
+  apply (simp add: CollectT_open_memT Act_prefix_domT)
+  apply (simp add: CollectT_open_memT Ext_pre_choice_domT)
+by (fast)
+
+lemma in_traces_Ext_pre_choice_disj:
+    "S = {a} \<union> X \<Longrightarrow>
+     (t :t traces(? :S -> (\<lambda> x. Pf x)) M)
+     = (t :t traces(? :{a} -> (\<lambda> x. Pf x)) M \<or> t :t traces(? :X -> Pf) M)"
+  apply (simp only: in_traces_Act_prefix in_traces_Ext_pre_choice)
+by (fast)
+
+
 (*--------------------------------*
  |          Ext_choice            |
  *--------------------------------*)
@@ -124,6 +169,40 @@ by (simp add: CollectT_open_memT Ext_pre_choice_domT)
 lemma in_traces_Ext_choice: 
   "(t :t traces(P [+] Q) M) = (t :t traces(P) M | t :t traces(Q) M)"
 by (simp add: traces_iff)
+
+
+(*--------------------------------*
+ |      Inductive_Ext_choice      |
+ *--------------------------------*)
+
+lemma in_traces_Inductive_ext_choice:
+    "u :t traces ([+] l) M = (u = <> \<or> (\<exists> P\<in>(set l). u :t traces P M))"
+  by (induct_tac l, simp_all add: traces_iff, safe)
+
+
+(*--------------------------------*
+ |      Replicated_Ext_choice     |
+ *--------------------------------*)
+
+lemma in_traces_Rep_ext_choice:
+    "(u :t traces([+] :I .. Pf) M) = (u = <> | (EX i: set I. u :t traces (Pf i) M))"
+  by (simp add: Rep_ext_choice_def in_traces_Inductive_ext_choice)
+
+
+
+(*------------------------------------------------*
+ | Inductive external choice to Ext_prefix_choice |
+ *------------------------------------------------*)
+
+lemma traces_Inductive_ext_choice_to_Ext_pre_choice :
+    "traces([+] map (\<lambda> e . e -> PXf e) l) M = traces(? :set l -> PXf) M"
+  apply (simp add: Inductive_ext_choice_traces isListOf_set_eq)
+  apply (simp add: traces.simps)
+  apply (rule set_CollectT_eq, rule Collect_cong)
+  apply (simp add: CollectT_open_memT Act_prefix_domT Bex_def)
+  by (fast)
+
+
 
 (*--------------------------------*
  |          Int_choice            |
@@ -224,6 +303,75 @@ lemma in_traces_IF:
 by (simp add: traces_iff)
 
 (*--------------------------------*
+ |           Interrupt            |
+ *--------------------------------*)
+
+lemma Interrupt_domT :
+    "{ u. u :t traces P M | ( \<exists>s t. u = s ^^^ t & noTick s & s :t traces P M & t :t traces Q M) } : domT"
+apply (simp add: domT_def HC_T1_def)
+apply (rule conjI)
+
+apply (simp add: ex_disj_distrib)
+apply (intro disjI2)
+apply (rule_tac x="<>" in exI)
+apply (rule_tac x="<>" in exI, simp)
+
+(* prefix closed *)
+apply (simp add: prefix_closed_def)
+
+ apply (intro strip)
+ apply (elim disjE conjE exE)
+
+  apply (rule disjI1)
+  apply (rule memT_prefix_closed)
+  apply (simp)
+  apply (simp)
+
+  apply (simp)
+  apply (simp add: prefix_def)
+  apply (elim disjE conjE exE)
+
+  apply (simp add: appt_decompo)
+  apply (elim disjE conjE exE)
+
+   apply (rule disjI2)
+   apply (rule_tac x="sa" in exI)
+   apply (rule_tac x="ua" in exI)
+   apply (simp)
+   apply (rule memT_prefix_closed)
+   apply (simp)
+   apply (simp)
+
+   apply (force)
+
+   apply (rule disjI2)
+   apply (rule_tac x="s" in exI)
+   apply (rule_tac x="<>" in exI)
+   apply (simp)
+   apply (rule memT_prefix_closed)
+   apply (simp)
+   apply (simp)
+
+   apply (rule disjI2)
+   apply (rule_tac x="s" in exI)
+   apply (rule_tac x="<>" in exI)
+   apply (simp)
+   apply (rule memT_prefix_closed)
+   apply (simp)
+   apply (simp)
+
+  apply (force)
+done
+
+
+lemma in_traces_Interrupt: 
+  "(t :t traces(P /> Q) M)
+ = (t :t traces(P) M | (EX s u. t = s ^^^ u & noTick s & s :t traces(P) M & u :t traces(Q) M))"
+apply (simp add: traces_iff)
+by (simp add: CollectT_open_memT Interrupt_domT)
+
+
+(*--------------------------------*
  |           Parallel             |
  *--------------------------------*)
 
@@ -254,6 +402,68 @@ lemma in_traces_Parallel:
    (EX s t. u : s |[X]|tr t & s :t traces(P) M & t :t traces(Q) M)"
 apply (simp add: traces_iff)
 by (simp add: CollectT_open_memT Parallel_domT)
+
+
+lemma Parallel_nilt_Tick_domT : 
+    "{u. EX s t. u : s |[X]|tr t & (s = <> | s = <Tick>) & t :t T } : domT"
+  proof -
+  fix M::"'a \<Rightarrow> 'a domT"
+  have "{u. EX s t. u : s |[X]|tr t & s :t (traces SKIP M) & t :t T } : domT"
+    by (rule Parallel_domT)
+  thus ?thesis
+    by (simp add: traces_iff)
+    qed
+(*  apply (simp add: domT_def HC_T1_def)
+  apply (rule conjI)
+  apply (rule_tac x="<>" in exI, simp)
+  
+  (* prefix closed *)
+  apply (simp add: prefix_closed_def)
+  apply (intro allI impI)
+  apply (elim conjE exE)
+  apply (erule par_tr_prefixE, simp)
+  apply (rule_tac x="s'" in exI)
+  apply (rule_tac x="t'" in exI)
+  apply (simp)
+  
+  apply (elim disjE)
+  apply (rule conjI)
+  by (rule memT_prefix_closed, simp_all)+*)
+
+
+(*--------------------------------*
+ |      Inductive_interleave      |
+ *--------------------------------*)
+
+lemma Inductive_interleave_domT : 
+    "{u. \<exists>s t. u \<in> s |[{}]|tr t \<and>
+               s :t traces (hd l) M \<and>
+               t :t traces ( ||| tl l) M} : domT"
+by (simp add: Parallel_domT)
+
+lemma in_traces_Inductive_interleave :
+    "u :t traces ( ||| l) M = ((l = [] \<and> (u = <> \<or> u = <Tick>))
+                             \<or> (l \<noteq> [] \<and> (\<exists>s t. u \<in> s |[{}]|tr t
+                                               \<and> s :t traces (hd l) M
+                                               \<and> t :t traces ( ||| tl l) M)))"
+  apply (induct_tac l, simp add: traces_iff)
+by (simp add: in_traces_Parallel)
+
+
+(*--------------------------------*
+ |        Rep_interleaving        |
+ *--------------------------------*)
+
+lemma in_traces_Rep_interleaving :
+    "u :t traces ( ||| X .. PXf) M = ((X = [] \<and> (u = <> \<or> u = <Tick>))
+                                   \<or> (X \<noteq> [] \<and> (\<exists>s t. u \<in> s |[{}]|tr t
+                                                     \<and> s :t traces (PXf (hd X)) M
+                                                     \<and> t :t traces ( ||| map PXf (tl X)) M)))"
+  apply (simp add: Rep_interleaving_def)
+  apply (rule trans, rule in_traces_Inductive_interleave)
+  by (case_tac X, simp_all add: map_tl hd_map)
+
+
 
 (*--------------------------------*
  |            Hiding              |
@@ -410,16 +620,23 @@ done
 lemmas traces_domT = Act_prefix_domT     Ext_pre_choice_domT
                      Rep_int_choice_domT Parallel_domT
                      Hiding_domT         Renaming_domT
-                     Seq_compo_domT
+                     Seq_compo_domT      Interrupt_domT
+                     Inductive_interleave_domT
+
 
 lemmas in_traces = in_traces_STOP  in_traces_SKIP  in_traces_DIV
                    in_traces_Act_prefix     in_traces_Ext_pre_choice
                    in_traces_Ext_choice     in_traces_Int_choice
                    in_traces_Rep_int_choice in_traces_IF
+                   in_traces_Interrupt
                    in_traces_Parallel       in_traces_Hiding
                    in_traces_Renaming       in_traces_Seq_compo
                    in_traces_Union_proc     in_traces_UNIV_Union_proc
                    in_traces_Depth_rest     in_traces_Proc_name
+                   in_traces_Inductive_ext_choice
+                   in_traces_Rep_ext_choice
+                   in_traces_Inductive_interleave
+                   in_traces_Rep_interleaving
 
 (*--------------------------------*
  |            Timeout             |
@@ -439,8 +656,6 @@ done
 
 lemmas in_traces_Timeout = in_traces_Timeout1 in_traces_Timeout2
 
-(****************** to add them again ******************)
 
-declare disj_not1   [simp]
 
 end

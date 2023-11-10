@@ -16,12 +16,6 @@ theory CSP_T_surj
 imports CSP_T_traces
 begin
 
-(*  The following simplification rules are deleted in this theory file *)
-(*  because they unexpectly rewrite UnionT and InterT.                 *)
-(*                  disj_not1: (~ P | Q) = (P --> Q)                   *)
-
-declare disj_not1 [simp del]
-
 (*********************************************************
             inverse function : DomT => proc
  *********************************************************)
@@ -220,9 +214,5 @@ apply (rule allI)
 apply (rule_tac x=" Proc_T y" in exI)
 apply (simp add: semT_def semT_Proc_T)
 done
-
-(****************** to add them again ******************)
-
-declare disj_not1   [simp]
 
 end

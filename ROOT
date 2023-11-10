@@ -67,4 +67,68 @@ session FNF_F in FNF_F = CSP_F +
   theories
     FNF_F (global)
     FNF_F_Main (global)
+
+session CSP_FD in CSP_FD = CSP_F +
+  description "
+    CSP_FD Logic.
+  "
+  theories
+    CSP_FD (global)
+    CSP_FD_Main (global)
+
+session tockCSP in tockCSP = CSP +
+  description "
+    tockCSP Logic.
+  "
+  theories
+    tockCSP (global)
+    tockCSP_Main (global)
+    
+session tockCSP_T in tockCSP_T = tockCSP +
+  description "
+    tockCSP_T Logic.
+  "
+  sessions
+    CSP_T
+  theories
+    tockCSP_T (global)
+    tockCSP_T_Main (global)
+    
+session tockCSP_F in tockCSP_F = tockCSP_T +
+  description "
+    tockCSP_F Logic.
+  "
+  sessions
+    CSP_F
+  theories
+    tockCSP_F (global)
+    tockCSP_F_Main (global)
+    
+session tockCSP_FD in tockCSP_FD = tockCSP_F +
+  description "
+    tockCSP_FD Logic.
+  "
+  sessions
+    CSP_FD
+  theories
+    tockCSP_FD (global)
+    tockCSP_FD_Main (global)
+    
+session tockCSP_DFP in tockCSP_DFP = tockCSP_F +
+  description "
+    tockCSP_DFP Logic.
+  "
+  sessions
+    DFP
+  theories
+    tockCSP_DFP (global)
+    tockCSP_DFP_Main (global)
+    
+session TSF in TSF = tockCSP_DFP +
+  description "
+    TSF Logic.
+  "
+  theories
+    TSF (global)
+    TSF_Main (global)
     

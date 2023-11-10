@@ -15,29 +15,16 @@
             |        CSP-Prover on Isabelle2017         |
             |                  April 2018  (modified)   |
             |                                           |
+            |        CSP-Prover on Isabelle2021         |
+            |                 August 2021  (modified)   |
+            |                                           |
             |        Yoshinao Isobe (AIST JAPAN)        |
+            | Joabe Jesus (eComp POLI UPE and CIn UFPE) |
             *-------------------------------------------*)
 
 theory CSP_T_op_rep_par
 imports CSP_T_op_alpha_par
 begin
-
-(*  The following simplification rules are deleted in this theory file *)
-(*  because they unexpectly rewrite UnionT and InterT.                 *)
-(*                  Union (B ` A) = (UN x:A. B x)                      *)
-(*                  Inter (B ` A) = (INT x:A. B x)                     *)
-
-(* no simp rules in Isabelle 2017 
-declare Sup_image_eq [simp del]
-declare Inf_image_eq [simp del]
-*)
-
-(*  The following simplification rules are deleted in this theory file *)
-(*  because they unexpectly rewrite (notick | t = <>)                  *)
-(*                                                                     *)
-(*                  disj_not1: (~ P | Q) = (P --> Q)                   *)
-
-declare disj_not1 [simp del]
 
 (*============================================================*
  |                                                            |
@@ -214,7 +201,7 @@ lemma traces_Rep_parallel:
               (ALL i:I. (u rest-tr (snd (PXf i))) :t traces (fst (PXf i)) M))}t"
   (* using [[simp_trace=true]]*)
   (* Modified for Isabelle 2017 *)
-    apply (simp del: UN_simps SUP_image 
+    apply (simp del: UN_simps 
                 add: in_traces_Rep_parallel[THEN sym])
 done
 
@@ -227,15 +214,4 @@ lemma sett_in_traces_Rep_parallel:
    ==> sett t <= insert Tick (Ev ` Union (snd ` PXf ` I))"
 by (simp add: in_traces_Rep_parallel)
 
-(****************** to add it again ******************)
-
-declare disj_not1   [simp]
-(*
-declare Union_image_eq [simp]
-declare Inter_image_eq [simp]
-*)
-(* 2017
-declare Sup_image_eq [simp]
-declare Inf_image_eq [simp]
-*)
 end

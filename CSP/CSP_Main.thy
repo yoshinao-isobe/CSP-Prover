@@ -12,7 +12,7 @@
             *-------------------------------------------*)
 
 theory CSP_Main
-imports CSP_syntax
+imports CSP_syntax CSP_CHAOS CSP_RUN
         Trace_op
         CPO_pair  CPO_prod  CPO_set 
         RS_pair  RS_prod

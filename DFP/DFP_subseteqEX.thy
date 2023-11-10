@@ -10,16 +10,20 @@
             |        CSP-Prover on Isabelle2016         |
             |                    May 2016  (modified)   |
             |                                           |
+            |        CSP-Prover on Isabelle2021         |
+            |                  2022 / 2023  (modified)  |
+            |                                           |
             |        Yoshinao Isobe (AIST JAPAN)        |
+            | Joabe Jesus (eComp POLI UPE and CIn UFPE) |
             *-------------------------------------------*)
 
 theory DFP_subseteqEX
 imports CSP_F_Main
 begin
-
+(*
 datatype Event = left real | right "real * nat"
 datatype Name = Empty nat | Full real nat
-datatype DFName = DF
+(*datatype DFName = DF*)
 
 primrec
   Bufferfun :: "Name => (Name, Event) proc"
@@ -32,7 +36,7 @@ overloading Set_Bufferfun ==
 begin
   definition "PNfun == Bufferfun"
 end
-
+*)
 (*****************************************************************
 
   1. safe subsets of [[P]]F, used for deadlock-free verification.

@@ -314,8 +314,8 @@ lemma normal_seq_setF_less:
 apply (simp add: normal_def)
 apply (drule_tac x="Suc (lengtht s)" in spec)
 apply (drule_tac x="n" in spec)
-apply (simp add: to_distance_rs)
-apply (simp add: distance_rs_le_1[THEN sym])
+apply (simp only: to_distance_rs)
+apply (simp only: distance_rs_le_1[THEN sym])
 apply (simp add: min_is)
 
 apply (simp add: rest_setF_eq_iff)
@@ -339,8 +339,8 @@ lemma normal_seq_setF_Tick:
 apply (simp add: normal_def)
 apply (drule_tac x="lengtht (s' ^^^ <Tick>)" in spec)
 apply (drule_tac x="n" in spec)
-apply (simp add: to_distance_rs)
-apply (simp add: distance_rs_le_1[THEN sym])
+apply (simp only: to_distance_rs)
+apply (simp only: distance_rs_le_1[THEN sym])
 apply (simp add: min_is)
 
 apply (simp add: rest_setF_eq_iff)

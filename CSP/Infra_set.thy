@@ -16,45 +16,57 @@
             |        CSP-Prover on Isabelle2016         |
             |                  April 2016  (modified)   |
             |                                           |
+            |        CSP-Prover on Isabelle2021         |
+            |                 August 2021  (modified)   |
+            |                                           |
             |        Yoshinao Isobe (AIST JAPAN)        |
+            | Joabe Jesus (eComp POLI UPE and CIn UFPE) |
             *-------------------------------------------*)
 
 theory Infra_set
 imports Infra_list
 begin
 
+section \<open> Set \<close>
+
 (*****************************************************
                Small lemmas for Set
  *****************************************************)
+subsection \<open> Small lemmas for Set \<close>
 
-lemma notin_subset: "[| S <= T ; a ~: T |] ==> a ~: S"
-by (auto)
+(*notin_subset = contra_subsetD*)
 
 lemma notin_set_butlast: "a ~: set s ==> a ~: set (butlast s)"
-apply (rule notin_subset[of _ "set s"])
-by (simp_all add: butlast_subseteq)
+apply (erule contrapos_pp)
+by (simp add: in_set_butlastD)
 
+
+(*in_set_butlast = List.in_set_butlastD
 lemma in_set_butlast: "a : set (butlast s) ==> a : set s"
 apply (erule contrapos_pp)
-by (simp add: notin_set_butlast)
+by (simp add: notin_set_butlast)*)
 
 lemma in_image_set: "x : f ` X = (EX y. x = f y & y:X)"
 by (auto)
 
+(*inj_image_diff_dist = image_set_diff
 lemma inj_image_diff_dist: "inj f ==> f ` (A - B) = f ` A - f ` B"
-by (auto simp add: inj_on_def)
+by (auto simp add: inj_on_def)*)
 
+(*inj_image_Int_dist = image_Int
 lemma inj_image_Int_dist: "inj f ==> f ` (A Int B) = f ` A Int f ` B"
-by (auto simp add: inj_on_def)
+by (auto simp add: inj_on_def)*)
 
 lemma subsetE: "[| A <= B ; [| ALL x:A. x:B |] ==> R |] ==> R"
 by (auto)
 
+(*Un_sym = Un_commute
 lemma Un_sym: "X Un Y = Y Un X"
-by (auto)
+by (simp only: Un_commute)*)
 
+(*Int_subset_eq = Int_absorb2
 lemma Int_subset_eq:"A <= B ==> A Int B = A"
-by (auto)
+by (simp only: Int_absorb2)*)
 
 lemma Int_insert_eq: "A Int insert x A = A"
 by (auto)
@@ -75,9 +87,10 @@ lemma Union_snd_Un:
    Union (snd ` f ` I1) Un Union (snd ` f ` I2)"
 by (auto)
 
+(*Union_snd_set_Un = UN_Un
 lemma Union_snd_set_Un: 
   "Union (snd ` (set s Un set t)) = Union (snd ` set s) Un Union (snd ` set t)"
-by (auto)
+by (simp only: UN_Un)*)
 
 lemma neq_Set_EX1: "EX a:A. a~:B ==> A ~= B"
 by (auto)
@@ -85,9 +98,14 @@ by (auto)
 lemma neq_Set_EX2: "EX a:A. a~:B ==> B ~= A"
 by (auto)
 
+
+
+
 (*****************************
           finite set
  *****************************)
+subsection \<open> finite set \<close>
+
 
 lemma Union_index_fun:
    "ALL i:I1. PXf2 (f i) = PXf1 i
@@ -115,7 +133,10 @@ lemmas finite_pair_set2 = finite_pair_set1[simplified]
 
 lemmas finite_pair_set = finite_pair_set1 finite_pair_set2
 
-(* finite set --> EX max *)
+
+
+
+subsection \<open> finite set --> EX max \<close>
 
 lemma nonempty_finite_set_exists_max_fun_subset:
   "[| finite I ; I ~= {} |]
@@ -149,10 +170,8 @@ apply (simp_all)
  apply (simp)
  apply (rotate_tac -2)
  apply (erule contrapos_np)
- apply (force)
-
- apply (rule_tac x="J" in exI)
- apply (fast)
+ apply (clarsimp)
+ apply (drule_tac x="J" in spec, fast)
 done
 
 lemma nonempty_finite_set_exists_max_fun:
@@ -201,10 +220,8 @@ apply (simp_all)
  apply (simp)
  apply (rotate_tac -2)
  apply (erule contrapos_np)
- apply (force)
-
- apply (rule_tac x="J" in exI)
- apply (fast)
+ apply (clarsimp)
+ apply (drule_tac x="J" in spec, fast)
 done
 
 lemma nonempty_finite_set_exists_min_fun:
@@ -219,7 +236,9 @@ apply (rule_tac x="j" in bexI)
 apply (auto)
 done
 
-(*** cardinality of the set of a list ***)
+
+
+subsection \<open> cardinality of the set of a list \<close>
 
 lemma card_set_eq_length:
   "(card (set s) = length s) =
@@ -237,9 +256,6 @@ apply (simp add: card_insert_if)
 apply (simp add: card_insert_if)
 apply (force)
 
-apply (simp add: card_insert)
-apply (subgoal_tac "set list - {a} = set list")
-apply (simp)
 apply (case_tac "a ~: set list")
 apply (simp)
 apply (simp)
@@ -266,9 +282,12 @@ apply (drule_tac x="Suc j" in spec)
 apply (simp)
 done
 
+
+
 (*****************************************************
    Small lemmas for isListOf (Finite Set <--> List)
  *****************************************************)
+subsection \<open> isListOf \<close>
 
  (* Isabelle 2013
 consts
@@ -288,6 +307,8 @@ definition
     "s isListOf X  == 
      X = set s & (card (set s) = length s)"
 
+
+
 lemma isListOf_EX: "(finite X) ==> EX s. s isListOf X"
 apply (simp add: isListOf_def)
 apply (rule finite_induct[of _ "(%X. EX s. X = set s & card (set s) = length s)"])
@@ -306,6 +327,10 @@ done
 lemma isListOf_set_eq:
   "x isListOf X ==> set x = X"
 by (simp add: isListOf_def)
+
+lemma isListOf_distinct:
+  "x isListOf X \<Longrightarrow> distinct x"
+by (simp only: isListOf_def card_distinct)
 
 lemma set_SOME_isListOf: "(finite S) ==> set (SOME t. t isListOf S) = S"
 apply (insert isListOf_EX[of S])
@@ -368,18 +393,11 @@ apply (rule allI)
 apply (induct_tac t)
 apply (simp add: isListOf_def)
 
-apply (intro allI impI)
-apply (insert list_nil_or_unnil)
-apply (drule_tac x="list" in spec)
-apply (elim exE disjE)
 apply (simp add: isListOf_def)
-
-apply (simp add: isListOf_def)
-apply (elim conjE)
-apply (simp)
-apply (simp add: card_insert)
-apply (subgoal_tac "set s - {aa} = {}")
-apply (simp_all)
+apply (elim allE disjE)
+apply (auto)
+apply (drule subset_singletonD, elim disjE, simp_all)
+apply (drule subset_singletonD, elim disjE, simp_all)
 done
 
 lemma isListOf_oneset_to_onelist[simp]: "(t isListOf {a}) = (t = [a])"
@@ -391,17 +409,92 @@ lemma isListOf_onelist_to_oneset[simp]: "([a] isListOf X) = (X = {a})"
 apply (simp add: isListOf_def)
 done
 
+
+(* SOME isListOf *)
+
+lemma some_isListOf_Empty :
+    "I = {} \<Longrightarrow> (SOME x. x isListOf I) = []"
+by (auto)
+
+lemma some_isListOf_nonEmpty :
+    "I \<noteq> {} \<Longrightarrow> x isListOf I \<Longrightarrow> x \<noteq> []"
+by (auto)
+
+lemma some_isListOf_finite :
+    "I \<noteq> {} \<and> finite I \<Longrightarrow> (SOME Is. Is isListOf I) \<noteq> []"
+by (rule someI2_ex, rule isListOf_EX, auto)
+
+lemmas some_isListOf = some_isListOf_Empty some_isListOf_finite
+
+
+(* ListMem lemmas *)
+
+lemma ListMem_tail :
+    "i \<noteq> a \<and> l \<noteq> [] \<Longrightarrow> ListMem i l \<Longrightarrow> ListMem i (a # l)"
+  apply (induct l)
+  apply (simp add: ListMem_iff)
+  apply (simp add: ListMem_iff)
+done
+
+
+(* =================================================== *
+ |             addition for CSP-Prover 6               |
+ * =================================================== *)
+
+subsection \<open> asList \<close>
+
+definition asList :: "'a set \<Rightarrow> 'a list"
+where
+  "asList (s::'a set) == SOME x . x isListOf s"
+
+(*declare [[coercion asList]]*)
+
+
+lemma set_asList [simp]: "finite X \<Longrightarrow> set (asList X) = X"
+  by (simp add: set_SOME_isListOf asList_def)
+
+
+lemma asList_empty [simp]: "asList {} = []"
+  by (simp add: asList_def)
+
+
+lemma asList_nil : "finite x \<Longrightarrow> asList x = [] \<longleftrightarrow> x = {}"
+  apply (simp add: asList_def)
+  apply (rule someI2_ex, rule isListOf_EX, simp)
+  by (simp add: isListOf_def)
+
+
+lemma distinct_asList : "finite x \<Longrightarrow> distinct (asList (x::'a set))"
+  apply (simp add: asList_def)
+  by (rule someI2_ex, rule isListOf_EX, simp, simp add: isListOf_distinct)
+
+
+lemma set_remove1_asList_eq :
+    "finite y \<Longrightarrow>
+     set (remove1 x (asList y)) = y - {x}"
+  apply (frule distinct_asList)
+  by (simp only: set_remove1_eq set_asList)
+
+
+lemma in_set_remove1D:
+      "a \<in> set(remove1 b xs) \<Longrightarrow> a \<noteq> b \<longrightarrow> a \<in> set xs"
+  by (rule, simp)
+
+lemma in_set_remove1_distinctD:
+      "distinct xs \<Longrightarrow> a \<in> set(remove1 b xs) \<Longrightarrow> a \<noteq> b \<and> a \<in> set xs"
+  by (rule, auto)
+
+
+
+
 (* --------------------------------------------------- *
                addition for CSP-Prover 5
  * --------------------------------------------------- *)
 
-(* --------------------------------------------------- *
-   convenient lemmas for practical verification in CSP
- * --------------------------------------------------- *)
+subsection \<open> convenient lemmas for practical verification in CSP \<close>
 
-(* -------------------------------------------- *
-                      in
- * -------------------------------------------- *)
+
+subsubsection \<open> event (not)in channel \<close>
 
 lemma event_notin_channel_map: 
    "ALL x:X. a ~= c x ==> a ~: c ` X"
@@ -428,9 +521,9 @@ lemmas event_notin_channel =
        event_notin_channel_map
        event_notin_channel_range
 
-(* -------------------------------------------- *
-                        Int
- * -------------------------------------------- *)
+
+
+subsubsection \<open> channel Int event \<close>
 
 (* channel_Int_event_eq *)
 
@@ -470,9 +563,11 @@ lemmas channel_Int_event =
        set_Int_single_in_left
        set_Int_single_in_right
 
-(* ------------------------------------------------- *)
 
-(* channel_Int_channel_eq *)
+
+
+subsubsection \<open> channel Int channel \<close>
+
 
 lemma channel_Int_channel_eq:
   "inj c ==> (c ` X) Int (c ` Y) = (c ` (X Int Y))"
@@ -500,22 +595,19 @@ lemmas channel_Int_channel =
        channel_Int_channel_eq
        channel_Int_channel_neq
 
-(* -------------------------------------------- *
-                        Un
- * -------------------------------------------- *)
 
-(* ------------------------- *
-      channel_Un_channel
- * ------------------------- *)
+
+
+subsubsection \<open> channel Un channel \<close>
 
 lemma channel_Un_channel:
   "inj c ==> (c ` X) Un (c ` Y) = (c ` (X Un Y))"
 by (auto simp: inj_on_def)
 
 
-(* -------------------------------------------- *
-                  Insert Int
- * -------------------------------------------- *)
+
+
+subsubsection \<open> event insert Int \<close>
 
 (* event_insert_Int *)
 
@@ -565,9 +657,9 @@ lemmas event_insert_Int =
        event_insert_Int_insert_channel_in
        event_insert_Int_insert_channel_notin
 
-(* -------------------------------------------- *
-                  Insert Un
- * -------------------------------------------- *)
+
+
+subsubsection \<open> event insert Un \<close>
 
 (* event_insert_Un *)
 
@@ -577,11 +669,11 @@ by (auto)
 
 (* lemma subset_insertI: "A <= insert a A" *)
 
-(* -------------------------------------------- *
-                     diff
- * -------------------------------------------- *)
 
-(* event_insert_Int *)
+
+subsubsection \<open> event insert diff \<close>
+
+(* event_insert_diff *)
 
 lemma event_diff_in:
   "a : A ==> {a} - A = {}"
@@ -599,7 +691,9 @@ lemmas event_diff =
        event_diff_notin
        event_diff_notin_map
 
-(* channel *)
+
+
+subsubsection \<open> channel diff \<close>
 
 lemma channel_diff_eq_map:
   "inj c ==> (c ` X) - (c ` Y) = c ` (X-Y)"
@@ -618,9 +712,10 @@ lemmas channel_diff =
        channel_diff_neq_map
        channel_diff_neq_range
 
-(* -------------------------------------------- *
-                distribustion
- * -------------------------------------------- *)
+
+
+
+subsubsection \<open> set of events - distribution \<close>
 
 lemma Un_diff_dist_right: "(A Un B) - C = (A-C) Un (B-C)"
 apply (auto)
@@ -671,9 +766,10 @@ lemmas event_insert_diff_dist =
       event_diff
       channel_diff
 
-(* -------------------------------------------- *
-                 csp_simp_set
- * -------------------------------------------- *)
+
+
+subsubsection \<open> csp simp set \<close>
+
 
 lemmas dist_event_set = Int_Un_distrib Int_Un_distrib2
                         event_insert_diff_dist

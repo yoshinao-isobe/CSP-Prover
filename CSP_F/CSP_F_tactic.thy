@@ -66,7 +66,7 @@ lemmas cspF_pre_step  = cspF_Alpha_Parallel_step
 lemmas cspF_Act_prefix_step_sym = cspF_Act_prefix_step[THEN cspF_sym]
 
 
-ML {*
+ML \<open>
     val CSPF_reflex                    = @{thms cspF_reflex} ;
     val CSPF_rw_flag_left              = @{thms cspF_rw_flag_left} ;
     val CSPF_rw_flag_right             = @{thms cspF_rw_flag_right} ;
@@ -85,9 +85,9 @@ ML {*
     val CSPF_rw_flag_rightE            = @{thms cspF_rw_flag_rightE} ; (* E *)
 
     val CSPF_Act_prefix_step_sym       = @{thms cspF_Act_prefix_step_sym} ;
-*}
+\<close>
 
-ML {*
+ML \<open>
  val CSPF_free_decompo_flag     = @{thms cspF_free_decompo_flag} ;
  val CSPF_decompo               = @{thms cspF_decompo_ss} ;
 
@@ -111,7 +111,7 @@ ML {*
 
  val CSPF_pre_step                   = @{thms cspF_pre_step} ;             (* new *)
 
-*}
+\<close>
 
 (* ===================================================== *
  |                                                       |
@@ -127,7 +127,7 @@ ML {*
 
 
 
-ML {*
+ML \<open>
 fun templateF_main_tac simptac decompo f ctxt thms =
  CHANGED (
   EVERY
@@ -155,32 +155,32 @@ fun templateF_main_tac simptac decompo f ctxt thms =
                (((ctxt addsimps OFF_All_Flag_True)
                |> Splitter.del_split If_split))))])
 
-*}
+\<close>
 
-ML {*
+ML \<open>
 fun templateF_left_tac simptac decompo f ctxt thms =
  CHANGED (
   EVERY
    [resolve_tac ctxt CSPF_rw_flag_left 1,
     templateF_main_tac simptac decompo f ctxt thms ])
-*}
+\<close>
 
-ML {*
+ML \<open>
 fun templateF_right_tac simptac decompo f ctxt thms =
  CHANGED (
   EVERY
    [resolve_tac ctxt CSPF_rw_flag_right 1,
     templateF_main_tac simptac decompo f ctxt thms ])
-*}
+\<close>
 
 
-ML {*
+ML \<open>
 fun templateF_both_tac simptac decompo f ctxt thms =
  CHANGED (
   EVERY
    [TRY (templateF_left_tac simptac decompo f ctxt thms),
     TRY (templateF_right_tac simptac decompo f ctxt thms)])
-*}
+\<close>
 
 (*
 
@@ -207,7 +207,7 @@ fun templateF_both_tac simptac decompo f ctxt thms =
  |  trans, (no_asm) or asm  |
  *--------------------------*)
 
-ML {*
+ML \<open>
 fun templateF_refine_main_tac simptac tr f ctxt thms =
  CHANGED (
   EVERY
@@ -233,23 +233,23 @@ fun templateF_refine_main_tac simptac tr f ctxt thms =
                (((ctxt addsimps OFF_All_Flag_True)
                |> Splitter.del_split If_split))))])
                
-*}
+\<close>
 
-ML {*
+ML \<open>
 fun templateF_refine_left_tac simptac f ctxt thms =
  CHANGED (
   EVERY
    [resolve_tac ctxt CSPF_tr_flag_left 1,
     templateF_refine_main_tac simptac CSPF_tr_flag_left f ctxt thms ])
-*}
+\<close>
 
-ML {*
+ML \<open>
 fun templateF_refine_right_tac simptac f ctxt thms =
  CHANGED (
   EVERY
    [resolve_tac ctxt CSPF_tr_flag_right 1,
     templateF_refine_main_tac simptac CSPF_tr_flag_right f ctxt thms ])
-*}
+\<close>
 
 (*
 
@@ -267,16 +267,16 @@ fun templateF_refine_right_tac simptac f ctxt thms =
 
 (* ----- simp ----- *)
 
-ML {*
+ML \<open>
 fun cspF_simp_core ctxt thms =
        (EVERY [ (* TRY (resolve_tac ctxt OFF_Not_Decompo_Flag 1), *)   
                 FIRST [ resolve_tac ctxt CSPF_choice_IF 1,
                         resolve_tac ctxt thms 1 ]])
-*}
+\<close>
 
 (* ----- renaming ----- *)
 
-ML {*
+ML \<open>
 fun cspF_ren_core ctxt thms =
        (EVERY [ (* TRY (resolve_tac ctxt OFF_Not_Decompo_Flag 1),  *)
                 FIRST [ resolve_tac ctxt CSPF_choice_IF 1,
@@ -285,11 +285,11 @@ fun cspF_ren_core ctxt thms =
                         resolve_tac ctxt CSPF_prefix_Renaming_in_step 1,
                         resolve_tac ctxt CSPF_prefix_Renaming_notin_step 1,
                         resolve_tac ctxt CSPF_Renaming_fun_step 1 ]])
-*}
+\<close>
 
 (* ----- hsf ----- *)
 
-ML {*
+ML \<open>
 fun cspF_hsf_core ctxt thms =
 
        (EVERY [ (* TRY (resolve_tac ctxt OFF_Not_Decompo_Flag 1), *)
@@ -311,11 +311,11 @@ fun cspF_hsf_core ctxt thms =
                         resolve_tac ctxt CSPF_unwind 1 
 *)
                     ]])
-*}
+\<close>
 
 (* ----- auto ----- *)
 
-ML {*
+ML \<open>
 fun cspF_auto_core ctxt thms =
 
        (EVERY [ (* TRY (resolve_tac ctxt OFF_Not_Decompo_Flag 1), *)
@@ -334,33 +334,33 @@ fun cspF_auto_core ctxt thms =
                         resolve_tac ctxt CSPF_Rep_int_choice_sepa 1, 
                         resolve_tac ctxt CSPF_Rep_int_choice_f_map 1,
                         resolve_tac ctxt CSPF_unwind 1 ]])
-*}
+\<close>
 
 (* ----- unwinding ----- *)
 
-ML {*
+ML \<open>
 fun cspF_unwind_core ctxt thms =
 
        (EVERY [ (* TRY (resolve_tac ctxt OFF_Not_Decompo_Flag 1), *)
                 FIRST [ resolve_tac ctxt CSPF_choice_IF 1,
                         resolve_tac ctxt thms 1,
                         resolve_tac ctxt CSPF_unwind 1 ]])
-*}
+\<close>
 
 (* ----- dist ----- *)
 
-ML {*
+ML \<open>
 fun cspF_dist_core ctxt thms =
 
        (EVERY [ (* TRY (resolve_tac ctxt OFF_Not_Decompo_Flag 1), *)
                 FIRST [ resolve_tac ctxt CSPF_choice_IF 1,
                         resolve_tac ctxt thms 1,
                         resolve_tac ctxt CSPF_all_dist 1]])
-*}
+\<close>
 
 (* ----- step ----- *)
 
-ML {*
+ML \<open>
 fun cspF_step_core ctxt thms =
 
        (EVERY [ (* TRY (resolve_tac ctxt OFF_Not_Decompo_Flag 1), *)
@@ -375,11 +375,11 @@ fun cspF_step_core ctxt thms =
                         resolve_tac ctxt CSPF_SKIP_DIV_resolve 1,
                         resolve_tac ctxt CSPF_step 1 ]])
 
-*}
+\<close>
 
 (* ----- light_step ----- *)
 
-ML {*
+ML \<open>
 fun cspF_light_step_core ctxt thms =
 
        (EVERY [ (* TRY (resolve_tac ctxt OFF_Not_Decompo_Flag 1), *)
@@ -388,19 +388,19 @@ fun cspF_light_step_core ctxt thms =
                         resolve_tac ctxt CSPF_first_prefix_ss 1,
                         resolve_tac ctxt CSPF_light_step 1 ]])
 
-*}
+\<close>
 
 
 (* ----- prefix ----- *)
 
-ML {*
+ML \<open>
 fun cspF_prefix_core ctxt thms =
 
        (EVERY [ (* TRY (resolve_tac ctxt OFF_Not_Decompo_Flag 1), *)
                 FIRST [ resolve_tac ctxt CSPF_choice_IF 1,
                         resolve_tac ctxt thms 1,
                         resolve_tac ctxt CSPF_Act_prefix_step_sym 1]])
-*}
+\<close>
 
 (*
 
@@ -430,27 +430,27 @@ fun cspF_prefix_core ctxt thms =
  *------------------------*)
 
 method_setup cspF_asm_left =
-  {* Attrib.thms >> (fn thms => fn ctxt => 
+  \<open> Attrib.thms >> (fn thms => fn ctxt => 
      SIMPLE_METHOD (templateF_left_tac 
                     asm_full_simp_tac
                     CSPF_free_decompo_flag
-                    cspF_simp_core ctxt thms)) *}
+                    cspF_simp_core ctxt thms)) \<close>
   "simplify left process with using assumption"
 
 method_setup cspF_asm_right =
-  {* Attrib.thms >> (fn thms => fn ctxt => 
+  \<open> Attrib.thms >> (fn thms => fn ctxt => 
      SIMPLE_METHOD (templateF_right_tac 
                     asm_full_simp_tac
                     CSPF_free_decompo_flag
-                    cspF_simp_core ctxt thms)) *}
+                    cspF_simp_core ctxt thms)) \<close>
   "simplify right process with using assumption"
 
 method_setup cspF_asm =
-  {* Attrib.thms >> (fn thms => fn ctxt => 
+  \<open> Attrib.thms >> (fn thms => fn ctxt => 
      SIMPLE_METHOD (templateF_both_tac 
                     asm_full_simp_tac
                     CSPF_free_decompo_flag
-                    cspF_simp_core ctxt thms)) *}
+                    cspF_simp_core ctxt thms)) \<close>
   "simplify both processes with using assumption"
 
 (*------------------------*
@@ -458,27 +458,27 @@ method_setup cspF_asm =
  *------------------------*)
 
 method_setup cspF_asm_deep_left =
-  {* Attrib.thms >> (fn thms => fn ctxt => 
+  \<open> Attrib.thms >> (fn thms => fn ctxt => 
      SIMPLE_METHOD (templateF_left_tac 
                     asm_full_simp_tac
                     CSPF_decompo
-                    cspF_simp_core ctxt thms)) *}
+                    cspF_simp_core ctxt thms)) \<close>
   "deeply simplify left process with using assumption"
 
 method_setup cspF_asm_deep_right =
-  {* Attrib.thms >> (fn thms => fn ctxt => 
+  \<open> Attrib.thms >> (fn thms => fn ctxt => 
      SIMPLE_METHOD (templateF_right_tac 
                     asm_full_simp_tac
                     CSPF_decompo
-                    cspF_simp_core ctxt thms)) *}
+                    cspF_simp_core ctxt thms)) \<close>
   "deeply simplify right process with using assumption"
 
 method_setup cspF_asm_deep =
-  {* Attrib.thms >> (fn thms => fn ctxt => 
+  \<open> Attrib.thms >> (fn thms => fn ctxt => 
      SIMPLE_METHOD (templateF_both_tac 
                     asm_full_simp_tac
                     CSPF_decompo
-                    cspF_simp_core ctxt thms)) *}
+                    cspF_simp_core ctxt thms)) \<close>
   "deeply simplify both processes with using assumption"
 
 (*=================================================*
@@ -492,27 +492,27 @@ method_setup cspF_asm_deep =
  *---------------------------------*)
 
 method_setup cspF_simp_left =
-  {* Attrib.thms >> (fn thms => fn ctxt => 
+  \<open> Attrib.thms >> (fn thms => fn ctxt => 
      SIMPLE_METHOD (templateF_left_tac 
                     full_simp_tac
                     CSPF_free_decompo_flag
-                    cspF_simp_core ctxt thms)) *}
+                    cspF_simp_core ctxt thms)) \<close>
   "simplify left process without using assumptions"
 
 method_setup cspF_simp_right =
-  {* Attrib.thms >> (fn thms => fn ctxt => 
+  \<open> Attrib.thms >> (fn thms => fn ctxt => 
      SIMPLE_METHOD (templateF_right_tac 
                     full_simp_tac
                     CSPF_free_decompo_flag
-                    cspF_simp_core ctxt thms)) *}
+                    cspF_simp_core ctxt thms)) \<close>
   "simplify right process without using assumptions"
 
 method_setup cspF_simp =
-  {* Attrib.thms >> (fn thms => fn ctxt => 
+  \<open> Attrib.thms >> (fn thms => fn ctxt => 
      SIMPLE_METHOD (templateF_both_tac 
                     full_simp_tac
                     CSPF_free_decompo_flag
-                    cspF_simp_core ctxt thms)) *}
+                    cspF_simp_core ctxt thms)) \<close>
   "simplify both processes without using assumptions"
 
 (*-----------------------------*
@@ -520,27 +520,27 @@ method_setup cspF_simp =
  *-----------------------------*)
 
 method_setup cspF_simp_deep_left =
-  {* Attrib.thms >> (fn thms => fn ctxt => 
+  \<open> Attrib.thms >> (fn thms => fn ctxt => 
      SIMPLE_METHOD (templateF_left_tac 
                     full_simp_tac
                     CSPF_decompo
-                    cspF_simp_core ctxt thms)) *}
+                    cspF_simp_core ctxt thms)) \<close>
   "deeply simplify left process without using assumptions"
 
 method_setup cspF_simp_deep_right =
-  {* Attrib.thms >> (fn thms => fn ctxt => 
+  \<open> Attrib.thms >> (fn thms => fn ctxt => 
      SIMPLE_METHOD (templateF_right_tac 
                     full_simp_tac
                     CSPF_decompo
-                    cspF_simp_core ctxt thms)) *}
+                    cspF_simp_core ctxt thms)) \<close>
   "deeply simplify right process without using assumptions"
 
 method_setup cspF_simp_deep =
-  {* Attrib.thms >> (fn thms => fn ctxt => 
+  \<open> Attrib.thms >> (fn thms => fn ctxt => 
      SIMPLE_METHOD (templateF_both_tac 
                     full_simp_tac
                     CSPF_decompo
-                    cspF_simp_core ctxt thms)) *}
+                    cspF_simp_core ctxt thms)) \<close>
   "deeply simplify both processes without using assumptions"
 
 (*=================================================*
@@ -556,27 +556,27 @@ method_setup cspF_simp_deep =
  *---------------------------------*)
 
 method_setup cspF_ren_left =
-  {* Attrib.thms >> (fn thms => fn ctxt => 
+  \<open> Attrib.thms >> (fn thms => fn ctxt => 
      SIMPLE_METHOD (templateF_left_tac 
                     full_simp_tac
                     CSPF_free_decompo_flag
-                    cspF_ren_core ctxt thms)) *}
+                    cspF_ren_core ctxt thms)) \<close>
   "rename left process without using assumptions"
 
 method_setup cspF_ren_right =
-  {* Attrib.thms >> (fn thms => fn ctxt => 
+  \<open> Attrib.thms >> (fn thms => fn ctxt => 
      SIMPLE_METHOD (templateF_right_tac 
                     full_simp_tac
                     CSPF_free_decompo_flag
-                    cspF_ren_core ctxt thms)) *}
+                    cspF_ren_core ctxt thms)) \<close>
   "rename right process without using assumptions"
 
 method_setup cspF_ren =
-  {* Attrib.thms >> (fn thms => fn ctxt => 
+  \<open> Attrib.thms >> (fn thms => fn ctxt => 
      SIMPLE_METHOD (templateF_both_tac 
                     full_simp_tac
                     CSPF_free_decompo_flag
-                    cspF_ren_core ctxt thms)) *}
+                    cspF_ren_core ctxt thms)) \<close>
   "rename both processes without using assumptions"
 
 (*---------------------------------*
@@ -584,27 +584,27 @@ method_setup cspF_ren =
  *---------------------------------*)
 
 method_setup cspF_ren_deep_left =
-  {* Attrib.thms >> (fn thms => fn ctxt => 
+  \<open> Attrib.thms >> (fn thms => fn ctxt => 
      SIMPLE_METHOD (templateF_left_tac 
                     full_simp_tac
                     CSPF_decompo
-                    cspF_ren_core ctxt thms)) *}
+                    cspF_ren_core ctxt thms)) \<close>
   "deeply rename left process without using assumptions"
 
 method_setup cspF_ren_deep_right =
-  {* Attrib.thms >> (fn thms => fn ctxt => 
+  \<open> Attrib.thms >> (fn thms => fn ctxt => 
      SIMPLE_METHOD (templateF_right_tac 
                     full_simp_tac
                     CSPF_decompo
-                    cspF_ren_core ctxt thms)) *}
+                    cspF_ren_core ctxt thms)) \<close>
   "deeply rename right process without using assumptions"
 
 method_setup cspF_ren_deep =
-  {* Attrib.thms >> (fn thms => fn ctxt => 
+  \<open> Attrib.thms >> (fn thms => fn ctxt => 
      SIMPLE_METHOD (templateF_both_tac 
                     full_simp_tac
                     CSPF_decompo
-                    cspF_ren_core ctxt thms)) *}
+                    cspF_ren_core ctxt thms)) \<close>
   "deeply rename both processes without using assumptions"
 
 (*=================================================*
@@ -618,27 +618,27 @@ method_setup cspF_ren_deep =
  *----------------------------*)
 
 method_setup cspF_hsf_left =
-  {* Attrib.thms >> (fn thms => fn ctxt => 
+  \<open> Attrib.thms >> (fn thms => fn ctxt => 
      SIMPLE_METHOD (templateF_left_tac 
                     full_simp_tac
                     CSPF_free_decompo_flag
-                    cspF_hsf_core ctxt thms)) *}
+                    cspF_hsf_core ctxt thms)) \<close>
   "sequentialize left process without using assumptions"
 
 method_setup cspF_hsf_right =
-  {* Attrib.thms >> (fn thms => fn ctxt => 
+  \<open> Attrib.thms >> (fn thms => fn ctxt => 
      SIMPLE_METHOD (templateF_right_tac 
                     full_simp_tac
                     CSPF_free_decompo_flag
-                    cspF_hsf_core ctxt thms)) *}
+                    cspF_hsf_core ctxt thms)) \<close>
   "sequentialize right process without using assumptions"
 
 method_setup cspF_hsf =
-  {* Attrib.thms >> (fn thms => fn ctxt => 
+  \<open> Attrib.thms >> (fn thms => fn ctxt => 
      SIMPLE_METHOD (templateF_both_tac 
                     full_simp_tac
                     CSPF_free_decompo_flag
-                    cspF_hsf_core ctxt thms)) *}
+                    cspF_hsf_core ctxt thms)) \<close>
   "sequentialize both processes without using assumptions"
 
 
@@ -653,27 +653,27 @@ method_setup cspF_hsf =
  *--------------------------*)
 
 method_setup cspF_auto_left =
-  {* Attrib.thms >> (fn thms => fn ctxt => 
+  \<open> Attrib.thms >> (fn thms => fn ctxt => 
      SIMPLE_METHOD (templateF_left_tac 
                     asm_full_simp_tac
                     CSPF_free_decompo_flag
-                    cspF_auto_core ctxt thms)) *}
+                    cspF_auto_core ctxt thms)) \<close>
   "apply all possible laws to left process with using assumptions"
 
 method_setup cspF_auto_right =
-  {* Attrib.thms >> (fn thms => fn ctxt => 
+  \<open> Attrib.thms >> (fn thms => fn ctxt => 
      SIMPLE_METHOD (templateF_right_tac 
                     asm_full_simp_tac
                     CSPF_free_decompo_flag
-                    cspF_auto_core ctxt thms)) *}
+                    cspF_auto_core ctxt thms)) \<close>
   "apply all possible laws to right process with using assumptions"
 
 method_setup cspF_auto =
-  {* Attrib.thms >> (fn thms => fn ctxt => 
+  \<open> Attrib.thms >> (fn thms => fn ctxt => 
      SIMPLE_METHOD (templateF_both_tac 
                     asm_full_simp_tac
                     CSPF_free_decompo_flag
-                    cspF_auto_core ctxt thms)) *}
+                    cspF_auto_core ctxt thms)) \<close>
   "apply all possible laws to both processes with using assumptions"
 
 
@@ -688,27 +688,27 @@ method_setup cspF_auto =
  *-------------------------------*)
 
 method_setup cspF_unwind_left =
-  {* Attrib.thms >> (fn thms => fn ctxt => 
+  \<open> Attrib.thms >> (fn thms => fn ctxt => 
      SIMPLE_METHOD (templateF_left_tac 
                     full_simp_tac
                     CSPF_free_decompo_flag
-                    cspF_unwind_core ctxt thms)) *}
+                    cspF_unwind_core ctxt thms)) \<close>
   "unwind left process without using assumptions"
 
 method_setup cspF_unwind_right =
-  {* Attrib.thms >> (fn thms => fn ctxt => 
+  \<open> Attrib.thms >> (fn thms => fn ctxt => 
      SIMPLE_METHOD (templateF_right_tac 
                     full_simp_tac
                     CSPF_free_decompo_flag
-                    cspF_unwind_core ctxt thms)) *}
+                    cspF_unwind_core ctxt thms)) \<close>
   "unwind right process without using assumptions"
 
 method_setup cspF_unwind =
-  {* Attrib.thms >> (fn thms => fn ctxt => 
+  \<open> Attrib.thms >> (fn thms => fn ctxt => 
      SIMPLE_METHOD (templateF_both_tac 
                     full_simp_tac
                     CSPF_free_decompo_flag
-                    cspF_unwind_core ctxt thms)) *}
+                    cspF_unwind_core ctxt thms)) \<close>
   "unwind both processes without using assumptions"
 
 
@@ -723,17 +723,17 @@ method_setup cspF_unwind =
  *--------------------------*)
 
 method_setup cspF_refine_asm_left =
-  {* Attrib.thms >> (fn thms => fn ctxt => 
+  \<open> Attrib.thms >> (fn thms => fn ctxt => 
      SIMPLE_METHOD (templateF_refine_left_tac 
                     asm_full_simp_tac
-                    cspF_simp_core ctxt thms)) *}
+                    cspF_simp_core ctxt thms)) \<close>
   "refine left process"
 
 method_setup cspF_refine_asm_right =
-  {* Attrib.thms >> (fn thms => fn ctxt => 
+  \<open> Attrib.thms >> (fn thms => fn ctxt => 
      SIMPLE_METHOD (templateF_refine_right_tac 
                     asm_full_simp_tac
-                    cspF_simp_core ctxt thms)) *}
+                    cspF_simp_core ctxt thms)) \<close>
   "refine right process"
 
 (*-------------------------------*
@@ -741,17 +741,17 @@ method_setup cspF_refine_asm_right =
  *-------------------------------*)
 
 method_setup cspF_refine_left =
-  {* Attrib.thms >> (fn thms => fn ctxt => 
+  \<open> Attrib.thms >> (fn thms => fn ctxt => 
      SIMPLE_METHOD (templateF_refine_left_tac
                     full_simp_tac
-                    cspF_simp_core ctxt thms)) *}
+                    cspF_simp_core ctxt thms)) \<close>
   "refine left process without using assumptions"
 
 method_setup cspF_refine_right =
-  {* Attrib.thms >> (fn thms => fn ctxt => 
+  \<open> Attrib.thms >> (fn thms => fn ctxt => 
      SIMPLE_METHOD (templateF_refine_right_tac 
                     full_simp_tac
-                    cspF_simp_core ctxt thms)) *}
+                    cspF_simp_core ctxt thms)) \<close>
   "refine right process without using assumptions"
 
 
@@ -767,27 +767,27 @@ method_setup cspF_refine_right =
  *---------------------------*)
 
 method_setup cspF_dist_left =
-  {* Attrib.thms >> (fn thms => fn ctxt => 
+  \<open> Attrib.thms >> (fn thms => fn ctxt => 
      SIMPLE_METHOD (templateF_left_tac 
                     full_simp_tac
                     CSPF_free_decompo_flag
-                    cspF_dist_core ctxt thms)) *}
+                    cspF_dist_core ctxt thms)) \<close>
   "distribution in left process"
 
 method_setup cspF_dist_right =
-  {* Attrib.thms >> (fn thms => fn ctxt => 
+  \<open> Attrib.thms >> (fn thms => fn ctxt => 
      SIMPLE_METHOD (templateF_right_tac 
                     full_simp_tac
                     CSPF_free_decompo_flag
-                    cspF_dist_core ctxt thms)) *}
+                    cspF_dist_core ctxt thms)) \<close>
   "distribution in right process"
 
 method_setup cspF_dist =
-  {* Attrib.thms >> (fn thms => fn ctxt => 
+  \<open> Attrib.thms >> (fn thms => fn ctxt => 
      SIMPLE_METHOD (templateF_both_tac 
                     full_simp_tac
                     CSPF_free_decompo_flag
-                    cspF_dist_core ctxt thms)) *}
+                    cspF_dist_core ctxt thms)) \<close>
   "distribution both processes"
 
 
@@ -802,27 +802,27 @@ method_setup cspF_dist =
  *---------------------------*)
 
 method_setup cspF_step_left =
-  {* Attrib.thms >> (fn thms => fn ctxt => 
+  \<open> Attrib.thms >> (fn thms => fn ctxt => 
      SIMPLE_METHOD (templateF_left_tac 
                     full_simp_tac
                     CSPF_free_decompo_flag
-                    cspF_step_core ctxt thms)) *}
+                    cspF_step_core ctxt thms)) \<close>
   "apply step-laws to left process"
 
 method_setup cspF_step_right =
-  {* Attrib.thms >> (fn thms => fn ctxt => 
+  \<open> Attrib.thms >> (fn thms => fn ctxt => 
      SIMPLE_METHOD (templateF_right_tac 
                     full_simp_tac
                     CSPF_free_decompo_flag
-                    cspF_step_core ctxt thms)) *}
+                    cspF_step_core ctxt thms)) \<close>
   "apply step-laws to right process"
 
 method_setup cspF_step =
-  {* Attrib.thms >> (fn thms => fn ctxt => 
+  \<open> Attrib.thms >> (fn thms => fn ctxt => 
      SIMPLE_METHOD (templateF_both_tac 
                     full_simp_tac
                     CSPF_free_decompo_flag
-                    cspF_step_core ctxt thms)) *}
+                    cspF_step_core ctxt thms)) \<close>
    "apply step-laws to both processes"
 
 (*=================================================*
@@ -836,27 +836,27 @@ method_setup cspF_step =
  *---------------------------------*)
 
 method_setup cspF_light_step_left =
-  {* Attrib.thms >> (fn thms => fn ctxt => 
+  \<open> Attrib.thms >> (fn thms => fn ctxt => 
      SIMPLE_METHOD (templateF_left_tac 
                     full_simp_tac
                     CSPF_free_decompo_flag
-                    cspF_light_step_core ctxt thms)) *}
+                    cspF_light_step_core ctxt thms)) \<close>
   "unfold prefix in left process"
 
 method_setup cspF_light_step_right =
-  {* Attrib.thms >> (fn thms => fn ctxt => 
+  \<open> Attrib.thms >> (fn thms => fn ctxt => 
      SIMPLE_METHOD (templateF_right_tac 
                     full_simp_tac
                     CSPF_free_decompo_flag
-                    cspF_light_step_core ctxt thms)) *}
+                    cspF_light_step_core ctxt thms)) \<close>
   "unfold prefix in right process"
 
 method_setup cspF_light_step =
-  {* Attrib.thms >> (fn thms => fn ctxt => 
+  \<open> Attrib.thms >> (fn thms => fn ctxt => 
      SIMPLE_METHOD (templateF_both_tac 
                     full_simp_tac
                     CSPF_free_decompo_flag
-                    cspF_light_step_core ctxt thms)) *}
+                    cspF_light_step_core ctxt thms)) \<close>
    "unfold prefix in both processes"
 
 (*=================================================*
@@ -870,27 +870,27 @@ method_setup cspF_light_step =
  *-----------------------------*)
 
 method_setup cspF_prefix_left =
-  {* Attrib.thms >> (fn thms => fn ctxt => 
+  \<open> Attrib.thms >> (fn thms => fn ctxt => 
      SIMPLE_METHOD (templateF_left_tac 
                     full_simp_tac
                     CSPF_free_decompo_flag
-                    cspF_prefix_core ctxt thms)) *}
+                    cspF_prefix_core ctxt thms)) \<close>
   "fold prefix in left process"
 
 method_setup cspF_prefix_right =
-  {* Attrib.thms >> (fn thms => fn ctxt => 
+  \<open> Attrib.thms >> (fn thms => fn ctxt => 
      SIMPLE_METHOD (templateF_right_tac 
                     full_simp_tac
                     CSPF_free_decompo_flag
-                    cspF_prefix_core ctxt thms)) *}
+                    cspF_prefix_core ctxt thms)) \<close>
   "fold prefix in right process"
 
 method_setup cspF_prefix =
-  {* Attrib.thms >> (fn thms => fn ctxt => 
+  \<open> Attrib.thms >> (fn thms => fn ctxt => 
      SIMPLE_METHOD (templateF_both_tac 
                     full_simp_tac
                     CSPF_free_decompo_flag
-                    cspF_prefix_core ctxt thms)) *}
+                    cspF_prefix_core ctxt thms)) \<close>
   "fold prefix in both processes"
 
 (*=======================================================*
@@ -904,29 +904,29 @@ method_setup cspF_prefix =
  |                                                       |
  *=======================================================*)
 
-ML {*
+ML \<open>
 fun templateF_leftE_tac simptac decompo f ctxt thms =
  CHANGED (
   EVERY
    [resolve_tac ctxt CSPF_rw_flag_leftE 1,
     templateF_main_tac simptac decompo f ctxt thms ])
-*}
+\<close>
 
-ML {*
+ML \<open>
 fun templateF_rightE_tac simptac decompo f ctxt thms =
  CHANGED (
   EVERY
    [resolve_tac ctxt CSPF_rw_flag_rightE 1,
     templateF_main_tac simptac decompo f ctxt thms ])
-*}
+\<close>
 
-ML {*
+ML \<open>
 fun templateF_bothE_tac simptac decompo f ctxt thms =
  CHANGED (
   EVERY
    [TRY (templateF_leftE_tac simptac decompo f ctxt thms),
     TRY (templateF_rightE_tac simptac decompo f ctxt thms)])
-*}
+\<close>
 
 (*
  simptac:
@@ -953,27 +953,27 @@ fun templateF_bothE_tac simptac decompo f ctxt thms =
  *-----------------------*)
 
 method_setup cspF_asm_leftE =
-  {* Attrib.thms >> (fn thms => fn ctxt => 
+  \<open> Attrib.thms >> (fn thms => fn ctxt => 
      SIMPLE_METHOD (templateF_leftE_tac 
                     asm_full_simp_tac
                     CSPF_free_decompo_flag
-                    cspF_simp_core ctxt thms)) *}
+                    cspF_simp_core ctxt thms)) \<close>
   "simplify leftE process"
 
 method_setup cspF_asm_rightE =
-  {* Attrib.thms >> (fn thms => fn ctxt => 
+  \<open> Attrib.thms >> (fn thms => fn ctxt => 
      SIMPLE_METHOD (templateF_rightE_tac 
                     asm_full_simp_tac
                     CSPF_free_decompo_flag
-                    cspF_simp_core ctxt thms)) *}
+                    cspF_simp_core ctxt thms)) \<close>
   "simplify rightE process"
 
 method_setup cspF_asmE =
-  {* Attrib.thms >> (fn thms => fn ctxt => 
+  \<open> Attrib.thms >> (fn thms => fn ctxt => 
      SIMPLE_METHOD (templateF_bothE_tac 
                     asm_full_simp_tac
                     CSPF_free_decompo_flag
-                    cspF_simp_core ctxt thms)) *}
+                    cspF_simp_core ctxt thms)) \<close>
   "simplify bothE processes"
 
 (*------------------------*
@@ -981,27 +981,27 @@ method_setup cspF_asmE =
  *------------------------*)
 
 method_setup cspF_asm_deep_leftE =
-  {* Attrib.thms >> (fn thms => fn ctxt => 
+  \<open> Attrib.thms >> (fn thms => fn ctxt => 
      SIMPLE_METHOD (templateF_leftE_tac 
                     asm_full_simp_tac
                     CSPF_decompo
-                    cspF_simp_core ctxt thms)) *}
+                    cspF_simp_core ctxt thms)) \<close>
   "deeply simplify leftE process"
 
 method_setup cspF_asm_deep_rightE =
-  {* Attrib.thms >> (fn thms => fn ctxt => 
+  \<open> Attrib.thms >> (fn thms => fn ctxt => 
      SIMPLE_METHOD (templateF_rightE_tac 
                     asm_full_simp_tac
                     CSPF_decompo
-                    cspF_simp_core ctxt thms)) *}
+                    cspF_simp_core ctxt thms)) \<close>
   "deeply simplify rightE process"
 
 method_setup cspF_asm_deepE =
-  {* Attrib.thms >> (fn thms => fn ctxt => 
+  \<open> Attrib.thms >> (fn thms => fn ctxt => 
      SIMPLE_METHOD (templateF_bothE_tac 
                     asm_full_simp_tac
                     CSPF_decompo
-                    cspF_simp_core ctxt thms)) *}
+                    cspF_simp_core ctxt thms)) \<close>
   "deeply simplify bothE processes"
 
 
@@ -1016,27 +1016,27 @@ method_setup cspF_asm_deepE =
  *---------------------------------*)
 
 method_setup cspF_simp_leftE =
-  {* Attrib.thms >> (fn thms => fn ctxt => 
+  \<open> Attrib.thms >> (fn thms => fn ctxt => 
      SIMPLE_METHOD (templateF_leftE_tac 
                     full_simp_tac
                     CSPF_free_decompo_flag
-                    cspF_simp_core ctxt thms)) *}
+                    cspF_simp_core ctxt thms)) \<close>
   "simplify leftE process without using assumptions"
 
 method_setup cspF_simp_rightE =
-  {* Attrib.thms >> (fn thms => fn ctxt => 
+  \<open> Attrib.thms >> (fn thms => fn ctxt => 
      SIMPLE_METHOD (templateF_rightE_tac 
                     full_simp_tac
                     CSPF_free_decompo_flag
-                    cspF_simp_core ctxt thms)) *}
+                    cspF_simp_core ctxt thms)) \<close>
   "simplify rightE process without using assumptions"
 
 method_setup cspF_simpE =
-  {* Attrib.thms >> (fn thms => fn ctxt => 
+  \<open> Attrib.thms >> (fn thms => fn ctxt => 
      SIMPLE_METHOD (templateF_bothE_tac 
                     full_simp_tac
                     CSPF_free_decompo_flag
-                    cspF_simp_core ctxt thms)) *}
+                    cspF_simp_core ctxt thms)) \<close>
   "simplify bothE processes without using assumptions"
 
 (*-----------------------------*
@@ -1044,27 +1044,27 @@ method_setup cspF_simpE =
  *-----------------------------*)
 
 method_setup cspF_simp_deep_leftE =
-  {* Attrib.thms >> (fn thms => fn ctxt => 
+  \<open> Attrib.thms >> (fn thms => fn ctxt => 
      SIMPLE_METHOD (templateF_leftE_tac 
                     full_simp_tac
                     CSPF_decompo
-                    cspF_simp_core ctxt thms)) *}
+                    cspF_simp_core ctxt thms)) \<close>
   "deeply simplify leftE process without using assumptions"
 
 method_setup cspF_simp_deep_rightE =
-  {* Attrib.thms >> (fn thms => fn ctxt => 
+  \<open> Attrib.thms >> (fn thms => fn ctxt => 
      SIMPLE_METHOD (templateF_rightE_tac 
                     full_simp_tac
                     CSPF_decompo
-                    cspF_simp_core ctxt thms)) *}
+                    cspF_simp_core ctxt thms)) \<close>
   "deeply simplify rightE process without using assumptions"
 
 method_setup cspF_simp_deepE =
-  {* Attrib.thms >> (fn thms => fn ctxt => 
+  \<open> Attrib.thms >> (fn thms => fn ctxt => 
      SIMPLE_METHOD (templateF_bothE_tac 
                     full_simp_tac
                     CSPF_decompo
-                    cspF_simp_core ctxt thms)) *}
+                    cspF_simp_core ctxt thms)) \<close>
   "deeply simplify bothE processes without using assumptions"
 
 (*=================================================*
@@ -1078,27 +1078,27 @@ method_setup cspF_simp_deepE =
  *---------------------------------*)
 
 method_setup cspF_ren_leftE =
-  {* Attrib.thms >> (fn thms => fn ctxt => 
+  \<open> Attrib.thms >> (fn thms => fn ctxt => 
      SIMPLE_METHOD (templateF_leftE_tac 
                     full_simp_tac
                     CSPF_free_decompo_flag
-                    cspF_ren_core ctxt thms)) *}
+                    cspF_ren_core ctxt thms)) \<close>
   "rename leftE process without using assumptions"
 
 method_setup cspF_ren_rightE =
-  {* Attrib.thms >> (fn thms => fn ctxt => 
+  \<open> Attrib.thms >> (fn thms => fn ctxt => 
      SIMPLE_METHOD (templateF_rightE_tac 
                     full_simp_tac
                     CSPF_free_decompo_flag
-                    cspF_ren_core ctxt thms)) *}
+                    cspF_ren_core ctxt thms)) \<close>
   "rename rightE process without using assumptions"
 
 method_setup cspF_renE =
-  {* Attrib.thms >> (fn thms => fn ctxt => 
+  \<open> Attrib.thms >> (fn thms => fn ctxt => 
      SIMPLE_METHOD (templateF_bothE_tac 
                     full_simp_tac
                     CSPF_free_decompo_flag
-                    cspF_ren_core ctxt thms)) *}
+                    cspF_ren_core ctxt thms)) \<close>
   "rename bothE processes without using assumptions"
 
 (*---------------------------------*
@@ -1106,27 +1106,27 @@ method_setup cspF_renE =
  *---------------------------------*)
 
 method_setup cspF_ren_deep_leftE =
-  {* Attrib.thms >> (fn thms => fn ctxt => 
+  \<open> Attrib.thms >> (fn thms => fn ctxt => 
      SIMPLE_METHOD (templateF_leftE_tac 
                     full_simp_tac
                     CSPF_decompo
-                    cspF_ren_core ctxt thms)) *}
+                    cspF_ren_core ctxt thms)) \<close>
   "deeply rename leftE process without using assumptions"
 
 method_setup cspF_ren_deep_rightE =
-  {* Attrib.thms >> (fn thms => fn ctxt => 
+  \<open> Attrib.thms >> (fn thms => fn ctxt => 
      SIMPLE_METHOD (templateF_rightE_tac 
                     full_simp_tac
                     CSPF_decompo
-                    cspF_ren_core ctxt thms)) *}
+                    cspF_ren_core ctxt thms)) \<close>
   "deeply rename rightE process without using assumptions"
 
 method_setup cspF_ren_deepE =
-  {* Attrib.thms >> (fn thms => fn ctxt => 
+  \<open> Attrib.thms >> (fn thms => fn ctxt => 
      SIMPLE_METHOD (templateF_bothE_tac 
                     full_simp_tac
                     CSPF_decompo
-                    cspF_ren_core ctxt thms)) *}
+                    cspF_ren_core ctxt thms)) \<close>
   "deeply rename bothE processes without using assumptions"
 
 
@@ -1141,27 +1141,27 @@ method_setup cspF_ren_deepE =
  *----------------------------*)
 
 method_setup cspF_hsf_leftE =
-  {* Attrib.thms >> (fn thms => fn ctxt => 
+  \<open> Attrib.thms >> (fn thms => fn ctxt => 
      SIMPLE_METHOD (templateF_leftE_tac 
                     full_simp_tac
                     CSPF_free_decompo_flag
-                    cspF_hsf_core ctxt thms)) *}
+                    cspF_hsf_core ctxt thms)) \<close>
   "sequentialize leftE process without using assumptions"
 
 method_setup cspF_hsf_rightE =
-  {* Attrib.thms >> (fn thms => fn ctxt => 
+  \<open> Attrib.thms >> (fn thms => fn ctxt => 
      SIMPLE_METHOD (templateF_rightE_tac 
                     full_simp_tac
                     CSPF_free_decompo_flag
-                    cspF_hsf_core ctxt thms)) *}
+                    cspF_hsf_core ctxt thms)) \<close>
   "sequentialize rightE process without using assumptions"
 
 method_setup cspF_hsfE =
-  {* Attrib.thms >> (fn thms => fn ctxt => 
+  \<open> Attrib.thms >> (fn thms => fn ctxt => 
      SIMPLE_METHOD (templateF_bothE_tac 
                     full_simp_tac
                     CSPF_free_decompo_flag
-                    cspF_hsf_core ctxt thms)) *}
+                    cspF_hsf_core ctxt thms)) \<close>
   "sequentialize bothE processes without using assumptions"
 
 
@@ -1176,28 +1176,28 @@ method_setup cspF_hsfE =
  *----------------------------*)
 
 method_setup cspF_auto_leftE =
-  {* Attrib.thms >> (fn thms => fn ctxt => 
+  \<open> Attrib.thms >> (fn thms => fn ctxt => 
      SIMPLE_METHOD (templateF_leftE_tac 
                     asm_full_simp_tac
                     CSPF_free_decompo_flag
-                    cspF_auto_core ctxt thms)) *}
+                    cspF_auto_core ctxt thms)) \<close>
   "apply all possible laws to left process with using assumption"
 
 
 method_setup cspF_auto_rightE =
-  {* Attrib.thms >> (fn thms => fn ctxt => 
+  \<open> Attrib.thms >> (fn thms => fn ctxt => 
      SIMPLE_METHOD (templateF_rightE_tac 
                     asm_full_simp_tac
                     CSPF_free_decompo_flag
-                    cspF_auto_core ctxt thms)) *}
+                    cspF_auto_core ctxt thms)) \<close>
   "apply all possible laws to right process with using assumption"
 
 method_setup cspF_autoE =
-  {* Attrib.thms >> (fn thms => fn ctxt => 
+  \<open> Attrib.thms >> (fn thms => fn ctxt => 
      SIMPLE_METHOD (templateF_bothE_tac 
                     asm_full_simp_tac
                     CSPF_free_decompo_flag
-                    cspF_auto_core ctxt thms)) *}
+                    cspF_auto_core ctxt thms)) \<close>
   "apply all possible laws to both process with using assumption"
 
 
@@ -1213,27 +1213,27 @@ method_setup cspF_autoE =
  *-------------------------------*)
 
 method_setup cspF_unwind_leftE =
-  {* Attrib.thms >> (fn thms => fn ctxt => 
+  \<open> Attrib.thms >> (fn thms => fn ctxt => 
      SIMPLE_METHOD (templateF_leftE_tac 
                     full_simp_tac
                     CSPF_free_decompo_flag
-                    cspF_unwind_core ctxt thms)) *}
+                    cspF_unwind_core ctxt thms)) \<close>
   "unwind leftE process without using assumptions"
 
 method_setup cspF_unwind_rightE =
-  {* Attrib.thms >> (fn thms => fn ctxt => 
+  \<open> Attrib.thms >> (fn thms => fn ctxt => 
      SIMPLE_METHOD (templateF_rightE_tac 
                     full_simp_tac
                     CSPF_free_decompo_flag
-                    cspF_unwind_core ctxt thms)) *}
+                    cspF_unwind_core ctxt thms)) \<close>
   "unwind rightE process without using assumptions"
 
 method_setup cspF_unwindE =
-  {* Attrib.thms >> (fn thms => fn ctxt => 
+  \<open> Attrib.thms >> (fn thms => fn ctxt => 
      SIMPLE_METHOD (templateF_bothE_tac 
                     full_simp_tac
                     CSPF_free_decompo_flag
-                    cspF_unwind_core ctxt thms)) *}
+                    cspF_unwind_core ctxt thms)) \<close>
   "unwind bothE processes without using assumptions"
 
 

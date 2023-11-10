@@ -628,7 +628,7 @@ done
 
 (*** distance ***)
 
-declare [[show_sorts]]
+(*declare [[show_sorts]]*)
 
 
 lemma distance_fstF_compo_le: 

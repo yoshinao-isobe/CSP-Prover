@@ -151,7 +151,7 @@ by (simp add: ALL_cspT_unwind_cpo)
 
 (*-------------------------------------------------------*
  |                                                       |
- |    fixed point inducntion (CSP-Prover intro rule)     |
+ |    fixed point induction (CSP-Prover intro rule)      |
  |                                                       |
  *-------------------------------------------------------*)
 
@@ -386,4 +386,28 @@ declare Inter_image_eq [simp]
 declare Sup_image_eq [simp]
 declare Inf_image_eq [simp]
 *)
+
+
+(* -------------------------------------------------- *
+           convenient lemmas for mappings
+ * -------------------------------------------------- *)
+
+lemma Lemma_fp_induct_eqT_isMapping_procfun :
+    "\<lbrakk> Pf = PNfun ; guardedfun (Pf::'up \<Rightarrow> ('up,'e) proc) ;
+     Qf = PNfun ; guardedfun (Qf::'down \<Rightarrow> ('down,'e) proc) ;
+     isMapping_procfun (f::'down \<Rightarrow> ('up,'e) proc);
+     f q = $p; Pf (p) =T (Qf q) << f \<rbrakk> \<Longrightarrow>
+    f (q::'down) =T (Qf (q)) << f"
+  apply (simp add: isMapping_procfun_def)
+  by (rule cspT_rw_left, rule cspT_unwind, simp_all)
+
+lemma Lemma_fp_induct_refT_isMapping_procfun :
+    "\<lbrakk> Pf = PNfun ; guardedfun (Pf::'up \<Rightarrow> ('up,'e) proc) ;
+     Qf = PNfun ; guardedfun (Qf::'down \<Rightarrow> ('down,'e) proc) ;
+     isMapping_procfun (f::'down \<Rightarrow> ('up,'e) proc);
+     f q = $p; Pf (p) <=T (Qf q) << f \<rbrakk> \<Longrightarrow>
+    f (q::'down) <=T (Qf (q)) << f"
+  apply (simp add: isMapping_procfun_def)
+  by (rule cspT_rw_left, rule cspT_unwind, simp_all)
+
 end
