@@ -11,8 +11,7 @@
             *-------------------------------------------*)
 
 theory TSF_Infra
-imports tockCSP_DFP.tockCSP_Infra_DFP
-        tockCSP.tockCSP_tock
+imports tockCSP_DFP.tockCSP_DFP_Main
 begin
 
 

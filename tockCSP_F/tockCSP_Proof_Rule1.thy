@@ -18,7 +18,7 @@ begin
 
 subsection \<open> Roscoe Rule to check timestops using stable-failures model \<close>
 
-text \<open> WARNING: Well Timedness (Zeno Behaviour) IS NOT checked using this
+text \<open> WARNING: Well Timedness (no Zeno Behaviour) IS NOT checked using this
                 rule because we are NOT using failures-divergences model. \<close>
 
 theorem Rule_check_timestops_Roscoe :

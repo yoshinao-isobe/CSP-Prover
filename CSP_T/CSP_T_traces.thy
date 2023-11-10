@@ -35,6 +35,19 @@ by (simp add: traces_iff)
  |             SKIP               |
  *--------------------------------*)
 
+lemma SKIP_domT: "{t. (t = <> | t = <Tick>) } : domT"
+  apply (simp add: domT_def HC_T1_def)
+  apply (rule conjI)
+  apply (rule_tac x="<>" in exI, simp)
+  
+  apply (simp add: prefix_closed_def)
+  apply (intro allI impI)
+  apply (elim conjE exE)
+  
+  apply (erule disjE, simp)    (* <> *)  
+  by (simp_all)
+
+
 lemma in_traces_SKIP: "(t :t traces(SKIP) M) = (t = <> | t = <Tick>)"
 by (simp add: traces_iff)
 
